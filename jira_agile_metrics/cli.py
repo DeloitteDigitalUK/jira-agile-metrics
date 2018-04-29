@@ -57,7 +57,7 @@ parser.add_argument('--charts-burnup-forecast-title', metavar='"Burn-up forecast
 parser.add_argument('--charts-burnup-forecast-target', metavar='<num stories>', type=int, help="Target completion scope for forecast. Defaults to current size of backlog.")
 parser.add_argument('--charts-burnup-forecast-deadline', metavar=datetime.date.today().isoformat(), help="Deadline date for completion of backlog. If set, it will be shown on the chart, and the forecast delta will also be shown.")
 parser.add_argument('--charts-burnup-forecast-deadline-confidence', metavar=.85, type=float, help="Quantile to use when comparing deadline to forecast.")
-parser.add_argument('--charts-burnup-forecast-trials', metavar='100', type=int, default=100, help="Number of iterations in Monte Carlo simulation.")
+parser.add_argument('--charts-burnup-forecast-trials', metavar='100', type=int, default=1000, help="Number of iterations in Monte Carlo simulation.")
 
 parser.add_argument('--charts-wip', metavar='wip', help="Draw weekly WIP box plot")
 parser.add_argument('--charts-wip-title', metavar='"Weekly WIP"', help="Title for WIP chart")
@@ -92,8 +92,6 @@ def get_jira_client(connection):
 def to_json_string(value):
     if isinstance(value, pd.Timestamp):
         return value.strftime("%Y-%m-%d")
-    if isinstance(value, str):
-        return value.encode('utf-8')
     if value in (None, np.NaN, pd.NaT):
         return ""
 
@@ -168,7 +166,7 @@ def main():
         columns = ['key', 'url', 'summary'] + cycle_names + ['issue_type', 'status', 'resolution'] + field_names + query_attribute_names
 
         if output_format == 'json':
-            values = [header] + [map(to_json_string, row) for row in cycle_data[columns].values.tolist()]
+            values = [header] + [list(map(to_json_string, row)) for row in cycle_data[columns].values.tolist()]
             with open(args.output, 'w') as out:
                 out.write(json.dumps(values))
         elif output_format == 'xlsx':

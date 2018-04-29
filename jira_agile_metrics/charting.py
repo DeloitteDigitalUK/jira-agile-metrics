@@ -50,7 +50,7 @@ def cycle_time_scatterplot(cycle_data, percentiles=[0.3, 0.5, 0.75, 0.85, 0.95],
         ax.annotate("%.0f%% (%.0f days)" % ((percentile * 100), value,),
             xy=(left, value),
             xytext=(left + 1, value + 0.5),
-            fontsize="small",
+            fontsize="x-small",
             ha="left"
         )
 
@@ -64,14 +64,14 @@ def cycle_time_histogram(cycle_data, bins=30, percentiles=[0.3, 0.5, 0.75, 0.85,
         raise UnchartableData("Need at least 2 completed items to draw histogram")
 
     if ax is None:
-        fig, ax = plt.subplots()
+        _, ax = plt.subplots()
 
     sns.distplot(ct_days, bins=bins, ax=ax, axlabel="Cycle time (days)")
     
     if title is not None:
         ax.set_title(title)
 
-    left, right = ax.get_xlim()
+    _, right = ax.get_xlim()
     ax.set_xlim(0, right)
 
     # Add percentiles
@@ -82,7 +82,7 @@ def cycle_time_histogram(cycle_data, bins=30, percentiles=[0.3, 0.5, 0.75, 0.85,
             xy=(value, top),
             xytext=(value, top - 0.001),
             rotation="vertical",
-            fontsize="small",
+            fontsize="x-small",
             ha="right"
         )
 
@@ -160,7 +160,7 @@ def throughput_trend_chart(throughput_data, title=None, ax=None):
 
     ax.bar(throughput_data.index, throughput_data['count'])
 
-    bottom, top = ax.get_ylim()
+    _, top = ax.get_ylim()
     ax.set_ylim(0, top + 1)
 
     for x, y in zip(throughput_data.index, throughput_data['count']):
@@ -183,7 +183,7 @@ def burnup(cfd_data, backlog_column=None, done_column=None, title=None, ax=None)
         raise UnchartableData("Cannot draw burnup with no data")
 
     if ax is None:
-        fig, ax = plt.subplots()
+        _, ax = plt.subplots()
 
     if title is not None:
         ax.set_title(title)
@@ -399,7 +399,7 @@ def ageing_wip_chart(cycle_data, start_column, end_column, done_column=None, now
         raise UnchartableData("Cannot draw ageing WIP chart with no data")
 
     if ax is None:
-        fig, ax = plt.subplots()
+        _, ax = plt.subplots()
     
     if title is not None:
         ax.set_title(title)
@@ -444,7 +444,7 @@ def ageing_wip_chart(cycle_data, start_column, end_column, done_column=None, now
 
     ax.set_xticklabels(ax.xaxis.get_majorticklabels(), rotation=90)
 
-    bottom, top = ax.get_ylim()
+    _, top = ax.get_ylim()
     ax.set_ylim(0, top)
 
     return ax
@@ -459,14 +459,14 @@ def wip_chart(cfd_data, frequency="1W-MON", start_column=None, end_column=None, 
         end_column = cfd_data.columns[-1]
 
     if ax is None:
-        fig, ax = plt.subplots()
+        _, ax = plt.subplots()
 
     if title is not None:
         ax.set_title(title)
 
     wip_data = pd.DataFrame({'wip': cfd_data[start_column] - cfd_data[end_column]})
 
-    groups = wip_data[['wip']].groupby(pd.TimeGrouper(frequency, label='left'))
+    groups = wip_data[['wip']].groupby(pd.Grouper(freq=frequency, label='left'))
     labels = [x[0].strftime("%d/%m/%Y") for x in groups]
 
     groups.boxplot(subplots=False, ax=ax, showmeans=True, return_type='axes')
@@ -487,7 +487,7 @@ def net_flow_chart(cfd_data, frequency="1W-MON", start_column=None, end_column=N
         end_column = cfd_data.columns[-1]
 
     if ax is None:
-        fig, ax = plt.subplots()
+        _, ax = plt.subplots()
     
     if title is not None:
         ax.set_title(title)
