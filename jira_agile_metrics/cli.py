@@ -14,7 +14,7 @@ from .config import config_to_options
 from .cycletime import CycleTimeQueries
 from . import charting
 
-parser = argparse.ArgumentParser(description='Extract cycle time analytics data from JIRA.')
+parser = argparse.ArgumentParser(description='Extract Agile metrics data from JIRA and produce data and charts.')
 parser.add_argument('config', metavar='config.yml', help='Configuration file')
 parser.add_argument('output', metavar='data.csv', nargs='?', help='Output file. Contains all issues described by the configuration file, metadata, and dates of entry to each state in the cycle.')
 parser.add_argument('-v', dest='verbose', action='store_true', help='Verbose output')

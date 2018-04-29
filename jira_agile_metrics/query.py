@@ -84,11 +84,11 @@ class QueryManager(object):
                     value = values[0]
                 else:
                     try:
-                        value = next(itertools.ifilter(lambda v: v in values, self.settings['known_values'][name]))
+                        value = next(filter(lambda v: v in values, self.settings['known_values'][name]))
                     except StopIteration:
                         value = None
 
-        if not isinstance(value, (int, float, bool, str, unicode)):
+        if not isinstance(value, (int, float, bool, str, bytes)):
             try:
                 value = str(value)
             except TypeError:
@@ -104,10 +104,10 @@ class QueryManager(object):
         is_resolved = False
 
         # Find the first status change, if any
-        status_changes = filter(
+        status_changes = list(filter(
             lambda h: h.field == 'status',
             itertools.chain.from_iterable([c.items for c in issue.changelog.histories])
-        )
+        ))
         last_status = status_changes[0].fromString if len(status_changes) > 0 else issue.fields.status.name
         last_resolution = None
 
@@ -124,7 +124,7 @@ class QueryManager(object):
         for change in issue.changelog.histories:
             change_date = dateutil.parser.parse(change.created)
 
-            resolutions = filter(lambda i: i.field == 'resolution', change.items)
+            resolutions = list(filter(lambda i: i.field == 'resolution', change.items))
             is_resolved = (resolutions[-1].to is not None) if len(resolutions) > 0 else is_resolved
 
             for item in change.items:

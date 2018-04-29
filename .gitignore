@@ -125,3 +125,6 @@ ENV/
 config.yml
 *.csv
 *.png
+
+# VS Code
+.vscode

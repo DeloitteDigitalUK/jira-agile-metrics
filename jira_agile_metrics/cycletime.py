@@ -95,12 +95,12 @@ class CycleTimeQueries(QueryManager):
         completed_steps = set(s['name'] for s in self.settings['cycle'] if s['type'] == StatusTypes.complete)
 
         series = {
-            'key': {'data': [], 'dtype': 'string'},
-            'url': {'data': [], 'dtype': 'string'},
-            'issue_type': {'data': [], 'dtype': 'string'},
-            'summary': {'data': [], 'dtype': 'string'},
-            'status': {'data': [], 'dtype': 'string'},
-            'resolution': {'data': [], 'dtype': 'string'},
+            'key': {'data': [], 'dtype': 'str'},
+            'url': {'data': [], 'dtype': 'str'},
+            'issue_type': {'data': [], 'dtype': 'str'},
+            'summary': {'data': [], 'dtype': 'str'},
+            'status': {'data': [], 'dtype': 'str'},
+            'resolution': {'data': [], 'dtype': 'str'},
             'cycle_time': {'data': [], 'dtype': 'timedelta64[ns]'},
             'completed_timestamp': {'data': [], 'dtype': 'datetime64[ns]'}
         }
@@ -112,7 +112,7 @@ class CycleTimeQueries(QueryManager):
             series[name] = {'data': [], 'dtype': 'object'}
 
         if self.settings['query_attribute']:
-            series[self.settings['query_attribute']] = {'data': [], 'dtype': 'string'}
+            series[self.settings['query_attribute']] = {'data': [], 'dtype': 'str'}
 
         for criteria in self.settings['queries']:
             for issue in self.find_issues(criteria, order='updatedDate DESC', verbose=verbose):
