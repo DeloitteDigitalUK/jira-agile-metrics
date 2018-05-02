@@ -24,12 +24,6 @@ def to_datetime(date):
     """
     return datetime.datetime.combine(date, datetime.datetime.min.time())
 
-
-def strip_time(datetime):
-    """Return a version of the datetime with time set to zero.
-    """
-    return to_datetime(datetime.date())
-
 def to_days_since_epoch(d):
     return (d - datetime.datetime(1970, 1, 1)).days
 
