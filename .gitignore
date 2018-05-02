@@ -128,3 +128,4 @@ config.yml
 
 # VS Code
 .vscode
+.flake8

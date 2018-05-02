@@ -1,18 +1,6 @@
 import itertools
-import datetime
 import dateutil.parser
 import dateutil.tz
-
-def to_datetime(date):
-    """Turn a date into a datetime at midnight.
-    """
-    return datetime.datetime.combine(date, datetime.datetime.min.time())
-
-
-def strip_time(datetime):
-    """Return a version of the datetime with time set to zero.
-    """
-    return to_datetime(datetime.date())
 
 class IssueSnapshot(object):
     """A snapshot of the key fields of an issue at a point in its change history
@@ -48,12 +36,10 @@ class QueryManager(object):
 
     fields = {}  # resolved at runtime to JIRA fields
 
-    def __init__(self, jira, **kwargs):
+    def __init__(self, jira, settings):
         self.jira = jira
-        settings = self.settings.copy()
-        settings.update(kwargs)
-
-        self.settings = settings
+        self.settings = self.settings.copy()
+        self.settings.update(settings)
         self.resolve_fields()
 
     # Helpers
@@ -153,11 +139,11 @@ class QueryManager(object):
 
     # Basic queries
 
-    def find_issues(self, criteria={}, jql=None, order='KEY ASC', verbose=False):
+    def find_issues(self, criteria={}, jql=None, order='KEY ASC'):
         """Return a list of issues with changelog metadata.
 
         Searches for the `issue_types`, `project`, `valid_resolutions` and
-        'jql_filter' set in the passed-in `criteria` object.
+        `jql_filter` set in the passed-in `criteria` object.
 
         Pass a JQL string to further qualify the query results.
         """
@@ -181,12 +167,12 @@ class QueryManager(object):
 
         queryString = "%s ORDER BY %s" % (' AND '.join(query), order,)
 
-        if verbose:
+        if self.settings.get('verbose', False):
             print("Fetching issues with query:", queryString)
 
         issues = self.jira.search_issues(queryString, expand='changelog', maxResults=self.settings['max_results'])
 
-        if verbose:
+        if self.settings.get('verbose', False):
             print("Fetched", len(issues), "issues")
 
         return issues

@@ -1,0 +1,90 @@
+import matplotlib.pyplot as plt
+import statsmodels.formula.api as sm
+
+from .calculator import Calculator
+from .cycletime import CycleTimeCalculator
+from .utils import get_extension, set_chart_style
+
+class ThroughputCalculator(Calculator):
+    """Build a data frame with columns `completed_timestamp` of the
+    given frequency, and `count`, where count is the number of items
+    completed at that timestamp (e.g. daily).
+    """
+
+    def is_enabled(self):
+        return self.settings['throughput_data'] or self.settings['throughput_chart']
+
+    def run(self):
+        cycle_data = self.get_result(CycleTimeCalculator)
+        frequency = self.settings['throughput_frequency']
+
+        return cycle_data[['completed_timestamp', 'key']] \
+            .rename(columns={'key': 'count'}) \
+            .groupby('completed_timestamp').count() \
+            .resample(frequency).sum() \
+            .fillna(0)
+    
+    def write(self):
+        if self.settings['throughput_data']:
+            output_file = self.settings['throughput_data']
+            output_extension = get_extension(output_file)
+
+            file_data = self.get_result()
+
+            if output_extension == '.json':
+                file_data.to_json(output_file, date_format='iso')
+            elif output_extension == '.xlsx':
+                file_data.to_excel(output_file, 'Throughput', header=True)
+            else:
+                file_data.to_csv(output_file, header=True)
+        
+        if self.settings['throughput_chart']:
+            output_file = self.settings['throughput_chart']
+            chart_data = self.get_result()
+
+            if len(chart_data.index) < 0:
+                print("WARNING: Cannot draw throughput chart with no completed items")
+            else:
+
+                fig, ax = plt.subplots()
+
+                if self.settings['throughput_chart_title']:
+                    ax.set_title(self.settings['throughput_chart_title'])
+
+                fig.autofmt_xdate()
+
+                # Calculate zero-indexed days to allow linear regression calculation
+                day_zero = chart_data.index[0]
+                chart_data['day'] = (chart_data.index - day_zero).days
+
+                # Fit a linear regression (http://stackoverflow.com/questions/29960917/timeseries-fitted-values-from-trend-python)
+                fit = sm.ols(formula="count ~ day", data=chart_data).fit()
+                chart_data['fitted'] = fit.predict(chart_data)
+
+                # Plot
+
+                ax.set_xlabel("Completed date")
+                ax.set_ylabel("Number of items")
+
+                ax.bar(chart_data.index, chart_data['count'])
+
+                _, top = ax.get_ylim()
+                ax.set_ylim(0, top + 1)
+
+                for x, y in zip(chart_data.index, chart_data['count']):
+                    if y == 0:
+                        continue
+                    ax.annotate(
+                        "%.0f" % y,
+                        xy=(x.toordinal(), y + 0.2),
+                        ha='center',
+                        va='bottom',
+                        fontsize="x-small",
+                    )
+
+                ax.plot(chart_data.index, chart_data['fitted'], '--', linewidth=2)
+
+                set_chart_style('darkgrid')
+
+                fig = ax.get_figure()
+                fig.savefig(output_file, bbox_inches='tight', dpi=300)

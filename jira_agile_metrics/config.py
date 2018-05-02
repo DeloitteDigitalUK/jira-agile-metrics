@@ -1,4 +1,6 @@
 import yaml
+import dateutil.parser
+
 from pydicti import odicti
 
 from .cycletime import StatusTypes
@@ -25,6 +27,9 @@ def ordered_load(stream, Loader=yaml.Loader, object_pairs_hook=odicti):
 def force_list(val):
     return val if isinstance(val, (list, tuple,)) else [val]
 
+def expand_key(key):
+    return str(key).replace('_', ' ')
+
 def config_to_options(data):
     config = ordered_load(data, yaml.SafeLoader)
     options = {
@@ -32,14 +37,72 @@ def config_to_options(data):
             'domain': None,
             'username': None,
             'password': None,
-            'jira-client-options': {}
+            'jira_client_options': {}
         },
         'settings': {
             'queries': [],
             'query_attribute': None,
             'fields': {},
             'known_values': {},
-            'cycle': []
+            'cycle': [],
+            'max_results': None,
+            'verbose': False,
+        
+            'quantiles': [0.5, 0.85, 0.95],
+
+            'backlog_column': None,
+            'committed_column': None,
+            'final_column': None,
+            'done_column': None,
+
+            'throughput_window': 60,
+            'throughput_window_end': None,
+            'throughput_frequency': '1D',
+            
+            'charts_from': None,
+            'charts_to': None,
+            
+            'cycle_time_data': None,
+            'cfd_data': None,
+            'scatterplot_data': None,
+            'histogram_data': None,
+            'throughput_data': None,
+            'percentiles_data': None,
+
+            'scatterplot_chart': None,
+            'scatterplot_chart_title': None,
+            
+            'histogram_chart': None,
+            'histogram_chart_title': None,
+
+            'cfd_chart': None,
+            'cfd_chart_title': None,
+            
+            'throughput_chart': None,
+            'throughput_chart_title': None,
+            
+            'burnup_chart': None,
+            'burnup_chart_title': None,
+
+            'burnup_forecast_chart': None,
+            'burnup_forecast_chart_title': None,
+            'burnup_forecast_target': None,
+            'burnup_forecast_deadline': None,
+            'burnup_forecast_deadline_confidence': None,
+            'burnup_forecast_trials': 100,
+
+            'wip_chart': None,
+            'wip_chart_title': None,
+            'wip_chart_window': 6,
+            'wip_chart_frequency': '1W-MON',
+
+            'ageing_wip_chart': None,
+            'ageing_wip_chart_title': None,
+
+            'net_flow_chart': None,
+            'net_flow_chart_title': None,
+            'net_flow_chart_window': 6,
+            'net_flow_chart_frequency': '1W-MON',
         }
     }
 
@@ -59,8 +122,90 @@ def config_to_options(data):
     if 'password' in config['connection']:
         options['connection']['password'] = config['connection']['password']
 
-    if 'jira-client-options' in config['connection']:
-        options['connection']['jira-client-options'] = config['connection']['jira-client-options']
+    if 'jira_client_options' in config['connection']:
+        options['connection']['jira_client_options'] = config['connection']['jira_client_options']
+
+    # Parse and validate output options
+    if 'output' in config:
+
+        if 'quantiles' in config['output']:
+            options['settings']['quantiles'] = list(map(float, config['output']['quantiles']))
+
+        # int values
+        for key in [
+            'throughput_window',
+            'burnup_forecast_target',
+            'burnup_forecast_trials',
+            'wip_chart_window',
+            'net_flow_chart_window',
+        ]:
+            if expand_key(key) in config['output']:
+                options['settings'][key] = int(config['output'][expand_key(key)])
+        
+        # float values
+        for key in [
+            'burnup_forecast_deadline_confidence',
+        ]:
+            if expand_key(key) in config['output']:
+                options['settings'][key] = float(config['output'][expand_key(key)])
+
+        # date values
+        for key in [
+            'charts_from',
+            'charts_to',
+            'throughput_window_end',
+            'burnup_forecast_deadline',
+        ]:
+            if expand_key(key) in config['output']:
+                options['settings'][key] = dateutil.parser.parse(config['output'][expand_key(key)])
+
+        # string values that copy straight over
+        for key in [
+            'backlog_column',
+            'committed_column',
+            'final_column',
+            'done_column',
+
+            'throughput_frequency',
+
+            'cycle_time_data',
+            'cfd_data',
+            'scatterplot_data',
+            'histogram_data',
+            'throughput_data',
+            'percentiles_data',
+
+            'scatterplot_chart',
+            'scatterplot_chart_title',
+            
+            'histogram_chart',
+            'histogram_chart_title',
+
+            'cfd_chart',
+            'cfd_chart_title',
+            
+            'throughput_chart',
+            'throughput_chart_title',
+            
+            'burnup_chart',
+            'burnup_chart_title',
+
+            'burnup_forecast_chart',
+            'burnup_forecast_chart_title',
+        
+            'wip_chart',
+            'wip_chart_title',
+            'wip_chart_frequency',
+
+            'ageing_wip_chart',
+            'ageing_wip_chart_title',
+
+            'net_flow_chart',
+            'net_flow_chart_title',
+            'net_flow_chart_frequency',
+        ]:
+            if expand_key(key) in config['output']:
+                options['settings'][key] = config['output'][expand_key(key)]
 
     # Parse Queries (list of Criteria) and/or a single Criteria
 
