@@ -81,4 +81,3 @@ class HistogramCalculator(Calculator):
                 
                 fig = ax.get_figure()
                 fig.savefig(output_file, bbox_inches='tight', dpi=300)
-

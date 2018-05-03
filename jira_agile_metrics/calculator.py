@@ -51,15 +51,16 @@ def run_calculators(calculators, query_manager, settings):
     # Initialise all
     for c in calculators:
         c.initialize()
+    
+    # Only use enabled calculators
+    calculators = list(filter(lambda c: c.is_enabled(), calculators))
 
-    # Run all
+    # Run all calculators first
     for c in calculators:
-        if c.is_enabled():
-            results[c.__class__] = c.run()
+        results[c.__class__] = c.run()
 
-    # Write all files
+    # Write all files as a second pass
     for c in calculators:
-        if c.is_enabled():
-            c.write()
+        c.write()
 
     return results
