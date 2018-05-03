@@ -13,7 +13,7 @@ Install Python 3 and the `pip` package manager. Then run:
 You can do this globally, but you may want to use a virtual Python environment
 (`venv`) instead to keep things self-contained.
 
-See (The Hitchhiker's Guide to Python)[http://python-guide.org/en/latest/] for
+See [The Hitchhiker's Guide to Python](http://python-guide.org/en/latest/) for
 the full details about how to install Python and venvs.
 
 This should install a binary called `jira-agile-metrics` in the relevant `bin`
@@ -191,7 +191,7 @@ corresponding command line option.
 
 Details about each ticket and the date it entered each stage of the workflow.
 Both the CSV and JSON versions of this file can be used by the
-(Actionable Agile Analytics)[http://actionableagile.com/] tool, which offers
+[Actionable Agile Analytics](http://actionableagile.com/) tool, which offers
 powerful, interactive analysis of Agile flow.
 
 In the configuration file:
@@ -482,7 +482,7 @@ all items returned by the second query, it will be `Team 2`.
 
     backend : Agg
 * To install the charting dependencies on a Mac, you might need to install a
-  `gfortran` compiler for `scipy`. Use Homebrew (http://brew.sh) and install the
+  `gfortran` compiler for `scipy`. Use [Homebrew](http://brew.sh) and install the
   `gcc` brew.
 
 ## Changelog
