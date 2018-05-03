@@ -19,10 +19,8 @@ class NetFlowChartCalculator(Calculator):
         start_column = self.settings['committed_column'] or cycle_names[1]
         end_column = self.settings['final_column'] or cycle_names[-2]
         frequency = self.settings['net_flow_chart_frequency']
-        window = self.settings['net_flow_chart_window']
-        min_date = datetime.date.today() - datetime.timedelta(weeks=(window - 1))
-
-        net_flow_data = cfd_data[[start_column, end_column]][min_date:].resample(frequency, label='left').max()
+        
+        net_flow_data = cfd_data[[start_column, end_column]].resample(frequency, label='left').max()
         net_flow_data['arrivals'] = net_flow_data[start_column].diff()
         net_flow_data['departures'] = net_flow_data[end_column].diff()
         net_flow_data['net_flow'] = net_flow_data['departures'] - net_flow_data['arrivals']
@@ -46,7 +44,7 @@ class NetFlowChartCalculator(Calculator):
             ax.set_xlabel("Week")
             ax.set_ylabel("Net flow (departures - arrivals)")
 
-            chart_data['net_flow'].plot.bar(ax=ax, color=chart_data['positive'].map({True: 'b', False: 'r'}),)
+            chart_data['net_flow'].plot.bar(ax=ax, color=chart_data['positive'].map({True: 'r', False: 'b'}),)
 
             labels = [d.strftime("%d/%m/%Y") for d in chart_data.index]
             ax.set_xticklabels(labels, rotation=70, size='small')

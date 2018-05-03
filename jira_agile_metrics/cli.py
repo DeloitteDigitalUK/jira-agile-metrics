@@ -62,12 +62,8 @@ def configure_argument_parser():
     parser.add_argument('--committed-column', metavar='<name>', help="Name of the column from which work is considered committed. Defaults to the second column.")
     parser.add_argument('--final-column', metavar='<name>', help="Name of the final 'work' column. Defaults to the penultimate column.")
     parser.add_argument('--done-column', metavar='<name>', help="Name of the 'done' column. Defaults to the last column.")
-    parser.add_argument('--throughput-window', metavar='60', type=int, default=60, help="How many days in the past to use for calculating throughput")
-    parser.add_argument('--throughput-window-end', metavar=datetime.date.today().isoformat(), type=dateutil.parser.parse, help="By default, the throughput window runs to today's date. Use this option to set an alternative end date for the window.")
-    parser.add_argument('--throughput-frequency', metavar="1D", help="Interval to use for calculating frequency, e.g. 1D for daily or 1W for weekly")
-
-    parser.add_argument('--charts-from', metavar=(datetime.date.today() - datetime.timedelta(days=30)).isoformat(), type=dateutil.parser.parse, help="Limit time window when drawing charts to start from this date")
-    parser.add_argument('--charts-to', metavar=datetime.date.today().isoformat(), type=dateutil.parser.parse, help="Limit time window when drawing charts to end at this date")
+    
+    parser.add_argument('--throughput-frequency', metavar="1W", help="Interval to use for calculating frequency, e.g. 1D for daily or 1W for weekly")
 
     parser.add_argument('--cycle-time-data', metavar='cycles.csv', help='Output file suitable for processing Actionable Agile. Contains all issues described by the configuration file, metadata, and dates of entry to each state in the cycle.')
     parser.add_argument('--cfd-data', metavar='cfd.csv', help='Calculate data to draw a Cumulative Flow Diagram and write to file. Hint: Plot as a (non-stacked) area chart.')
@@ -97,10 +93,11 @@ def configure_argument_parser():
     parser.add_argument('--burnup-forecast-chart-deadline', metavar=datetime.date.today().isoformat(), type=dateutil.parser.parse, help="Deadline date for completion of backlog. If set, it will be shown on the chart, and the forecast delta will also be shown.")
     parser.add_argument('--burnup-forecast-chart-deadline-confidence', metavar=.85, type=float, help="Quantile to use when comparing deadline to forecast.")
     parser.add_argument('--burnup-forecast-chart-trials', metavar='100', type=int, default=100, help="Number of iterations in Monte Carlo simulation.")
+    parser.add_argument('--burnup-forecast-chart-throughput-window', metavar='60', type=int, default=60, help="How many days in the past to use for calculating throughput")
+    parser.add_argument('--burnup-forecast-chart-throughput-window-end', metavar=datetime.date.today().isoformat(), type=dateutil.parser.parse, help="By default, the throughput window runs to today's date. Use this option to set an alternative end date for the window.")
 
     parser.add_argument('--wip-chart', metavar='wip', help="Draw weekly WIP box plot")
     parser.add_argument('--wip-chart-title', metavar='"Weekly WIP"', help="Title for WIP chart")
-    parser.add_argument('--wip-chart-window', metavar='6', default=6, type=int, help="Number of weeks in the past for which to draw weekly WIP chart")
     parser.add_argument('--wip-chart-frequency', metavar='1W-MON', default="1W-MON", help="Frequency interval for WIP chart (1W-Mon means 1 week, starting Mondays)")
 
     parser.add_argument('--ageing-wip-chart', metavar='ageing-wip.png', help="Draw current ageing WIP chart")
@@ -108,7 +105,6 @@ def configure_argument_parser():
 
     parser.add_argument('--net-flow-chart', metavar='net-flow.png', help="Draw weekly net flow bar chart")
     parser.add_argument('--net-flow-chart-title', metavar='"Net flow"', help="Title for net flow bar chart`")
-    parser.add_argument('--net-flow-chart-window', metavar='6', default=6, type=int, help="Number of weeks in the past for which to draw net flow chart")
     parser.add_argument('--net-flow-chart-frequency', metavar='1W-MON', default="1W-MON", help="Frequency interval for net flow chart (1W-Mon means 1 week, starting Mondays)")
 
     return parser

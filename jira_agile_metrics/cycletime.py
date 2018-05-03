@@ -78,7 +78,7 @@ class CycleTimeCalculator(Calculator):
             series[self.settings['query_attribute']] = {'data': [], 'dtype': 'str'}
 
         for criteria in self.settings['queries']:
-            for issue in self.query_manager.find_issues(criteria, order='updatedDate DESC'):
+            for issue in self.query_manager.find_issues(criteria['jql']):
 
                 item = {
                     'key': issue.key,

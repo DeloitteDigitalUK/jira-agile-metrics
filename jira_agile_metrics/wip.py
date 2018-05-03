@@ -20,10 +20,7 @@ class WIPChartCalculator(Calculator):
         start_column = self.settings['committed_column'] or cycle_names[1]
         end_column = self.settings['final_column'] or cycle_names[-2]
         
-        window = self.settings['wip_chart_window']
-        min_date = datetime.date.today() - datetime.timedelta(weeks=(window - 1))
-
-        wip_data = cfd_data[[start_column, end_column]][min_date:]
+        wip_data = cfd_data[[start_column, end_column]]
         return pd.DataFrame({'wip': wip_data[start_column] - wip_data[end_column]})
     
     def write(self):

@@ -55,12 +55,7 @@ def config_to_options(data):
             'final_column': None,
             'done_column': None,
 
-            'throughput_window': 60,
-            'throughput_window_end': None,
-            'throughput_frequency': '1D',
-            
-            'charts_from': None,
-            'charts_to': None,
+            'throughput_frequency': '1W-MON',
             
             'cycle_time_data': None,
             'cfd_data': None,
@@ -86,14 +81,15 @@ def config_to_options(data):
 
             'burnup_forecast_chart': None,
             'burnup_forecast_chart_title': None,
-            'burnup_forecast_target': None,
-            'burnup_forecast_deadline': None,
-            'burnup_forecast_deadline_confidence': None,
-            'burnup_forecast_trials': 100,
+            'burnup_forecast_chart_target': None,
+            'burnup_forecast_chart_deadline': None,
+            'burnup_forecast_chart_deadline_confidence': None,
+            'burnup_forecast_chart_trials': 100,
+            'burnup_forecast_chart_throughput_window': 60,
+            'burnup_forecast_chart_throughput_window_end': None,
 
             'wip_chart': None,
             'wip_chart_title': None,
-            'wip_chart_window': 6,
             'wip_chart_frequency': '1W-MON',
 
             'ageing_wip_chart': None,
@@ -101,20 +97,14 @@ def config_to_options(data):
 
             'net_flow_chart': None,
             'net_flow_chart_title': None,
-            'net_flow_chart_window': 6,
             'net_flow_chart_frequency': '1W-MON',
         }
     }
 
     # Parse and validate Connection
 
-    if 'connection' not in config:
-        raise ConfigError("`Connection` section not found")
-
-    if 'domain' not in config['connection']:
-        raise ConfigError("No `Domain` set in the `Connection` section")
-
-    options['connection']['domain'] = config['connection']['domain']
+    if 'domain' in config['connection']:
+        options['connection']['domain'] = config['connection']['domain']
 
     if 'username' in config['connection']:
         options['connection']['username'] = config['connection']['username']
@@ -133,28 +123,24 @@ def config_to_options(data):
 
         # int values
         for key in [
-            'throughput_window',
-            'burnup_forecast_target',
-            'burnup_forecast_trials',
-            'wip_chart_window',
-            'net_flow_chart_window',
+            'burnup_forecast_chart_throughput_window',
+            'burnup_forecast_chart_target',
+            'burnup_forecast_chart_trials',
         ]:
             if expand_key(key) in config['output']:
                 options['settings'][key] = int(config['output'][expand_key(key)])
         
         # float values
         for key in [
-            'burnup_forecast_deadline_confidence',
+            'burnup_forecast_chart_deadline_confidence',
         ]:
             if expand_key(key) in config['output']:
                 options['settings'][key] = float(config['output'][expand_key(key)])
 
         # date values
         for key in [
-            'charts_from',
-            'charts_to',
-            'throughput_window_end',
-            'burnup_forecast_deadline',
+            'burnup_forecast_chart_throughput_window_end',
+            'burnup_forecast_chart_deadline',
         ]:
             if expand_key(key) in config['output']:
                 options['settings'][key] = dateutil.parser.parse(config['output'][expand_key(key)])
@@ -207,30 +193,24 @@ def config_to_options(data):
             if expand_key(key) in config['output']:
                 options['settings'][key] = config['output'][expand_key(key)]
 
-    # Parse Queries (list of Criteria) and/or a single Criteria
+    # Parse Queries and/or a single Query
 
     if 'queries' in config:
         options['settings']['query_attribute'] = config['queries'].get('attribute', None)
         for query in config['queries']['criteria']:
             options['settings']['queries'].append({
                 'value': query.get('value', None),
-                'project': query.get('project', None),
-                'issue_types': force_list(query.get('issue types', [])),
-                'valid_resolutions': force_list(query.get('valid resolutions', [])),
-                'jql_filter': query.get('jql', None)
+                'jql': query.get('jql', None),
             })
 
-    if 'criteria' in config:
+    if 'query' in config:
         options['settings']['queries'].append({
-            'value': config['criteria'].get('value', None),
-            'project': config['criteria'].get('project', None),
-            'issue_types': force_list(config['criteria'].get('issue types', [])),
-            'valid_resolutions': force_list(config['criteria'].get('valid resolutions', [])),
-            'jql_filter': config['criteria'].get('jql', None)
+            'value': None,
+            'jql': config['query'],
         })
 
     if len(options['settings']['queries']) == 0:
-        raise ConfigError("No `Criteria` or `Queries` section found")
+        raise ConfigError("No `Query` value or `Queries` section found")
 
     # Parse Workflow. Assume first status is backlog and last status is complete.
 

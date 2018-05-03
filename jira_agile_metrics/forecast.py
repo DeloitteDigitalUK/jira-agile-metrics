@@ -20,14 +20,14 @@ class BurnupForecastCalculator(Calculator):
         burnup_data = self.get_result(BurnupCalculator)
         cycle_data = self.get_result(CycleTimeCalculator)
         
-        throughput_window_end = self.settings['throughput_window_end'] or datetime.date.today()
-        throughput_window = self.settings['throughput_window']
+        throughput_window_end = self.settings['burnup_forecast_chart_throughput_window_end'] or datetime.date.today()
+        throughput_window = self.settings['burnup_forecast_chart_throughput_window']
 
         backlog_column = burnup_data.columns[0]
         done_column = burnup_data.columns[-1]
 
-        target = self.settings['burnup_forecast_target'] or burnup_data[backlog_column].max()
-        trials = self.settings['burnup_forecast_trials']
+        target = self.settings['burnup_forecast_chart_target'] or burnup_data[backlog_column].max()
+        trials = self.settings['burnup_forecast_chart_trials']
 
         throughput_window_start = throughput_window_end - datetime.timedelta(days=throughput_window)
 
@@ -51,15 +51,15 @@ class BurnupForecastCalculator(Calculator):
     
     def write(self):
         output_file = self.settings['burnup_forecast_chart']
-        deadline = self.settings['burnup_forecast_deadline']
-        deadline_confidence = self.settings['burnup_forecast_deadline_confidence']
+        deadline = self.settings['burnup_forecast_chart_deadline']
+        deadline_confidence = self.settings['burnup_forecast_chart_deadline_confidence']
         quantiles = self.settings['quantiles']
         
         burnup_data = self.get_result(BurnupCalculator)
         mc_trials = self.get_result()
 
         backlog_column = burnup_data.columns[0]
-        target = self.settings['burnup_forecast_target'] or burnup_data[backlog_column].max()
+        target = self.settings['burnup_forecast_chart_target'] or burnup_data[backlog_column].max()
 
         if len(burnup_data.index) < 0:
             print("WARNING: Cannot draw burnup chart with no completed items")

@@ -139,38 +139,15 @@ class QueryManager(object):
 
     # Basic queries
 
-    def find_issues(self, criteria={}, jql=None, order='KEY ASC'):
-        """Return a list of issues with changelog metadata.
-
-        Searches for the `issue_types`, `project`, `valid_resolutions` and
-        `jql_filter` set in the passed-in `criteria` object.
-
-        Pass a JQL string to further qualify the query results.
+    def find_issues(self, jql):
+        """Return a list of issues with changelog metadata for the given
+        JQL.
         """
 
-        query = []
-
-        if criteria.get('project', False):
-            query.append('project = %s' % criteria['project'])
-
-        if criteria.get('issue_types', False):
-            query.append('issueType IN (%s)' % ', '.join(['"%s"' % t for t in criteria['issue_types']]))
-
-        if criteria.get('valid_resolutions', False):
-            query.append('(resolution IS EMPTY OR resolution IN (%s))' % ', '.join(['"%s"' % r for r in criteria['valid_resolutions']]))
-
-        if criteria.get('jql_filter') is not None:
-            query.append('(%s)' % criteria['jql_filter'])
-
-        if jql is not None:
-            query.append('(%s)' % jql)
-
-        queryString = "%s ORDER BY %s" % (' AND '.join(query), order,)
-
         if self.settings.get('verbose', False):
-            print("Fetching issues with query:", queryString)
+            print("Fetching issues with query:", jql)
 
-        issues = self.jira.search_issues(queryString, expand='changelog', maxResults=self.settings['max_results'])
+        issues = self.jira.search_issues(jql, expand='changelog', maxResults=self.settings['max_results'])
 
         if self.settings.get('verbose', False):
             print("Fetched", len(issues), "issues")

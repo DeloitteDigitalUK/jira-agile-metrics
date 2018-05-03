@@ -30,8 +30,11 @@ setup(
         'python-dateutil',
         'pydicti',
         'openpyxl',
+        'flask',
     ],
-
+    tests_require=[
+        'pytest'
+    ],
     entry_points={
         'console_scripts': [
             'jira-agile-metrics=jira_agile_metrics.cli:main',
