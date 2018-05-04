@@ -38,7 +38,7 @@ CALCULATORS = (
 )
 
 def to_quantiles(quantiles):
-    return [float(s.strip()) for s in quantiles.split(',')]
+    return [float(s.strip()) for s in quantiles.split(',') if s]
 
 def configure_argument_parser():
     """Configure an ArgumentParser that manages command line options.

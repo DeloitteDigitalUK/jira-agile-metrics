@@ -1,5 +1,5 @@
 import yaml
-import dateutil.parser
+import datetime
 
 from pydicti import odicti
 
@@ -25,10 +25,10 @@ def ordered_load(stream, Loader=yaml.Loader, object_pairs_hook=odicti):
     return yaml.load(stream, OrderedLoader)
 
 def force_list(val):
-    return val if isinstance(val, (list, tuple,)) else [val]
+    return list(val) if isinstance(val, (list, tuple,)) else [val]
 
 def expand_key(key):
-    return str(key).replace('_', ' ')
+    return str(key).replace('_', ' ').lower()
 
 def config_to_options(data):
     config = ordered_load(data, yaml.SafeLoader)
@@ -143,7 +143,10 @@ def config_to_options(data):
             'burnup_forecast_chart_deadline',
         ]:
             if expand_key(key) in config['output']:
-                options['settings'][key] = dateutil.parser.parse(config['output'][expand_key(key)])
+                value = config['output'][expand_key(key)]
+                if not isinstance(value, datetime.date):
+                    raise ConfigError("Value %s for key %s is not a date" % (value, key,))
+                options['settings'][key] = value
 
         # string values that copy straight over
         for key in [
