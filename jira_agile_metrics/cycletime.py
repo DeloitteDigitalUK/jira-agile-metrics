@@ -71,7 +71,7 @@ class CycleTimeCalculator(Calculator):
         for cycle_name in cycle_names:
             series[cycle_name] = {'data': [], 'dtype': 'datetime64[ns]'}
 
-        for name in self.query_manager.fields.keys():
+        for name in self.settings['fields'].keys():
             series[name] = {'data': [], 'dtype': 'object'}
 
         if self.settings['query_attribute']:
@@ -91,7 +91,7 @@ class CycleTimeCalculator(Calculator):
                     'completed_timestamp': None
                 }
 
-                for name in self.query_manager.fields.keys():
+                for name in self.settings['fields'].keys():
                     item[name] = self.query_manager.resolve_field_value(issue, name)
 
                 if self.settings['query_attribute']:
@@ -153,7 +153,7 @@ class CycleTimeCalculator(Calculator):
 
         return pd.DataFrame(data,
             columns=['key', 'url', 'issue_type', 'summary', 'status', 'resolution'] +
-                    sorted(self.query_manager.fields.keys()) +
+                    sorted(self.settings['fields'].keys()) +
                     ([self.settings['query_attribute']] if self.settings['query_attribute'] else []) +
                     ['cycle_time', 'completed_timestamp'] +
                     cycle_names

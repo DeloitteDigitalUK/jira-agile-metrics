@@ -37,7 +37,8 @@ class FauxIssue(object):
 
 class FauxJIRA(object):
 
-    def __init__(self, fields, issues):
+    def __init__(self, fields, issues, options={'server': 'https://example.org'}):
+        self._options = options
         self._fields = fields  # [{ id, name }]
         self._issues = issues
 
