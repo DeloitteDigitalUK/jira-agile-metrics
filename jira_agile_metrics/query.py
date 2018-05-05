@@ -16,6 +16,16 @@ class IssueSnapshot(object):
 
     def __hash__(self):
         return hash(self.key)
+    
+    def __eq__(self, other):
+        return all((
+            self.change == other.change,
+            self.key == other.key,
+            self.date.isoformat() == other.date.isoformat(),
+            self.status == other.status,
+            self.resolution == other.resolution,
+            self.is_resolved == other.is_resolved,
+        ))
 
     def __repr__(self):
         return "<IssueSnapshot change=%s key=%s date=%s status=%s resolution=%s is_resolved=%s>" % (
@@ -27,8 +37,6 @@ class QueryManager(object):
     """
 
     settings = dict(
-        queries=[],
-        query_attribute=None,
         fields={},
         known_values={},
         max_results=False,
@@ -40,6 +48,7 @@ class QueryManager(object):
         self.jira = jira
         self.settings = self.settings.copy()
         self.settings.update(settings)
+        self.fields = {}
         self.resolve_fields()
 
     # Helpers
@@ -53,8 +62,8 @@ class QueryManager(object):
             except StopIteration:
                 raise Exception("JIRA field with name `%s` does not exist (did you try to use the field id instead?)" % field)
 
-    def resolve_field_value(self, issue, name, field_name):
-        field_value = getattr(issue.fields, field_name)
+    def resolve_field_value(self, issue, name):
+        field_value = getattr(issue.fields, self.fields[name])
 
         if field_value is None:
             return None
@@ -82,9 +91,8 @@ class QueryManager(object):
 
         return value
 
-    def iter_changes(self, issue, include_resolution_changes=True):
-        """Yield an IssueSnapshot for each time the issue changed status or
-        resolution
+    def iter_changes(self, issue):
+        """Yield an IssueSnapshot for each time the issue changed status
         """
 
         is_resolved = False
@@ -127,15 +135,6 @@ class QueryManager(object):
                     )
                 elif item.field == 'resolution':
                     last_resolution = item.toString
-                    if include_resolution_changes:
-                        yield IssueSnapshot(
-                            change=item.field,
-                            key=issue.key,
-                            date=change_date,
-                            status=last_status,
-                            resolution=last_resolution,
-                            is_resolved=is_resolved
-                        )
 
     # Basic queries
 

@@ -91,8 +91,8 @@ class CycleTimeCalculator(Calculator):
                     'completed_timestamp': None
                 }
 
-                for name, field_name in self.query_manager.fields.items():
-                    item[name] = self.query_manager.resolve_field_value(issue, name, field_name)
+                for name in self.query_manager.fields.keys():
+                    item[name] = self.query_manager.resolve_field_value(issue, name)
 
                 if self.settings['query_attribute']:
                     item[self.settings['query_attribute']] = criteria.get('value', None)
