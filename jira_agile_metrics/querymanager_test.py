@@ -11,37 +11,24 @@ from .conftest import (
 from .querymanager import QueryManager, IssueSnapshot
 
 @pytest.fixture
-def jira():
-    return JIRA(
-        fields=[
-            {'id': 'summary',         'name': 'Summary'},
-            {'id': 'issuetype',       'name': 'Issue type'},
-            {'id': 'status',          'name': 'Status'},
-            {'id': 'resolution',      'name': 'Resolution'},
-            {'id': 'created',         'name': 'Created date'},
-            {'id': 'customfield_001', 'name': 'Team'},
-            {'id': 'customfield_002', 'name': 'Size'},
-            {'id': 'customfield_003', 'name': 'Releases'},
-            {'id': 'customfield_004', 'name': 'Unused'},
-        ],
-        issues=[
-            Issue("A-1",
-                summary="Issue A-1",
-                issuetype=Value("Story", "story"),
-                status=Value("Start", "start"),
-                resolution=None,
-                created="2018-01-01 01:01:01",
-                customfield_001="Team 1",
-                customfield_002=Value(None, 30),
-                customfield_003=Value(None, ["R2", "R3", "R4"]),
-                changes=[
-                    Change("2018-01-02 01:01:01", [("status", "Backlog", "Next",)]),
-                    Change("2018-01-03 01:01:01", [("resolution", None, "Closed",), ("status", "Next", "Done",)]),
-                    Change("2018-01-04 01:01:01", [("resolution", "Closed", None,), ("status", "Done", "QA",)]),
-                ],
-            )
-        ]
-    )
+def jira(basic_fields):
+    return JIRA(fields=basic_fields, issues=[
+        Issue("A-1",
+            summary="Issue A-1",
+            issuetype=Value("Story", "story"),
+            status=Value("Start", "start"),
+            resolution=None,
+            created="2018-01-01 01:01:01",
+            customfield_001="Team 1",
+            customfield_002=Value(None, 30),
+            customfield_003=Value(None, ["R2", "R3", "R4"]),
+            changes=[
+                Change("2018-01-02 01:01:01", [("status", "Backlog", "Next",)]),
+                Change("2018-01-03 01:01:01", [("resolution", None, "Closed",), ("status", "Next", "Done",)]),
+                Change("2018-01-04 01:01:01", [("resolution", "Closed", None,), ("status", "Done", "QA",)]),
+            ],
+        )
+    ])
 
 def test_search(jira, basic_settings):
     qm = QueryManager(jira, basic_settings)

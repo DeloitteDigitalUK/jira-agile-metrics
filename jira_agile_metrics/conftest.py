@@ -67,4 +67,20 @@ def basic_settings():
             {'name': 'Test',      'statuses': ['Code review', 'QA'], 'type': 'accepted'},
             {'name': 'Done',      'statuses': ['Done'],              'type': 'complete'}
         ],
+        'query_attribute': None,
+        'queries': [{'jql': '(filter=123)', 'value': None}]
     }
+
+@pytest.fixture
+def basic_fields():
+    return [
+        {'id': 'summary',         'name': 'Summary'},
+        {'id': 'issuetype',       'name': 'Issue type'},
+        {'id': 'status',          'name': 'Status'},
+        {'id': 'resolution',      'name': 'Resolution'},
+        {'id': 'created',         'name': 'Created date'},
+        {'id': 'customfield_001', 'name': 'Team'},
+        {'id': 'customfield_002', 'name': 'Size'},
+        {'id': 'customfield_003', 'name': 'Releases'},
+        {'id': 'customfield_004', 'name': 'Unused'},
+    ]
