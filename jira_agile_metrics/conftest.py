@@ -50,7 +50,7 @@ class FauxJIRA(object):
 @pytest.fixture
 def basic_settings():
     return {
-        'fields': {
+        'attributes': {
             'Release': 'Releases',
             'Team': 'Team',
             'Estimate': 'Size'

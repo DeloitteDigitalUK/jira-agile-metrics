@@ -144,7 +144,7 @@ Output:
             {'name': 'Done', 'statuses': ['Done'], 'type': 'complete'}
         ],
 
-        'fields': {'Release': 'Fix version/s', 'Team': 'Team'},
+        'attributes': {'Release': 'Fix version/s', 'Team': 'Team'},
         'known_values': {'Release': ['R01', 'R02', 'R03']},
         'max_results': None,
         'verbose': False,

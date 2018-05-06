@@ -42,7 +42,7 @@ def config_to_options(data):
         'settings': {
             'queries': [],
             'query_attribute': None,
-            'fields': {},
+            'attributes': {},
             'known_values': {},
             'cycle': [],
             'max_results': None,
@@ -238,7 +238,7 @@ def config_to_options(data):
     # Parse attributes (fields)
 
     if 'attributes' in config:
-        options['settings']['fields'] = dict(config['attributes'])
+        options['settings']['attributes'] = dict(config['attributes'])
 
     if 'known values' in config:
         for name, values in config['known values'].items():

@@ -6,30 +6,25 @@ class IssueSnapshot(object):
     """A snapshot of the key fields of an issue at a point in its change history
     """
 
-    def __init__(self, change, key, date, status, resolution, is_resolved):
+    def __init__(self, change, key, date, fromString, toString):
         self.change = change
         self.key = key
         self.date = date.astimezone(dateutil.tz.tzutc())
-        self.status = status
-        self.resolution = resolution
-        self.is_resolved = is_resolved
+        self.fromString = fromString
+        self.toString = toString
 
-    def __hash__(self):
-        return hash(self.key)
-    
     def __eq__(self, other):
         return all((
             self.change == other.change,
             self.key == other.key,
             self.date.isoformat() == other.date.isoformat(),
-            self.status == other.status,
-            self.resolution == other.resolution,
-            self.is_resolved == other.is_resolved,
+            self.fromString == other.fromString,
+            self.toString == other.toString
         ))
 
     def __repr__(self):
-        return "<IssueSnapshot change=%s key=%s date=%s status=%s resolution=%s is_resolved=%s>" % (
-            self.change, self.key, self.date.isoformat(), self.status, self.resolution, self.is_resolved
+        return "<IssueSnapshot change=%s key=%s date=%s from=%s to=%s>" % (
+            self.change, self.key, self.date.isoformat(), self.fromString, self.toString,
         )
 
 class QueryManager(object):
@@ -37,33 +32,48 @@ class QueryManager(object):
     """
 
     settings = dict(
-        fields={},
+        attributes={},
         known_values={},
         max_results=False,
     )
-
-    fields = {}  # resolved at runtime to JIRA fields
 
     def __init__(self, jira, settings):
         self.jira = jira
         self.settings = self.settings.copy()
         self.settings.update(settings)
-        self.fields = {}
-        self.resolve_fields()
 
-    # Helpers
+        self.attributes_to_fields = {}
+        self.fields_to_attributes = {}
 
-    def resolve_fields(self):
+        # Look up fields in JIRA and resolve attributes to fields
         fields = self.jira.fields()
+        field_id = None
 
-        for name, field in self.settings['fields'].items():
+        for name, field in self.settings['attributes'].items():
             try:
-                self.fields[name] = next((f['id'] for f in fields if f['name'].lower() == field.lower()))
+                field_id = next((f['id'] for f in fields if f['name'].lower() == field.lower()))
             except StopIteration:
                 raise Exception("JIRA field with name `%s` does not exist (did you try to use the field id instead?)" % field)
+            else:
+                self.attributes_to_fields[name] = field_id
+                self.fields_to_attributes[field_id] = name
 
-    def resolve_field_value(self, issue, name):
-        field_value = getattr(issue.fields, self.fields[name])
+    def resolve_attribute_value(self, issue, attribute_name):
+        """Given an attribute name (i.e. one named in the config file and
+        mapped to a field in JIRA), return its value from the given issue.
+        Respects the `Known Values` settings and tries to resolve complex
+        data types.
+        """
+        field_id = self.attributes_to_fields[attribute_name]
+        return self.resolve_field_value(issue, field_id)
+
+    def resolve_field_value(self, issue, field_id):
+        """Given a JIRA internal field id, return its value from the given
+        issue. Respects the `Known Values` settings and tries to resolve
+        complex data types.
+        """
+
+        field_value = getattr(issue.fields, field_id)
 
         if field_value is None:
             return None
@@ -75,11 +85,14 @@ class QueryManager(object):
                 value = None
             else:
                 values = [getattr(v, 'name', v) for v in value]
-                if name not in self.settings['known_values']:
+
+                # is this a `Known Values` attribute?
+                attribute_name = self.fields_to_attributes.get(field_id, None)
+                if attribute_name not in self.settings['known_values']:
                     value = values[0]
                 else:
                     try:
-                        value = next(filter(lambda v: v in values, self.settings['known_values'][name]))
+                        value = next(filter(lambda v: v in values, self.settings['known_values'][attribute_name]))
                     except StopIteration:
                         value = None
 
@@ -91,50 +104,42 @@ class QueryManager(object):
 
         return value
 
-    def iter_changes(self, issue):
-        """Yield an IssueSnapshot for each time the issue changed status
+    def iter_changes(self, issue, fields):
+        """Yield an IssueSnapshot for each time the issue changed, including an
+        initial value. `fields` is a list of fields to monitor, e.g.
+        `['status']`.
         """
 
-        is_resolved = False
-
-        # Find the first status change, if any
-        status_changes = list(filter(
-            lambda h: h.field == 'status',
-            itertools.chain.from_iterable([c.items for c in issue.changelog.histories])
-        ))
-        last_status = status_changes[0].fromString if len(status_changes) > 0 else issue.fields.status.name
-        last_resolution = None
-
-        # Issue was created
-        yield IssueSnapshot(
-            change=None,
-            key=issue.key,
-            date=dateutil.parser.parse(issue.fields.created),
-            status=last_status,
-            resolution=None,
-            is_resolved=is_resolved
-        )
+        for field in fields:
+            initial_value = self.resolve_field_value(issue, field)
+            try:
+                initial_value = next(filter(
+                    lambda h: h.field == field,
+                    itertools.chain.from_iterable([c.items for c in issue.changelog.histories])
+                )).fromString
+            except StopIteration:
+                pass
+            
+            yield IssueSnapshot(
+                change=field,
+                key=issue.key,
+                date=dateutil.parser.parse(issue.fields.created),
+                fromString=None,
+                toString=initial_value,
+            )
 
         for change in issue.changelog.histories:
             change_date = dateutil.parser.parse(change.created)
 
-            resolutions = list(filter(lambda i: i.field == 'resolution', change.items))
-            is_resolved = (resolutions[-1].to is not None) if len(resolutions) > 0 else is_resolved
-
             for item in change.items:
-                if item.field == 'status':
-                    # Status was changed
-                    last_status = item.toString
+                if item.field in fields:
                     yield IssueSnapshot(
                         change=item.field,
                         key=issue.key,
                         date=change_date,
-                        status=last_status,
-                        resolution=last_resolution,
-                        is_resolved=is_resolved
+                        fromString=item.fromString,
+                        toString=item.toString
                     )
-                elif item.field == 'resolution':
-                    last_resolution = item.toString
 
     # Basic queries
 

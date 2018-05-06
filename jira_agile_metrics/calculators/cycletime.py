@@ -68,7 +68,7 @@ class CycleTimeCalculator(Calculator):
         for cycle_name in cycle_names:
             series[cycle_name] = {'data': [], 'dtype': 'datetime64[ns]'}
 
-        for name in self.settings['fields'].keys():
+        for name in self.settings['attributes'].keys():
             series[name] = {'data': [], 'dtype': 'object'}
 
         if self.settings['query_attribute']:
@@ -81,15 +81,15 @@ class CycleTimeCalculator(Calculator):
                     'key': issue.key,
                     'url': "%s/browse/%s" % (self.query_manager.jira._options['server'], issue.key,),
                     'issue_type': issue.fields.issuetype.name,
-                    'summary': issue.fields.summary.encode('utf-8'),
+                    'summary': issue.fields.summary,
                     'status': issue.fields.status.name,
                     'resolution': issue.fields.resolution.name if issue.fields.resolution else None,
                     'cycle_time': None,
                     'completed_timestamp': None
                 }
 
-                for name in self.settings['fields'].keys():
-                    item[name] = self.query_manager.resolve_field_value(issue, name)
+                for name in self.settings['attributes'].keys():
+                    item[name] = self.query_manager.resolve_attribute_value(issue, name)
 
                 if self.settings['query_attribute']:
                     item[self.settings['query_attribute']] = criteria.get('value', None)
@@ -98,11 +98,11 @@ class CycleTimeCalculator(Calculator):
                     item[cycle_name] = None
 
                 # Record date of status changes
-                for snapshot in self.query_manager.iter_changes(issue):
-                    snapshot_cycle_step = self.cycle_lookup.get(snapshot.status.lower(), None)
+                for snapshot in self.query_manager.iter_changes(issue, ['status']):
+                    snapshot_cycle_step = self.cycle_lookup.get(snapshot.toString.lower(), None)
                     if snapshot_cycle_step is None:
                         if self.settings.get('verbose', False):
-                            print(issue.key, "transitioned to unknown JIRA status", snapshot.status)
+                            print(issue.key, "transitioned to unknown JIRA status", snapshot.toString)
                         continue
 
                     snapshot_cycle_step_name = snapshot_cycle_step['name']
@@ -150,7 +150,7 @@ class CycleTimeCalculator(Calculator):
 
         return pd.DataFrame(data,
             columns=['key', 'url', 'issue_type', 'summary', 'status', 'resolution'] +
-                    sorted(self.settings['fields'].keys()) +
+                    sorted(self.settings['attributes'].keys()) +
                     ([self.settings['query_attribute']] if self.settings['query_attribute'] else []) +
                     ['cycle_time', 'completed_timestamp'] +
                     cycle_names
@@ -165,11 +165,11 @@ class CycleTimeCalculator(Calculator):
 
         cycle_data = self.get_result()
         cycle_names = [s['name'] for s in self.settings['cycle']]
-        field_names = sorted(self.settings['fields'].keys())
+        attribute_names = sorted(self.settings['attributes'].keys())
         query_attribute_names = [self.settings['query_attribute']] if self.settings['query_attribute'] else []
 
-        header = ['ID', 'Link', 'Name'] + cycle_names + ['Type', 'Status', 'Resolution'] + field_names + query_attribute_names
-        columns = ['key', 'url', 'summary'] + cycle_names + ['issue_type', 'status', 'resolution'] + field_names + query_attribute_names
+        header = ['ID', 'Link', 'Name'] + cycle_names + ['Type', 'Status', 'Resolution'] + attribute_names + query_attribute_names
+        columns = ['key', 'url', 'summary'] + cycle_names + ['issue_type', 'status', 'resolution'] + attribute_names + query_attribute_names
 
         if output_extension == '.json':
             values = [header] + [list(map(to_json_string, row)) for row in cycle_data[columns].values.tolist()]

@@ -32,7 +32,7 @@ def jira(basic_fields):
 
 def test_search(jira, basic_settings):
     qm = QueryManager(jira, basic_settings)
-    assert qm.fields == {
+    assert qm.attributes_to_fields == {
         'Team': 'customfield_001',
         'Estimate': 'customfield_002',
         'Release': 'customfield_003',
@@ -41,22 +41,30 @@ def test_search(jira, basic_settings):
     issues = qm.find_issues("(filter=123)")
     assert issues == jira._issues
 
+def test_resolve_attribute_value(jira, basic_settings):
+    qm = QueryManager(jira, basic_settings)
+    issues = qm.find_issues("(filter=123)")
+
+    assert qm.resolve_attribute_value(issues[0], "Team") == "Team 1"
+    assert qm.resolve_attribute_value(issues[0], "Estimate") == 30
+    assert qm.resolve_attribute_value(issues[0], "Release") == "R3"  # due to known_value
+
 def test_resolve_field_value(jira, basic_settings):
     qm = QueryManager(jira, basic_settings)
     issues = qm.find_issues("(filter=123)")
 
-    assert qm.resolve_field_value(issues[0], "Team") == "Team 1"
-    assert qm.resolve_field_value(issues[0], "Estimate") == 30
-    assert qm.resolve_field_value(issues[0], "Release") == "R3"  # due to known_value
+    assert qm.resolve_field_value(issues[0], "customfield_001") == "Team 1"
+    assert qm.resolve_field_value(issues[0], "customfield_002") == 30
+    assert qm.resolve_field_value(issues[0], "customfield_003") == "R3"  # due to known_value
 
 def test_iter_changes(jira, basic_settings):
     qm = QueryManager(jira, basic_settings)
     issues = qm.find_issues("(filter=123)")
-    changes = list(qm.iter_changes(issues[0]))
+    changes = list(qm.iter_changes(issues[0], ['status']))
 
     assert changes == [
-        IssueSnapshot(change=None,     key="A-1", date=datetime.datetime(2018, 1, 1, 1, 1, 1), status="Backlog", resolution=None,     is_resolved=False),
-        IssueSnapshot(change="status", key="A-1", date=datetime.datetime(2018, 1, 2, 1, 1, 1), status="Next",    resolution=None,     is_resolved=False),
-        IssueSnapshot(change="status", key="A-1", date=datetime.datetime(2018, 1, 3, 1, 1, 1), status="Done",    resolution="Closed", is_resolved=True),
-        IssueSnapshot(change="status", key="A-1", date=datetime.datetime(2018, 1, 4, 1, 1, 1), status="QA",      resolution=None,     is_resolved=False)
+        IssueSnapshot(change="status", key="A-1", date=datetime.datetime(2018, 1, 1, 1, 1, 1), fromString=None,      toString="Backlog"),
+        IssueSnapshot(change="status", key="A-1", date=datetime.datetime(2018, 1, 2, 1, 1, 1), fromString="Backlog", toString="Next"),
+        IssueSnapshot(change="status", key="A-1", date=datetime.datetime(2018, 1, 3, 1, 1, 1), fromString="Next",    toString="Done"),
+        IssueSnapshot(change="status", key="A-1", date=datetime.datetime(2018, 1, 4, 1, 1, 1), fromString="Done",    toString="QA")
     ]
