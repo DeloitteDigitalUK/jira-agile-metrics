@@ -1,10 +1,10 @@
-import datetime
 import matplotlib.pyplot as plt
 import pandas as pd
 
-from .calculator import Calculator
+from ..calculator import Calculator
+from ..utils import set_chart_style
+
 from .cfd import CFDCalculator
-from .utils import set_chart_style
 
 class WIPChartCalculator(Calculator):
     """Draw a weekly WIP chart

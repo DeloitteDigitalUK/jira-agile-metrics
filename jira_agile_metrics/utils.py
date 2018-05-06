@@ -5,6 +5,11 @@ import numpy as np
 import pandas as pd
 import seaborn as sns
 
+class StatusTypes:
+    backlog = 'backlog'
+    accepted = 'accepted'
+    complete = 'complete'
+
 def to_json_string(value):
     if isinstance(value, pd.Timestamp):
         return value.strftime("%Y-%m-%d")

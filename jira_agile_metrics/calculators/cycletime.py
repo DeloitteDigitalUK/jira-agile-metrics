@@ -1,13 +1,8 @@
 import json
 import pandas as pd
 
-from .calculator import Calculator
-from .utils import get_extension, to_json_string
-
-class StatusTypes:
-    backlog = 'backlog'
-    accepted = 'accepted'
-    complete = 'complete'
+from ..calculator import Calculator
+from ..utils import get_extension, to_json_string, StatusTypes
 
 class CycleTimeCalculator(Calculator):
     """Basic cycle time data, fetched from JIRA.
@@ -39,7 +34,9 @@ class CycleTimeCalculator(Calculator):
 
     cycle_lookup = {}
 
-    def initialize(self):
+    def __init__(self, query_manager, settings, results):
+        super().__init__(query_manager, settings, results)
+
         self.cycle_lookup = {}
         for idx, cycle_step in enumerate(self.settings['cycle']):
             for status in cycle_step['statuses']:
@@ -101,7 +98,7 @@ class CycleTimeCalculator(Calculator):
                     item[cycle_name] = None
 
                 # Record date of status changes
-                for snapshot in self.query_manager.iter_changes(issue, False):
+                for snapshot in self.query_manager.iter_changes(issue):
                     snapshot_cycle_step = self.cycle_lookup.get(snapshot.status.lower(), None)
                     if snapshot_cycle_step is None:
                         if self.settings.get('verbose', False):

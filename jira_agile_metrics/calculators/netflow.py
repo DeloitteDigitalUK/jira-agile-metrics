@@ -1,8 +1,9 @@
 import matplotlib.pyplot as plt
 
-from .calculator import Calculator
+from ..calculator import Calculator
+from ..utils import set_chart_style
+
 from .cfd import CFDCalculator
-from .utils import set_chart_style
 
 class NetFlowChartCalculator(Calculator):
     """Draw a net flow chart

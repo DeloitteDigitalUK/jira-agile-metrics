@@ -3,9 +3,10 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
 
-from .calculator import Calculator
+from ..calculator import Calculator
+from ..utils import set_chart_style
+
 from .cycletime import CycleTimeCalculator
-from .utils import set_chart_style
 
 class AgeingWIPChartCalculator(Calculator):
     """Draw an ageing WIP chart

@@ -1,6 +1,7 @@
-from .calculator import Calculator
+from ..calculator import Calculator
+from ..utils import get_extension
+
 from .cycletime import CycleTimeCalculator
-from .utils import get_extension
 
 class PercentilesCalculator(Calculator):
     """Build percentiles for `cycle_time` in cycle data as a DataFrame

@@ -1,9 +1,10 @@
 import pandas as pd
 import matplotlib.pyplot as plt
 
-from .calculator import Calculator
+from ..calculator import Calculator
+from ..utils import get_extension, set_chart_style
+
 from .cycletime import CycleTimeCalculator
-from .utils import get_extension, set_chart_style
 
 class ScatterplotCalculator(Calculator):
     """Build scatterplot data for the cycle times: a data frame containing

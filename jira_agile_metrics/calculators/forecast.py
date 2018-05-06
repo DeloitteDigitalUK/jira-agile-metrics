@@ -4,10 +4,11 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import matplotlib.transforms
 
-from .calculator import Calculator
+from ..calculator import Calculator
+from ..utils import set_chart_style, to_days_since_epoch
+
 from .cycletime import CycleTimeCalculator
 from .burnup import BurnupCalculator
-from .utils import set_chart_style, to_days_since_epoch
 
 class BurnupForecastCalculator(Calculator):
     """Draw a burn-up chart with a forecast run to completion

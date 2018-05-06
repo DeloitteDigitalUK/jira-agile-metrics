@@ -8,7 +8,7 @@ from .conftest import (
     FauxFieldValue as Value
 )
 
-from .query import QueryManager, IssueSnapshot
+from .querymanager import QueryManager, IssueSnapshot
 
 @pytest.fixture
 def jira():

@@ -3,7 +3,7 @@ import datetime
 
 from pydicti import odicti
 
-from .cycletime import StatusTypes
+from .utils import StatusTypes
 
 class ConfigError(Exception):
     pass

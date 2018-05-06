@@ -7,21 +7,21 @@ import dateutil.parser
 from jira import JIRA
 
 from .config import config_to_options
-from .query import QueryManager
+from .querymanager import QueryManager
 from .calculator import run_calculators
 from .utils import set_chart_context
 
-from .cycletime import CycleTimeCalculator
-from .cfd import CFDCalculator
-from .scatterplot import ScatterplotCalculator
-from .histogram import HistogramCalculator
-from .percentiles import PercentilesCalculator
-from .throughput import ThroughputCalculator
-from .burnup import BurnupCalculator
-from .wip import WIPChartCalculator
-from .netflow import NetFlowChartCalculator
-from .ageingwip import AgeingWIPChartCalculator
-from .forecast import BurnupForecastCalculator
+from .calculators.cycletime import CycleTimeCalculator
+from .calculators.cfd import CFDCalculator
+from .calculators.scatterplot import ScatterplotCalculator
+from .calculators.histogram import HistogramCalculator
+from .calculators.percentiles import PercentilesCalculator
+from .calculators.throughput import ThroughputCalculator
+from .calculators.burnup import BurnupCalculator
+from .calculators.wip import WIPChartCalculator
+from .calculators.netflow import NetFlowChartCalculator
+from .calculators.ageingwip import AgeingWIPChartCalculator
+from .calculators.forecast import BurnupForecastCalculator
 
 CALCULATORS = (
     CycleTimeCalculator,  # should come first -- others depend on results from this one

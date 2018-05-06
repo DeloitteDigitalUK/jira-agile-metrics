@@ -3,9 +3,10 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
 
-from .calculator import Calculator
+from ..calculator import Calculator
+from ..utils import get_extension, set_chart_style
+
 from .cycletime import CycleTimeCalculator
-from .utils import get_extension, set_chart_style
 
 class HistogramCalculator(Calculator):
     """Build histogram data for the cycle times in `cycle_data`. Returns

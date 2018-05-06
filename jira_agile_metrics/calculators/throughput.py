@@ -1,9 +1,10 @@
 import matplotlib.pyplot as plt
 import statsmodels.formula.api as sm
 
-from .calculator import Calculator
+from ..calculator import Calculator
+from ..utils import get_extension, set_chart_style
+
 from .cycletime import CycleTimeCalculator
-from .utils import get_extension, set_chart_style
 
 class ThroughputCalculator(Calculator):
     """Build a data frame with columns `completed_timestamp` of the

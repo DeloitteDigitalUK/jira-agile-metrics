@@ -5,14 +5,10 @@ from .calculator import (
 
 def test_run_calculator():
     
-    initialized = []
     written = []
 
     class Enabled(Calculator):
 
-        def initialize(self):
-            initialized.append("Enabled")
-        
         def run(self):
             return "Enabled"
         
@@ -20,9 +16,6 @@ def test_run_calculator():
             written.append("Enabled")
     
     class Disabled(Calculator):
-
-        def initialize(self):
-            initialized.append("Disabled")
 
         def is_enabled(self):
             return False
@@ -35,9 +28,6 @@ def test_run_calculator():
 
     class GetPreviousResult(Calculator):
 
-        def initialize(self):
-            initialized.append("GetPreviousResult")
-        
         def run(self):
             return self.get_result(Enabled) + " " + self.settings['foo']
         
@@ -54,7 +44,5 @@ def test_run_calculator():
         Enabled: "Enabled",
         GetPreviousResult: "Enabled bar"
     }
-
-    assert initialized == ["Enabled", "Disabled", "GetPreviousResult"]
 
     assert written == ["Enabled", "Enabled bar"]
