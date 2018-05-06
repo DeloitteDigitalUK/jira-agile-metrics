@@ -62,7 +62,7 @@ class BurnupForecastCalculator(Calculator):
         backlog_column = burnup_data.columns[0]
         target = self.settings['burnup_forecast_chart_target'] or burnup_data[backlog_column].max()
 
-        if len(burnup_data.index) < 0:
+        if len(burnup_data.index) == 0:
             print("WARNING: Cannot draw burnup chart with no completed items")
         else:
 

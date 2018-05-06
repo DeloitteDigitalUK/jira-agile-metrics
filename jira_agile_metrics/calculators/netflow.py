@@ -32,7 +32,7 @@ class NetFlowChartCalculator(Calculator):
         output_file = self.settings['net_flow_chart']
         chart_data = self.get_result()
 
-        if len(chart_data.index) < 0:
+        if len(chart_data.index) == 0:
             print("WARNING: Cannot draw net flow chart with no completed items")
         else:
 

@@ -43,7 +43,7 @@ class ThroughputCalculator(Calculator):
             output_file = self.settings['throughput_chart']
             chart_data = self.get_result()
 
-            if len(chart_data.index) < 0:
+            if len(chart_data.index) == 0:
                 print("WARNING: Cannot draw throughput chart with no completed items")
             else:
 

@@ -27,7 +27,7 @@ class WIPChartCalculator(Calculator):
         output_file = self.settings['wip_chart']
         chart_data = self.get_result()
 
-        if len(chart_data.index) < 0:
+        if len(chart_data.index) == 0:
             print("WARNING: Cannot draw WIP chart with no completed items")
         else:
 
