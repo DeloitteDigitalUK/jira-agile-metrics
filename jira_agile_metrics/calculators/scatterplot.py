@@ -35,56 +35,60 @@ class ScatterplotCalculator(Calculator):
         data = self.get_result()
 
         if self.settings['scatterplot_data']:
-            output_file = self.settings['scatterplot_data']
-            output_extension = get_extension(output_file)
-
-            file_data = data.copy()
-            file_data['completed_date'] = file_data['completed_date'].map(pd.Timestamp.date)
-
-            if output_extension == '.json':
-                file_data.to_json(output_file, date_format='iso')
-            elif output_extension == '.xlsx':
-                file_data.to_excel(output_file, 'Scatter', index=False)
-            else:
-                file_data.to_csv(output_file, index=False)
+            self.write_file(data, self.settings['scatterplot_data'])
         
         if self.settings['scatterplot_chart']:
-            output_file = self.settings['scatterplot_chart']
-            quantiles = self.settings['quantiles']
+            self.write_chart(data, self.settings['scatterplot_chart'])
 
-            chart_data = data.copy()
-            chart_data['completed_date'] = chart_data['completed_date'].values.astype('datetime64[D]')
-            ct_days = chart_data['cycle_time']
+    def write_file(self, data, output_file):
+        output_extension = get_extension(output_file)
 
-            if len(ct_days.index) < 2:
-                print("WARNING: Need at least 2 completed items to draw scatterplot")
-            else:
-                
-                fig, ax = plt.subplots()
-                fig.autofmt_xdate()
+        file_data = data.copy()
+        file_data['completed_date'] = file_data['completed_date'].map(pd.Timestamp.date)
 
-                ax.set_xlabel("Completed date")
-                ax.set_ylabel("Cycle time (days)")
+        if output_extension == '.json':
+            file_data.to_json(output_file, date_format='iso')
+        elif output_extension == '.xlsx':
+            file_data.to_excel(output_file, 'Scatter', index=False)
+        else:
+            file_data.to_csv(output_file, index=False)
+        
+    def write_chart(self, data, output_file):
+        quantiles = self.settings['quantiles']
 
-                if self.settings['scatterplot_chart_title']:
-                    ax.set_title(self.settings['scatterplot_chart_title'])
+        chart_data = data.copy()
+        chart_data['completed_date'] = chart_data['completed_date'].values.astype('datetime64[D]')
+        ct_days = chart_data['cycle_time']
 
-                ax.plot_date(x=chart_data['completed_date'], y=ct_days, ms=5)
+        if len(ct_days.index) < 2:
+            print("WARNING: Need at least 2 completed items to draw scatterplot")
+            return
+        
+        fig, ax = plt.subplots()
+        fig.autofmt_xdate()
 
-                # Add quantiles
-                left, right = ax.get_xlim()
-                for quantile, value in ct_days.quantile(quantiles).iteritems():
-                    ax.hlines(value, left, right, linestyles='--', linewidths=1)
-                    ax.annotate("%.0f%% (%.0f days)" % ((quantile * 100), value,),
-                        xy=(left, value),
-                        xytext=(left, value + 0.5),
-                        fontsize="x-small",
-                        ha="left"
-                    )
+        ax.set_xlabel("Completed date")
+        ax.set_ylabel("Cycle time (days)")
 
-                set_chart_style('darkgrid')
+        if self.settings['scatterplot_chart_title']:
+            ax.set_title(self.settings['scatterplot_chart_title'])
 
-                # Write file
-                
-                fig = ax.get_figure()
-                fig.savefig(output_file, bbox_inches='tight', dpi=300)
+        ax.plot_date(x=chart_data['completed_date'], y=ct_days, ms=5)
+
+        # Add quantiles
+        left, right = ax.get_xlim()
+        for quantile, value in ct_days.quantile(quantiles).iteritems():
+            ax.hlines(value, left, right, linestyles='--', linewidths=1)
+            ax.annotate("%.0f%% (%.0f days)" % ((quantile * 100), value,),
+                xy=(left, value),
+                xytext=(left, value + 0.5),
+                fontsize="x-small",
+                ha="left"
+            )
+
+        set_chart_style('darkgrid')
+
+        # Write file
+        
+        fig = ax.get_figure()
+        fig.savefig(output_file, bbox_inches='tight', dpi=300)

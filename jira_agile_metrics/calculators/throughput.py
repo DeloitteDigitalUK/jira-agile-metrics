@@ -23,66 +23,70 @@ class ThroughputCalculator(Calculator):
             .fillna(0)
     
     def write(self):
+        data = self.get_result()
+        
         if self.settings['throughput_data']:
-            output_file = self.settings['throughput_data']
-            output_extension = get_extension(output_file)
-
-            file_data = self.get_result()
-
-            if output_extension == '.json':
-                file_data.to_json(output_file, date_format='iso')
-            elif output_extension == '.xlsx':
-                file_data.to_excel(output_file, 'Throughput', header=True)
-            else:
-                file_data.to_csv(output_file, header=True)
+            self.write_file(data, self.settings['throughput_data'])
         
         if self.settings['throughput_chart']:
-            output_file = self.settings['throughput_chart']
-            chart_data = self.get_result()
+            self.write_chart(data, self.settings['throughput_chart'])
 
-            if len(chart_data.index) == 0:
-                print("WARNING: Cannot draw throughput chart with no completed items")
-            else:
+    def write_file(self, data, output_file):
+        output_extension = get_extension(output_file)
 
-                fig, ax = plt.subplots()
+        if output_extension == '.json':
+            data.to_json(output_file, date_format='iso')
+        elif output_extension == '.xlsx':
+            data.to_excel(output_file, 'Throughput', header=True)
+        else:
+            data.to_csv(output_file, header=True)
+    
+    def write_chart(self, data, output_file):
+        chart_data = data.copy()
 
-                if self.settings['throughput_chart_title']:
-                    ax.set_title(self.settings['throughput_chart_title'])
+        if len(chart_data.index) == 0:
+            print("WARNING: Cannot draw throughput chart with no completed items")
+            return
+        
+        fig, ax = plt.subplots()
 
-                fig.autofmt_xdate()
+        if self.settings['throughput_chart_title']:
+            ax.set_title(self.settings['throughput_chart_title'])
 
-                # Calculate zero-indexed days to allow linear regression calculation
-                day_zero = chart_data.index[0]
-                chart_data['day'] = (chart_data.index - day_zero).days
+        fig.autofmt_xdate()
 
-                # Fit a linear regression (http://stackoverflow.com/questions/29960917/timeseries-fitted-values-from-trend-python)
-                fit = sm.ols(formula="count ~ day", data=chart_data).fit()
-                chart_data['fitted'] = fit.predict(chart_data)
+        # Calculate zero-indexed days to allow linear regression calculation
+        day_zero = chart_data.index[0]
+        chart_data['day'] = (chart_data.index - day_zero).days
 
-                # Plot
+        # Fit a linear regression (http://stackoverflow.com/questions/29960917/timeseries-fitted-values-from-trend-python)
+        fit = sm.ols(formula="count ~ day", data=chart_data).fit()
+        chart_data['fitted'] = fit.predict(chart_data)
 
-                ax.set_xlabel("Completed date")
-                ax.set_ylabel("Number of items")
+        # Plot
 
-                ax.bar(chart_data.index, chart_data['count'])
+        ax.set_xlabel("Completed date")
+        ax.set_ylabel("Number of items")
 
-                _, top = ax.get_ylim()
-                ax.set_ylim(0, top + 1)
+        ax.bar(chart_data.index, chart_data['count'])
 
-                for x, y in zip(chart_data.index, chart_data['count']):
-                    if y == 0:
-                        continue
-                    ax.annotate(
-                        "%.0f" % y,
-                        xy=(x.toordinal(), y + 0.2),
-                        ha='center',
-                        va='bottom',
-                        fontsize="x-small",
-                    )
+        _, top = ax.get_ylim()
+        ax.set_ylim(0, top + 1)
 
-                ax.plot(chart_data.index, chart_data['fitted'], '--', linewidth=2)
+        for x, y in zip(chart_data.index, chart_data['count']):
+            if y == 0:
+                continue
+            ax.annotate(
+                "%.0f" % y,
+                xy=(x.toordinal(), y + 0.2),
+                ha='center',
+                va='bottom',
+                fontsize="x-small",
+            )
 
-                set_chart_style('darkgrid')
+        ax.plot(chart_data.index, chart_data['fitted'], '--', linewidth=2)
 
-                fig = ax.get_figure()
-                fig.savefig(output_file, bbox_inches='tight', dpi=300)
+        set_chart_style('darkgrid')
+
+        fig = ax.get_figure()
+        fig.savefig(output_file, bbox_inches='tight', dpi=300)

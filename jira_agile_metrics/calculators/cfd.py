@@ -52,38 +52,42 @@ class CFDCalculator(Calculator):
         data = self.get_result()
 
         if self.settings['cfd_data']:
-            output_file = self.settings['cfd_data']
-            output_extension = get_extension(output_file)
-
-            if output_extension == '.json':
-                data.to_json(output_file, date_format='iso')
-            elif output_extension == '.xlsx':
-                data.to_excel(output_file, 'CFD')
-            else:
-                data.to_csv(output_file)
+            self.write_file(data, self.settings['cfd_data'])
         
         if self.settings['cfd_chart']:
-            output_file = self.settings['cfd_chart']
-            
-            if len(data.index) == 0:
-                print("WARNING: Cannot draw CFD with no data")
-            else:
-                fig, ax = plt.subplots()
-                
-                if self.settings['cfd_chart_title']:
-                    ax.set_title(self.settings['cfd_chart_title'])
+            self.write_chart(data, self.settings['cfd_chart'])
 
-                fig.autofmt_xdate()
+    def write_file(self, data, output_file):
+        output_extension = get_extension(output_file)
 
-                ax.set_xlabel("Date")
-                ax.set_ylabel("Number of items")
+        if output_extension == '.json':
+            data.to_json(output_file, date_format='iso')
+        elif output_extension == '.xlsx':
+            data.to_excel(output_file, 'CFD')
+        else:
+            data.to_csv(output_file)
+    
+    def write_chart(self, data, output_file):
+        if len(data.index) == 0:
+            print("WARNING: Cannot draw CFD with no data")
+            return
 
-                backlog_column = self.settings['backlog_column'] or data.columns[0]
+        fig, ax = plt.subplots()
+        
+        if self.settings['cfd_chart_title']:
+            ax.set_title(self.settings['cfd_chart_title'])
 
-                data.drop([backlog_column], axis=1).plot.area(ax=ax, stacked=False, legend=False)
-                ax.legend(loc=0, title="", frameon=True)
+        fig.autofmt_xdate()
 
-                set_chart_style('whitegrid')
+        ax.set_xlabel("Date")
+        ax.set_ylabel("Number of items")
 
-                fig = ax.get_figure()
-                fig.savefig(output_file, bbox_inches='tight', dpi=300)
+        backlog_column = self.settings['backlog_column'] or data.columns[0]
+
+        data.drop([backlog_column], axis=1).plot.area(ax=ax, stacked=False, legend=False)
+        ax.legend(loc=0, title="", frameon=True)
+
+        set_chart_style('whitegrid')
+
+        fig = ax.get_figure()
+        fig.savefig(output_file, bbox_inches='tight', dpi=300)
