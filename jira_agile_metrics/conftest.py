@@ -61,7 +61,7 @@ def basic_settings():
         'max_results': None,
         'verbose': False,
         'cycle': [
-            {'name': 'Backlog',   'statuses': ['Start'],             'type': 'backlog'},
+            {'name': 'Backlog',   'statuses': ['Backlog'],           'type': 'backlog'},
             {'name': 'Committed', 'statuses': ['Next'],              'type': 'accepted'},
             {'name': 'Build',     'statuses': ['Build'],             'type': 'accepted'},
             {'name': 'Test',      'statuses': ['Code review', 'QA'], 'type': 'accepted'},
