@@ -12,9 +12,6 @@ class AgeingWIPChartCalculator(Calculator):
     """Draw an ageing WIP chart
     """
 
-    def is_enabled(self):
-        return 
-
     def run(self):
         cycle_data = self.get_result(CycleTimeCalculator)
         cycle_names = [s['name'] for s in self.settings['cycle']]
@@ -58,7 +55,7 @@ class AgeingWIPChartCalculator(Calculator):
     def write(self):
         output_file = self.settings['ageing_wip_chart']
         if not output_file:
-            return        
+            return
 
         chart_data = self.get_result()
 
