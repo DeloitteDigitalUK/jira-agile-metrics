@@ -114,10 +114,10 @@ def test_calculate_cfd(query_manager, settings, results):
     ]
 
     assert data.to_dict('records') == [
-        {'Backlog': 1.0, 'Build': 0.0, 'Committed': 0.0, 'Done': 0.0, 'Test': 0.0},
-        {'Backlog': 2.0, 'Build': 0.0, 'Committed': 0.0, 'Done': 0.0, 'Test': 0.0},
-        {'Backlog': 3.0, 'Build': 0.0, 'Committed': 2.0, 'Done': 0.0, 'Test': 0.0},
-        {'Backlog': 4.0, 'Build': 1.0, 'Committed': 3.0, 'Done': 0.0, 'Test': 0.0},
-        {'Backlog': 4.0, 'Build': 1.0, 'Committed': 3.0, 'Done': 0.0, 'Test': 1.0},
-        {'Backlog': 4.0, 'Build': 1.0, 'Committed': 3.0, 'Done': 1.0, 'Test': 1.0},
+        {'Backlog': 1.0, 'Committed': 0.0, 'Build': 0.0, 'Test': 0.0, 'Done': 0.0},
+        {'Backlog': 2.0, 'Committed': 0.0, 'Build': 0.0, 'Test': 0.0, 'Done': 0.0},
+        {'Backlog': 3.0, 'Committed': 2.0, 'Build': 0.0, 'Test': 0.0, 'Done': 0.0},
+        {'Backlog': 4.0, 'Committed': 3.0, 'Build': 1.0, 'Test': 0.0, 'Done': 0.0},
+        {'Backlog': 4.0, 'Committed': 3.0, 'Build': 1.0, 'Test': 1.0, 'Done': 0.0},
+        {'Backlog': 4.0, 'Committed': 3.0, 'Build': 1.0, 'Test': 1.0, 'Done': 1.0},
     ]
