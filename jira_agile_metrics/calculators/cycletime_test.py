@@ -78,7 +78,7 @@ def settings(basic_settings):
     })
     return basic_settings
 
-def test_basic(jira, settings):
+def test_columns(jira, settings):
     query_manager = QueryManager(jira, settings)
     results = {}
     calculator = CycleTimeCalculator(query_manager, settings, results)
@@ -106,6 +106,23 @@ def test_basic(jira, settings):
         'Test',
         'Done'
     ]
+
+def test_empty(basic_fields, settings):
+    jira = JIRA(fields=basic_fields, issues=[])
+    query_manager = QueryManager(jira, settings)
+    results = {}
+    calculator = CycleTimeCalculator(query_manager, settings, results)
+
+    data = calculator.run()
+
+    assert len(data.index) == 0
+
+def test_movement(jira, settings):
+    query_manager = QueryManager(jira, settings)
+    results = {}
+    calculator = CycleTimeCalculator(query_manager, settings, results)
+
+    data = calculator.run()
 
     assert data.to_dict('records') == [{
         'key': 'A-1',

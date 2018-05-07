@@ -32,8 +32,6 @@ class CycleTimeCalculator(Calculator):
     stamps in the cycle are erased.
     """
 
-    cycle_lookup = {}
-
     def __init__(self, query_manager, settings, results):
         super().__init__(query_manager, settings, results)
 
@@ -47,6 +45,8 @@ class CycleTimeCalculator(Calculator):
                 )
 
     def is_enabled(self):
+        # even if we are not writing anything, we want to run this calculator,
+        # as its results are used by others
         return True
 
     def run(self):
