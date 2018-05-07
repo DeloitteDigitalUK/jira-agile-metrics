@@ -44,7 +44,8 @@ class CFDCalculator(Calculator):
 
         # Reindex to make sure we have all dates
         start, end = cfd_data.index.min(), cfd_data.index.max()
-        cfd_data = cfd_data.reindex(pd.date_range(start, end, freq='D'), method='ffill')
+        if start is not pd.NaT and end is not pd.NaT:
+            cfd_data = cfd_data.reindex(pd.date_range(start, end, freq='D'), method='ffill')
 
         return cfd_data
     
