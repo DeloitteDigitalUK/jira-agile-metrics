@@ -9,9 +9,6 @@ class BurnupCalculator(Calculator):
     """Draw a simple burn-up chart.
     """
 
-    def is_enabled(self):
-        return self.settings['burnup_chart']
-
     def run(self):
         cfd_data = self.get_result(CFDCalculator)
         
@@ -22,26 +19,29 @@ class BurnupCalculator(Calculator):
     
     def write(self):
         output_file = self.settings['burnup_chart']
+        if not output_file:
+            return
+
         chart_data = self.get_result()
 
         if len(chart_data.index) == 0:
             print("WARNING: Cannot draw burnup chart with no completed items")
-        else:
+            return
 
-            fig, ax = plt.subplots()
-            
-            if self.settings['burnup_chart_title']:
-                ax.set_title(self.settings['burnup_chart_title'])
+        fig, ax = plt.subplots()
+        
+        if self.settings['burnup_chart_title']:
+            ax.set_title(self.settings['burnup_chart_title'])
 
-            fig.autofmt_xdate()
+        fig.autofmt_xdate()
 
-            ax.set_xlabel("Date")
-            ax.set_ylabel("Number of items")
+        ax.set_xlabel("Date")
+        ax.set_ylabel("Number of items")
 
-            chart_data.plot.line(ax=ax, legend=True)
-            ax.legend(loc=0, title="", frameon=True)
+        chart_data.plot.line(ax=ax, legend=True)
+        ax.legend(loc=0, title="", frameon=True)
 
-            set_chart_style('whitegrid')
+        set_chart_style('whitegrid')
 
-            fig = ax.get_figure()
-            fig.savefig(output_file, bbox_inches='tight', dpi=300)
+        fig = ax.get_figure()
+        fig.savefig(output_file, bbox_inches='tight', dpi=300)

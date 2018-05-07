@@ -7,15 +7,15 @@ class PercentilesCalculator(Calculator):
     """Build percentiles for `cycle_time` in cycle data as a DataFrame
     """
 
-    def is_enabled(self):
-        return self.settings['percentiles_data']
-
     def run(self):
         cycle_data = self.get_result(CycleTimeCalculator)
         return cycle_data['cycle_time'].dropna().quantile(self.settings['quantiles'])
 
     def write(self):
         output_file = self.settings['percentiles_data']
+        if not output_file:
+            return
+
         output_extension = get_extension(output_file)
 
         file_data = self.get_result()

@@ -21,11 +21,6 @@ class Calculator(object):
 
     # Lifecycle methods -- implement as appropriate
 
-    def is_enabled(self):
-        """Return True if this calculator should be run
-        """
-        return True
-
     def run(self):
         """Run the calculator and return its results.
         These will be automatically saved
@@ -43,9 +38,6 @@ def run_calculators(calculators, query_manager, settings):
 
     results = {}
     calculators = [C(query_manager, settings, results) for C in calculators]
-
-    # Only use enabled calculators
-    calculators = list(filter(lambda c: c.is_enabled(), calculators))
 
     # Run all calculators first
     for c in calculators:

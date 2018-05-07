@@ -13,9 +13,6 @@ class HistogramCalculator(Calculator):
     a dictionary with keys `bin_values` and `bin_edges` of numpy arrays
     """
 
-    def is_enabled(self):
-        return self.settings['histogram_data'] or self.settings['histogram_chart']
-
     def run(self):
         
         cycle_data = self.get_result(CycleTimeCalculator)

@@ -12,9 +12,6 @@ class ThroughputCalculator(Calculator):
     completed at that timestamp (e.g. daily).
     """
 
-    def is_enabled(self):
-        return self.settings['throughput_data'] or self.settings['throughput_chart']
-
     def run(self):
         cycle_data = self.get_result(CycleTimeCalculator)
         frequency = self.settings['throughput_frequency']

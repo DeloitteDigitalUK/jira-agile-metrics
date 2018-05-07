@@ -13,7 +13,7 @@ class AgeingWIPChartCalculator(Calculator):
     """
 
     def is_enabled(self):
-        return self.settings['ageing_wip_chart']
+        return 
 
     def run(self):
         cycle_data = self.get_result(CycleTimeCalculator)
@@ -57,28 +57,31 @@ class AgeingWIPChartCalculator(Calculator):
     
     def write(self):
         output_file = self.settings['ageing_wip_chart']
+        if not output_file:
+            return        
+
         chart_data = self.get_result()
 
         if len(chart_data.index) == 0:
             print("WARNING: Cannot draw ageing WIP chart with no completed items")
-        else:
+            return
 
-            fig, ax = plt.subplots()
-            
-            if self.settings['ageing_wip_chart_title']:
-                ax.set_title(self.settings['ageing_wip_chart_title'])
+        fig, ax = plt.subplots()
+        
+        if self.settings['ageing_wip_chart_title']:
+            ax.set_title(self.settings['ageing_wip_chart_title'])
 
-            sns.swarmplot(x='status', y='age', order=chart_data.columns[4:], data=chart_data, ax=ax)
+        sns.swarmplot(x='status', y='age', order=chart_data.columns[4:], data=chart_data, ax=ax)
 
-            ax.set_xlabel("Status")
-            ax.set_ylabel("Age (days)")
+        ax.set_xlabel("Status")
+        ax.set_ylabel("Age (days)")
 
-            ax.set_xticklabels(ax.xaxis.get_majorticklabels(), rotation=90)
+        ax.set_xticklabels(ax.xaxis.get_majorticklabels(), rotation=90)
 
-            _, top = ax.get_ylim()
-            ax.set_ylim(0, top)
+        _, top = ax.get_ylim()
+        ax.set_ylim(0, top)
 
-            set_chart_style('whitegrid')
+        set_chart_style('whitegrid')
 
-            fig = ax.get_figure()
-            fig.savefig(output_file, bbox_inches='tight', dpi=300)
+        fig = ax.get_figure()
+        fig.savefig(output_file, bbox_inches='tight', dpi=300)

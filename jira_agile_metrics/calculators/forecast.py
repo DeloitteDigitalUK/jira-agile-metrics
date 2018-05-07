@@ -14,9 +14,6 @@ class BurnupForecastCalculator(Calculator):
     """Draw a burn-up chart with a forecast run to completion
     """
 
-    def is_enabled(self):
-        return self.settings['burnup_forecast_chart']
-
     def run(self):
         burnup_data = self.get_result(BurnupCalculator)
         cycle_data = self.get_result(CycleTimeCalculator)
@@ -52,6 +49,9 @@ class BurnupForecastCalculator(Calculator):
     
     def write(self):
         output_file = self.settings['burnup_forecast_chart']
+        if not output_file:
+            return
+
         deadline = self.settings['burnup_forecast_chart_deadline']
         deadline_confidence = self.settings['burnup_forecast_chart_deadline_confidence']
         quantiles = self.settings['quantiles']
@@ -64,125 +64,125 @@ class BurnupForecastCalculator(Calculator):
 
         if len(burnup_data.index) == 0:
             print("WARNING: Cannot draw burnup chart with no completed items")
-        else:
+            return
 
-            fig, ax = plt.subplots()
+        fig, ax = plt.subplots()
+        
+        if self.settings['burnup_forecast_chart_title']:
+            ax.set_title(self.settings['burnup_forecast_chart_title'])
+
+        fig.autofmt_xdate()
+
+        transform_vertical = matplotlib.transforms.blended_transform_factory(ax.transData, ax.transAxes)
+        transform_horizontal = matplotlib.transforms.blended_transform_factory(ax.transAxes, ax.transData)
+
+        # plot backlog and burnup to date
+        burnup_data.plot.line(ax=ax, legend=False)
+        
+        deadline_confidence_date = None
+
+        # plot each monte carlo simulation line
+        if mc_trials is not None:
+
+            for col in mc_trials:
+                mc_trials[col][mc_trials[col] > target] = target
+
+            mc_trials.plot.line(ax=ax, legend=False, color='#ff9696', linestyle='solid', linewidth=0.1)
+
+            # draw quantiles at finish line
+            finish_dates = mc_trials.apply(pd.Series.last_valid_index)
+            finish_date_quantiles = finish_dates.quantile(quantiles).dt.normalize()
             
-            if self.settings['burnup_forecast_chart_title']:
-                ax.set_title(self.settings['burnup_forecast_chart_title'])
+            if deadline_confidence is not None:
+                deadline_confidence_quantiles = finish_dates.quantile([deadline_confidence]).dt.normalize()
+                if len(deadline_confidence_quantiles) > 0:
+                    deadline_confidence_date = pd.Timestamp(deadline_confidence_quantiles.values[0]).to_pydatetime()
 
-            fig.autofmt_xdate()
-
-            transform_vertical = matplotlib.transforms.blended_transform_factory(ax.transData, ax.transAxes)
-            transform_horizontal = matplotlib.transforms.blended_transform_factory(ax.transAxes, ax.transData)
-
-            # plot backlog and burnup to date
-            burnup_data.plot.line(ax=ax, legend=False)
-            
-            deadline_confidence_date = None
-
-            # plot each monte carlo simulation line
-            if mc_trials is not None:
-
-                for col in mc_trials:
-                    mc_trials[col][mc_trials[col] > target] = target
-
-                mc_trials.plot.line(ax=ax, legend=False, color='#ff9696', linestyle='solid', linewidth=0.1)
-
-                # draw quantiles at finish line
-                finish_dates = mc_trials.apply(pd.Series.last_valid_index)
-                finish_date_quantiles = finish_dates.quantile(quantiles).dt.normalize()
-                
-                if deadline_confidence is not None:
-                    deadline_confidence_quantiles = finish_dates.quantile([deadline_confidence]).dt.normalize()
-                    if len(deadline_confidence_quantiles) > 0:
-                        deadline_confidence_date = pd.Timestamp(deadline_confidence_quantiles.values[0]).to_pydatetime()
-
-                bottom, top = ax.get_ylim()
-                for percentile, value in finish_date_quantiles.iteritems():
-                    ax.vlines(value, bottom, target, linestyles='--', linewidths=0.5)
-                    ax.annotate("%.0f%% (%s)" % ((percentile * 100), value.strftime("%d/%m/%Y"),),
-                        xy=(to_days_since_epoch(value), 0.35),
-                        xycoords=transform_vertical,
-                        rotation="vertical",
-                        ha="left",
-                        va="top",
-                        fontsize="x-small",
-                        backgroundcolor="#ffffff"
-                    )
-            
-            # draw deadline (pun not intended...)
-            if deadline is not None:
-                bottom, top = ax.get_ylim()
-                left, right = ax.get_xlim()
-                
-                deadline_dse = to_days_since_epoch(deadline)
-
-                ax.vlines(deadline, bottom, target, color='r', linestyles='-', linewidths=0.5)
-                ax.annotate("Due: %s" % (deadline.strftime("%d/%m/%Y"),),
-                    xy=(deadline, target),
-                    xytext=(0.95, 0.95),
-                    textcoords='axes fraction',
-                    arrowprops={
-                        'arrowstyle': '->',
-                        'color': 'r',
-                        'linewidth': 1.1,
-                        'connectionstyle': 'arc3,rad=.1',
-                    },
+            bottom, top = ax.get_ylim()
+            for percentile, value in finish_date_quantiles.iteritems():
+                ax.vlines(value, bottom, target, linestyles='--', linewidths=0.5)
+                ax.annotate("%.0f%% (%s)" % ((percentile * 100), value.strftime("%d/%m/%Y"),),
+                    xy=(to_days_since_epoch(value), 0.35),
+                    xycoords=transform_vertical,
+                    rotation="vertical",
+                    ha="left",
+                    va="top",
                     fontsize="x-small",
-                    ha="right",
-                    color='red',
                     backgroundcolor="#ffffff"
                 )
-                
-                # Make sure we can see deadline line
-                if right < deadline_dse:
-                    ax.set_xlim(left, deadline_dse + 1)
-                
-                # Draw deadline warning
-                if deadline_confidence_date is not None:
-                    deadline_delta = (deadline - deadline_confidence_date).days
-                    
-                    ax.text(0.02, 0.5,
-                        "Deadline: %s\nForecast (%.0f%%): %s\nSlack: %d days" % (
-                            deadline.strftime("%d/%m/%Y"),
-                            (deadline_confidence * 100),
-                            deadline_confidence_date.strftime("%d/%m/%Y"),
-                            deadline_delta
-                        ),
-                        transform=ax.transAxes,
-                        fontsize=14,
-                        verticalalignment='center',
-                        bbox=dict(boxstyle='round', facecolor='r' if deadline_delta < 0 else 'g', alpha=0.5),
-                    )
-
-            # Place target line
+        
+        # draw deadline (pun not intended...)
+        if deadline is not None:
+            bottom, top = ax.get_ylim()
             left, right = ax.get_xlim()
-            ax.hlines(target, left, right, linestyles='--', linewidths=1)
-            ax.annotate("Target: %d" % (target,),
-                xy=(0.01, target),
-                xycoords=transform_horizontal,
+            
+            deadline_dse = to_days_since_epoch(deadline)
+
+            ax.vlines(deadline, bottom, target, color='r', linestyles='-', linewidths=0.5)
+            ax.annotate("Due: %s" % (deadline.strftime("%d/%m/%Y"),),
+                xy=(deadline, target),
+                xytext=(0.95, 0.95),
+                textcoords='axes fraction',
+                arrowprops={
+                    'arrowstyle': '->',
+                    'color': 'r',
+                    'linewidth': 1.1,
+                    'connectionstyle': 'arc3,rad=.1',
+                },
                 fontsize="x-small",
-                ha="left",
-                va="center",
+                ha="right",
+                color='red',
                 backgroundcolor="#ffffff"
             )
             
-            # Give some headroom above the target line so we can see it
-            bottom, top = ax.get_ylim()
-            ax.set_ylim(bottom, int(top * 1.05))
-
-            # Place legend underneath graph
-            box = ax.get_position()
-            handles, labels = ax.get_legend_handles_labels()
-            ax.set_position([box.x0, box.y0 + box.height * 0.1, box.width, box.height * 0.9])
-
-            ax.legend(handles[:2], labels[:2], loc='upper center', bbox_to_anchor=(0.5, -0.2), ncol=2)
+            # Make sure we can see deadline line
+            if right < deadline_dse:
+                ax.set_xlim(left, deadline_dse + 1)
             
-            set_chart_style('whitegrid')
+            # Draw deadline warning
+            if deadline_confidence_date is not None:
+                deadline_delta = (deadline - deadline_confidence_date).days
+                
+                ax.text(0.02, 0.5,
+                    "Deadline: %s\nForecast (%.0f%%): %s\nSlack: %d days" % (
+                        deadline.strftime("%d/%m/%Y"),
+                        (deadline_confidence * 100),
+                        deadline_confidence_date.strftime("%d/%m/%Y"),
+                        deadline_delta
+                    ),
+                    transform=ax.transAxes,
+                    fontsize=14,
+                    verticalalignment='center',
+                    bbox=dict(boxstyle='round', facecolor='r' if deadline_delta < 0 else 'g', alpha=0.5),
+                )
 
-            fig = ax.get_figure()
-            fig.savefig(output_file, bbox_inches='tight', dpi=300)
+        # Place target line
+        left, right = ax.get_xlim()
+        ax.hlines(target, left, right, linestyles='--', linewidths=1)
+        ax.annotate("Target: %d" % (target,),
+            xy=(0.01, target),
+            xycoords=transform_horizontal,
+            fontsize="x-small",
+            ha="left",
+            va="center",
+            backgroundcolor="#ffffff"
+        )
+        
+        # Give some headroom above the target line so we can see it
+        bottom, top = ax.get_ylim()
+        ax.set_ylim(bottom, int(top * 1.05))
+
+        # Place legend underneath graph
+        box = ax.get_position()
+        handles, labels = ax.get_legend_handles_labels()
+        ax.set_position([box.x0, box.y0 + box.height * 0.1, box.width, box.height * 0.9])
+
+        ax.legend(handles[:2], labels[:2], loc='upper center', bbox_to_anchor=(0.5, -0.2), ncol=2)
+        
+        set_chart_style('whitegrid')
+
+        fig = ax.get_figure()
+        fig.savefig(output_file, bbox_inches='tight', dpi=300)
 
 def burnup_monte_carlo(start_value, target_value, start_date, throughput_data, trials=100):
 

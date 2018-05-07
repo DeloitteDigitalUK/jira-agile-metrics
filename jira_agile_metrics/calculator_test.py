@@ -17,14 +17,11 @@ def test_run_calculator():
     
     class Disabled(Calculator):
 
-        def is_enabled(self):
-            return False
-        
         def run(self):
             return "Disabled"
         
         def write(self):
-            written.append("Disabled")
+            pass
 
     class GetPreviousResult(Calculator):
 
@@ -42,6 +39,7 @@ def test_run_calculator():
 
     assert results == {
         Enabled: "Enabled",
+        Disabled: "Disabled",
         GetPreviousResult: "Enabled bar"
     }
 

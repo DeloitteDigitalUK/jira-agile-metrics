@@ -19,9 +19,6 @@ class CFDCalculator(Calculator):
     Write as a data file and/or a diagram.
     """
 
-    def is_enabled(self):
-        return self.settings['cfd_data'] or self.settings['cfd_chart']
-
     def run(self):
         cycle_data = self.get_result(CycleTimeCalculator)
         cycle_names = [s['name'] for s in self.settings['cycle']]

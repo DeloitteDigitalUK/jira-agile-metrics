@@ -14,11 +14,7 @@ class ScatterplotCalculator(Calculator):
     `completed_date`.
     """
 
-    def is_enabled(self):
-        return self.settings['scatterplot_data'] or self.settings['scatterplot_chart']
-
     def run(self):
-        
         cycle_data = self.get_result(CycleTimeCalculator)
         columns = list(cycle_data.columns)
         columns.remove('cycle_time')

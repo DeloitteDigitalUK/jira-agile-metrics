@@ -44,11 +44,6 @@ class CycleTimeCalculator(Calculator):
                     type=cycle_step['type'],
                 )
 
-    def is_enabled(self):
-        # even if we are not writing anything, we want to run this calculator,
-        # as its results are used by others
-        return True
-
     def run(self):
         cycle_names = [s['name'] for s in self.settings['cycle']]
         accepted_steps = set(s['name'] for s in self.settings['cycle'] if s['type'] == StatusTypes.accepted)
