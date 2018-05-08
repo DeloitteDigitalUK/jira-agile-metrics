@@ -71,10 +71,14 @@ def jira(custom_fields):
         ),
     ])
 
-def test_columns(jira, custom_settings):
-    query_manager = QueryManager(jira, custom_settings)
+@pytest.fixture
+def settings(custom_settings):
+    return custom_settings
+
+def test_columns(jira, settings):
+    query_manager = QueryManager(jira, settings)
     results = {}
-    calculator = CycleTimeCalculator(query_manager, custom_settings, results)
+    calculator = CycleTimeCalculator(query_manager, settings, results)
 
     data = calculator.run()
 
@@ -100,20 +104,20 @@ def test_columns(jira, custom_settings):
         'Done'
     ]
 
-def test_empty(custom_fields, custom_settings):
+def test_empty(custom_fields, settings):
     jira = JIRA(fields=custom_fields, issues=[])
-    query_manager = QueryManager(jira, custom_settings)
+    query_manager = QueryManager(jira, settings)
     results = {}
-    calculator = CycleTimeCalculator(query_manager, custom_settings, results)
+    calculator = CycleTimeCalculator(query_manager, settings, results)
 
     data = calculator.run()
 
     assert len(data.index) == 0
 
-def test_movement(jira, custom_settings):
-    query_manager = QueryManager(jira, custom_settings)
+def test_movement(jira, settings):
+    query_manager = QueryManager(jira, settings)
     results = {}
-    calculator = CycleTimeCalculator(query_manager, custom_settings, results)
+    calculator = CycleTimeCalculator(query_manager, settings, results)
 
     data = calculator.run()
 

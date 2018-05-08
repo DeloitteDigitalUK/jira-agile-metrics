@@ -1,20 +1,33 @@
+import pytest
 from pandas import DataFrame, Timestamp
 
 from .cycletime import CycleTimeCalculator
 from .cfd import CFDCalculator
 
-def test_empty(minimal_query_manager, minimal_settings, minimal_cycle_time_columns):
+@pytest.fixture
+def query_manager(minimal_query_manager):
+    return minimal_query_manager
+
+@pytest.fixture
+def settings(minimal_settings):
+    return minimal_settings
+
+@pytest.fixture
+def columns(minimal_cycle_time_columns):
+    return minimal_cycle_time_columns
+
+def test_empty(query_manager, settings, columns):
     results = {
-        CycleTimeCalculator: DataFrame([], columns=minimal_cycle_time_columns)
+        CycleTimeCalculator: DataFrame([], columns=columns)
     }
 
-    calculator = CFDCalculator(minimal_query_manager, minimal_settings, results)
+    calculator = CFDCalculator(query_manager, settings, results)
 
     data = calculator.run()
     assert len(data.index) == 0
 
-def test_columns(minimal_query_manager, minimal_settings, minimal_cycle_time_results):
-    calculator = CFDCalculator(minimal_query_manager, minimal_settings, minimal_cycle_time_results)
+def test_columns(query_manager, settings, minimal_cycle_time_results):
+    calculator = CFDCalculator(query_manager, settings, minimal_cycle_time_results)
 
     data = calculator.run()
 
@@ -26,8 +39,8 @@ def test_columns(minimal_query_manager, minimal_settings, minimal_cycle_time_res
         'Done'
     ]
 
-def test_calculate_cfd(minimal_query_manager, minimal_settings, minimal_cycle_time_results):
-    calculator = CFDCalculator(minimal_query_manager, minimal_settings, minimal_cycle_time_results)
+def test_calculate_cfd(query_manager, settings, minimal_cycle_time_results):
+    calculator = CFDCalculator(query_manager, settings, minimal_cycle_time_results)
 
     data = calculator.run()
 

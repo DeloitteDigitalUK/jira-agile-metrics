@@ -30,6 +30,10 @@ def settings(minimal_settings):
     return minimal_settings
 
 @pytest.fixture
+def query_manager(minimal_query_manager):
+    return minimal_query_manager
+
+@pytest.fixture
 def results():
     return {
         CFDCalculator: DataFrame([
@@ -42,18 +46,18 @@ def results():
         ], columns=cfd_columns, index=cfd_index)
     }
 
-def test_empty(minimal_query_manager, settings):
+def test_empty(query_manager, settings):
     results = {
         CFDCalculator: DataFrame([], columns=cfd_columns, index=[])
     }
 
-    calculator = BurnupCalculator(minimal_query_manager, settings, results)
+    calculator = BurnupCalculator(query_manager, settings, results)
 
     data = calculator.run()
     assert len(data.index) == 0
 
-def test_columns(minimal_query_manager, settings, results):
-    calculator = BurnupCalculator(minimal_query_manager, settings, results)
+def test_columns(query_manager, settings, results):
+    calculator = BurnupCalculator(query_manager, settings, results)
 
     data = calculator.run()
 
@@ -62,8 +66,8 @@ def test_columns(minimal_query_manager, settings, results):
         'Done'
     ]
 
-def test_calculate_cfd(minimal_query_manager, settings, results):
-    calculator = BurnupCalculator(minimal_query_manager, settings, results)
+def test_calculate_cfd(query_manager, settings, results):
+    calculator = BurnupCalculator(query_manager, settings, results)
 
     data = calculator.run()
 
@@ -85,13 +89,13 @@ def test_calculate_cfd(minimal_query_manager, settings, results):
         {'Backlog': 4.0, 'Done': 1.0},
     ]
 
-def test_calculate_cfd_with_different_columns(minimal_query_manager, settings, results):
+def test_calculate_cfd_with_different_columns(query_manager, settings, results):
     settings.update({
         'backlog_column': 'Committed',
         'done_column': 'Test'
     })
 
-    calculator = BurnupCalculator(minimal_query_manager, settings, results)
+    calculator = BurnupCalculator(query_manager, settings, results)
 
     data = calculator.run()
 

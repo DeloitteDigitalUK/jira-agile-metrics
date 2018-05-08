@@ -30,8 +30,12 @@ def jira(custom_fields):
         )
     ])
 
-def test_search(jira, custom_settings):
-    qm = QueryManager(jira, custom_settings)
+@pytest.fixture
+def settings(custom_settings):
+    return custom_settings
+
+def test_search(jira, settings):
+    qm = QueryManager(jira, settings)
     assert qm.attributes_to_fields == {
         'Team': 'customfield_001',
         'Estimate': 'customfield_002',
@@ -41,24 +45,24 @@ def test_search(jira, custom_settings):
     issues = qm.find_issues("(filter=123)")
     assert issues == jira._issues
 
-def test_resolve_attribute_value(jira, custom_settings):
-    qm = QueryManager(jira, custom_settings)
+def test_resolve_attribute_value(jira, settings):
+    qm = QueryManager(jira, settings)
     issues = qm.find_issues("(filter=123)")
 
     assert qm.resolve_attribute_value(issues[0], "Team") == "Team 1"
     assert qm.resolve_attribute_value(issues[0], "Estimate") == 30
     assert qm.resolve_attribute_value(issues[0], "Release") == "R3"  # due to known_value
 
-def test_resolve_field_value(jira, custom_settings):
-    qm = QueryManager(jira, custom_settings)
+def test_resolve_field_value(jira, settings):
+    qm = QueryManager(jira, settings)
     issues = qm.find_issues("(filter=123)")
 
     assert qm.resolve_field_value(issues[0], "customfield_001") == "Team 1"
     assert qm.resolve_field_value(issues[0], "customfield_002") == 30
     assert qm.resolve_field_value(issues[0], "customfield_003") == "R3"  # due to known_value
 
-def test_iter_changes(jira, custom_settings):
-    qm = QueryManager(jira, custom_settings)
+def test_iter_changes(jira, settings):
+    qm = QueryManager(jira, settings)
     issues = qm.find_issues("(filter=123)")
     changes = list(qm.iter_changes(issues[0], ['status']))
 
