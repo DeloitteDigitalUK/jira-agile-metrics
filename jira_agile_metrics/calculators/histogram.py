@@ -14,7 +14,6 @@ class HistogramCalculator(Calculator):
     """
 
     def run(self):
-        
         cycle_data = self.get_result(CycleTimeCalculator)
         
         values, edges = np.histogram(cycle_data['cycle_time'].astype('timedelta64[D]').dropna(), bins=10)

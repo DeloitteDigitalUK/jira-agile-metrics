@@ -1,9 +1,6 @@
 import pytest
 from pandas import DataFrame, Timestamp
 
-from ..conftest import FauxJIRA as JIRA
-
-from ..querymanager import QueryManager
 from .cfd import CFDCalculator
 from .burnup import BurnupCalculator
 
@@ -25,17 +22,12 @@ cfd_index = [
 ]
 
 @pytest.fixture
-def settings(basic_settings):
-    basic_settings.update({
+def settings(minimal_settings):
+    minimal_settings.update({
         'backlog_column': None,
         'done_column': None
     })
-    return basic_settings
-
-@pytest.fixture
-def query_manager(basic_fields, settings):
-    jira = JIRA(fields=basic_fields, issues=[])
-    return QueryManager(jira, settings)
+    return minimal_settings
 
 @pytest.fixture
 def results():
@@ -50,18 +42,18 @@ def results():
         ], columns=cfd_columns, index=cfd_index)
     }
 
-def test_empty(query_manager, settings):
+def test_empty(minimal_query_manager, settings):
     results = {
         CFDCalculator: DataFrame([], columns=cfd_columns, index=[])
     }
 
-    calculator = BurnupCalculator(query_manager, settings, results)
+    calculator = BurnupCalculator(minimal_query_manager, settings, results)
 
     data = calculator.run()
     assert len(data.index) == 0
 
-def test_columns(query_manager, settings, results):
-    calculator = BurnupCalculator(query_manager, settings, results)
+def test_columns(minimal_query_manager, settings, results):
+    calculator = BurnupCalculator(minimal_query_manager, settings, results)
 
     data = calculator.run()
 
@@ -70,8 +62,8 @@ def test_columns(query_manager, settings, results):
         'Done'
     ]
 
-def test_calculate_cfd(query_manager, settings, results):
-    calculator = BurnupCalculator(query_manager, settings, results)
+def test_calculate_cfd(minimal_query_manager, settings, results):
+    calculator = BurnupCalculator(minimal_query_manager, settings, results)
 
     data = calculator.run()
 
@@ -93,13 +85,13 @@ def test_calculate_cfd(query_manager, settings, results):
         {'Backlog': 4.0, 'Done': 1.0},
     ]
 
-def test_calculate_cfd_with_different_columns(query_manager, settings, results):
+def test_calculate_cfd_with_different_columns(minimal_query_manager, settings, results):
     settings.update({
         'backlog_column': 'Committed',
         'done_column': 'Test'
     })
 
-    calculator = BurnupCalculator(query_manager, settings, results)
+    calculator = BurnupCalculator(minimal_query_manager, settings, results)
 
     data = calculator.run()
 

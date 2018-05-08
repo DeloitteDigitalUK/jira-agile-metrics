@@ -11,12 +11,12 @@ from .conftest import (
 from .querymanager import QueryManager, IssueSnapshot
 
 @pytest.fixture
-def jira(basic_fields):
-    return JIRA(fields=basic_fields, issues=[
+def jira(custom_fields):
+    return JIRA(fields=custom_fields, issues=[
         Issue("A-1",
             summary="Issue A-1",
             issuetype=Value("Story", "story"),
-            status=Value("Backlog", "backlog"),
+            status=Value("Backlotg", "backlog"),
             resolution=None,
             created="2018-01-01 01:01:01",
             customfield_001="Team 1",
@@ -30,8 +30,8 @@ def jira(basic_fields):
         )
     ])
 
-def test_search(jira, basic_settings):
-    qm = QueryManager(jira, basic_settings)
+def test_search(jira, custom_settings):
+    qm = QueryManager(jira, custom_settings)
     assert qm.attributes_to_fields == {
         'Team': 'customfield_001',
         'Estimate': 'customfield_002',
@@ -41,24 +41,24 @@ def test_search(jira, basic_settings):
     issues = qm.find_issues("(filter=123)")
     assert issues == jira._issues
 
-def test_resolve_attribute_value(jira, basic_settings):
-    qm = QueryManager(jira, basic_settings)
+def test_resolve_attribute_value(jira, custom_settings):
+    qm = QueryManager(jira, custom_settings)
     issues = qm.find_issues("(filter=123)")
 
     assert qm.resolve_attribute_value(issues[0], "Team") == "Team 1"
     assert qm.resolve_attribute_value(issues[0], "Estimate") == 30
     assert qm.resolve_attribute_value(issues[0], "Release") == "R3"  # due to known_value
 
-def test_resolve_field_value(jira, basic_settings):
-    qm = QueryManager(jira, basic_settings)
+def test_resolve_field_value(jira, custom_settings):
+    qm = QueryManager(jira, custom_settings)
     issues = qm.find_issues("(filter=123)")
 
     assert qm.resolve_field_value(issues[0], "customfield_001") == "Team 1"
     assert qm.resolve_field_value(issues[0], "customfield_002") == 30
     assert qm.resolve_field_value(issues[0], "customfield_003") == "R3"  # due to known_value
 
-def test_iter_changes(jira, basic_settings):
-    qm = QueryManager(jira, basic_settings)
+def test_iter_changes(jira, custom_settings):
+    qm = QueryManager(jira, custom_settings)
     issues = qm.find_issues("(filter=123)")
     changes = list(qm.iter_changes(issues[0], ['status']))
 
