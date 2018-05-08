@@ -5,8 +5,12 @@ import pandas as pd
 from .utils import (
     get_extension,
     to_json_string,
-    to_days_since_epoch
+    to_days_since_epoch,
+    extend_dict
 )
+
+def test_extend_dict():
+    assert extend_dict({'one': 1}, {'two': 2}) == {'one': 1, 'two': 2}
 
 def test_get_extension():
     assert get_extension("foo.csv") == ".csv"

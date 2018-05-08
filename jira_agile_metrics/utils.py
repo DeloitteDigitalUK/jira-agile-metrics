@@ -10,6 +10,11 @@ class StatusTypes:
     accepted = 'accepted'
     complete = 'complete'
 
+def extend_dict(d, e):
+    r = d.copy()
+    r.update(e)
+    return r
+
 def to_json_string(value):
     if isinstance(value, pd.Timestamp):
         return value.strftime("%Y-%m-%d")

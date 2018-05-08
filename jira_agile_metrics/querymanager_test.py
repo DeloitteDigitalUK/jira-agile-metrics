@@ -9,6 +9,7 @@ from .conftest import (
 )
 
 from .querymanager import QueryManager, IssueSnapshot
+from .utils import extend_dict
 
 @pytest.fixture
 def jira(custom_fields):
@@ -32,7 +33,7 @@ def jira(custom_fields):
 
 @pytest.fixture
 def settings(custom_settings):
-    return custom_settings
+    return extend_dict(custom_settings, {})
 
 def test_search(jira, settings):
     qm = QueryManager(jira, settings)

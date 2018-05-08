@@ -4,13 +4,15 @@ from pandas import DataFrame, Timestamp
 from .cycletime import CycleTimeCalculator
 from .cfd import CFDCalculator
 
+from ..utils import extend_dict
+
 @pytest.fixture
 def query_manager(minimal_query_manager):
     return minimal_query_manager
 
 @pytest.fixture
 def settings(minimal_settings):
-    return minimal_settings
+    return extend_dict(minimal_settings, {})
 
 @pytest.fixture
 def columns(minimal_cycle_time_columns):
