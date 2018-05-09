@@ -1,3 +1,4 @@
+import pandas as pd
 import matplotlib.pyplot as plt
 import statsmodels.formula.api as sm
 
@@ -15,6 +16,9 @@ class ThroughputCalculator(Calculator):
     def run(self):
         cycle_data = self.get_result(CycleTimeCalculator)
         frequency = self.settings['throughput_frequency']
+
+        if len(cycle_data.index) == 0:
+            return pd.DataFrame([], columns=['count'], index=[])
 
         return cycle_data[['completed_timestamp', 'key']] \
             .rename(columns={'key': 'count'}) \
