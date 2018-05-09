@@ -41,7 +41,7 @@ def test_columns(query_manager, settings, results):
         'Done'
     ]
 
-def test_calculate_cfd(query_manager, settings, results):
+def test_calculate_burnup(query_manager, settings, results):
     calculator = BurnupCalculator(query_manager, settings, results)
 
     data = calculator.run()
@@ -64,7 +64,7 @@ def test_calculate_cfd(query_manager, settings, results):
         {'Backlog': 4.0, 'Done': 1.0},
     ]
 
-def test_calculate_cfd_with_different_columns(query_manager, settings, results):
+def test_calculate_burnup_with_different_columns(query_manager, settings, results):
     settings.update({
         'backlog_column': 'Committed',
         'done_column': 'Test'
