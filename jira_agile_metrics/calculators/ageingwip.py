@@ -12,7 +12,7 @@ class AgeingWIPChartCalculator(Calculator):
     """Draw an ageing WIP chart
     """
 
-    def run(self):
+    def run(self, today=None):
         cycle_data = self.get_result(CycleTimeCalculator)
         cycle_names = [s['name'] for s in self.settings['cycle']]
 
@@ -20,7 +20,7 @@ class AgeingWIPChartCalculator(Calculator):
         end_column = self.settings['final_column'] or cycle_names[-2]
         done_column = self.settings['done_column'] or cycle_names[-1]
         
-        today = pd.Timestamp.now().date()
+        today = pd.Timestamp.now().date() if today is None else today  # to allow testing
 
         # remove items that are done
         ageing_wip_data = cycle_data[pd.isnull(cycle_data[done_column])].copy()
@@ -33,6 +33,8 @@ class AgeingWIPChartCalculator(Calculator):
             return last_valid
 
         def extract_age(row):
+            if start_column not in row:
+                return np.NaN
             started = row[start_column]
             if pd.isnull(started):
                 return np.NaN
