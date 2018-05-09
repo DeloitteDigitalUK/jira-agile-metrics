@@ -35,7 +35,7 @@ def test_empty(query_manager, settings, minimal_cycle_time_columns):
     assert math.isnan(list(data)[1])
     assert math.isnan(list(data)[2])
 
-def test_calculate_histogram(query_manager, settings, results):
+def test_calculate_percentiles(query_manager, settings, results):
     calculator = PercentilesCalculator(query_manager, settings, results)
 
     data = calculator.run()
