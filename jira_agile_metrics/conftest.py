@@ -186,45 +186,79 @@ def custom_query_manager(custom_fields, custom_settings):
 
 # Results object with rich cycle time data
 
-_issue_counter = 0
-def _issue(Backlog, Committed, Build, Test, Done):
-    """Simple issue records factory to make it easier to build fixtures with many issues
-    """
-    global _issue_counter
-    _issue_counter += 1
-    return {
-        'key': 'A-%d' % _issue_counter,
-        'url': 'https://example.org/browse/A-%d' % _issue_counter,
+def _issues(issues):
+    return [{
+        'key': 'A-%d' % (idx + 1),
+        'url': 'https://example.org/browse/A-%d' % (idx + 1),
         'issue_type': 'Story',
-        'summary': 'Generated issue A-%d' % _issue_counter,
+        'summary': 'Generated issue A-%d' % (idx + 1),
         'status': (
-            "Done" if Done is not NaT else
-            "Test" if Test is not NaT else
-            "Build" if Build is not NaT else
-            "Committed" if Committed is not NaT else
+            "Done" if i['Done'] is not NaT else
+            "Test" if i['Test'] is not NaT else
+            "Build" if i['Build'] is not NaT else
+            "Committed" if i['Committed'] is not NaT else
             "Backlog"
         ),
-        'resoluton': "Done" if Done is not NaT else None,
-        'completed_timestamp': Done if Done is not NaT else None,
-        'cycle_time': (Done - Committed) if (Done is not NaT and Committed is not NaT) else None,
-        'Backlog': Backlog,
-        'Committed': Committed,
-        'Build': Build,
-        'Test': Test,
-        'Done': Done
-    }
+        'resoluton': "Done" if i['Done'] is not NaT else None,
+        'completed_timestamp': i['Done'] if i['Done'] is not NaT else None,
+        'cycle_time': (i['Done'] - i['Committed']) if (i['Done'] is not NaT and i['Committed'] is not NaT) else None,
+        'Backlog': i['Backlog'],
+        'Committed': i['Committed'],
+        'Build': i['Build'],
+        'Test': i['Test'],
+        'Done': i['Done']
+    } for idx, i in enumerate(issues)]
+
+def _ts(datestring, timestring="01:01:01", freq=None):
+    return Timestamp('%s %s' % (datestring, timestring,), freq=freq)
 
 @pytest.fixture
 def minimal_cycle_time_results(minimal_cycle_time_columns):
     """A results dict mimicing a minimal result from the CycleTimeCalculator.
     """
     return {
-        CycleTimeCalculator: DataFrame([
-            _issue(Backlog=Timestamp('2018-01-01 01:01:01'), Committed=NaT,                              Build=NaT,                              Test=NaT,                              Done=NaT),
-            _issue(Backlog=Timestamp('2018-01-02 01:01:01'), Committed=Timestamp('2018-01-03 01:01:01'), Build=NaT,                              Test=NaT,                              Done=NaT),
-            _issue(Backlog=Timestamp('2018-01-03 01:01:01'), Committed=Timestamp('2018-01-03 01:01:01'), Build=Timestamp('2018-01-04 01:01:01'), Test=Timestamp('2018-01-05 01:01:01'), Done=Timestamp('2018-01-06 01:01:01')),
-            _issue(Backlog=Timestamp('2018-01-04 01:01:01'), Committed=Timestamp('2018-01-04 01:01:01'), Build=NaT,                              Test=NaT,                              Done=NaT),
-        ], columns=minimal_cycle_time_columns)
+        CycleTimeCalculator: DataFrame(_issues([
+            dict(Backlog=_ts('2018-01-01'), Committed=NaT,               Build=NaT,               Test=NaT,               Done=NaT),
+            dict(Backlog=_ts('2018-01-02'), Committed=_ts('2018-01-03'), Build=NaT,               Test=NaT,               Done=NaT),
+            dict(Backlog=_ts('2018-01-03'), Committed=_ts('2018-01-03'), Build=_ts('2018-01-04'), Test=_ts('2018-01-05'), Done=_ts('2018-01-06')),
+            dict(Backlog=_ts('2018-01-04'), Committed=_ts('2018-01-04'), Build=NaT,               Test=NaT,               Done=NaT),
+        ]), columns=minimal_cycle_time_columns)
+    }
+
+@pytest.fixture
+def large_cycle_time_results(minimal_cycle_time_columns):
+    """A results dict mimicing a larger result from the CycleTimeCalculator.
+    """
+    return {
+        CycleTimeCalculator: DataFrame(_issues([
+            # three issues in the backlog
+            dict(Backlog=_ts('2018-01-01'), Committed=NaT,               Build=NaT,               Test=NaT,               Done=NaT),
+            dict(Backlog=_ts('2018-01-02'), Committed=NaT,               Build=NaT,               Test=NaT,               Done=NaT),
+            dict(Backlog=_ts('2018-01-03'), Committed=NaT,               Build=NaT,               Test=NaT,               Done=NaT),
+
+            # three issues started
+            dict(Backlog=_ts('2018-01-01'), Committed=_ts('2018-01-02'), Build=NaT,               Test=NaT,               Done=NaT),
+            dict(Backlog=_ts('2018-01-01'), Committed=_ts('2018-01-03'), Build=NaT,               Test=NaT,               Done=NaT),
+            dict(Backlog=_ts('2018-01-01'), Committed=_ts('2018-01-03'), Build=NaT,               Test=NaT,               Done=NaT),
+
+            # three issues in build
+            dict(Backlog=_ts('2018-01-01'), Committed=_ts('2018-01-02'), Build=_ts('2018-01-03'), Test=NaT,               Done=NaT),
+            dict(Backlog=_ts('2018-01-01'), Committed=_ts('2018-01-02'), Build=_ts('2018-01-04'), Test=NaT,               Done=NaT),
+            dict(Backlog=_ts('2018-01-01'), Committed=_ts('2018-01-02'), Build=_ts('2018-01-04'), Test=NaT,               Done=NaT),
+
+            # three issues in test
+            dict(Backlog=_ts('2018-01-01'), Committed=_ts('2018-01-02'), Build=_ts('2018-01-03'), Test=_ts('2018-01-04'), Done=NaT),
+            dict(Backlog=_ts('2018-01-01'), Committed=_ts('2018-01-02'), Build=_ts('2018-01-03'), Test=_ts('2018-01-05'), Done=NaT),
+            dict(Backlog=_ts('2018-01-01'), Committed=_ts('2018-01-02'), Build=_ts('2018-01-03'), Test=_ts('2018-01-05'), Done=NaT),
+
+            # six issues done, with different cycle times
+            dict(Backlog=_ts('2018-01-01'), Committed=_ts('2018-01-02'), Build=_ts('2018-01-03'), Test=_ts('2018-01-04'), Done=_ts('2018-01-07')),
+            dict(Backlog=_ts('2018-01-01'), Committed=_ts('2018-01-02'), Build=_ts('2018-01-03'), Test=_ts('2018-01-05'), Done=_ts('2018-01-07')),
+            dict(Backlog=_ts('2018-01-01'), Committed=_ts('2018-01-03'), Build=_ts('2018-01-03'), Test=_ts('2018-01-05'), Done=_ts('2018-01-08')),
+            dict(Backlog=_ts('2018-01-01'), Committed=_ts('2018-01-03'), Build=_ts('2018-01-03'), Test=_ts('2018-01-04'), Done=_ts('2018-01-08')),
+            dict(Backlog=_ts('2018-01-01'), Committed=_ts('2018-01-04'), Build=_ts('2018-01-05'), Test=_ts('2018-01-05'), Done=_ts('2018-01-09')),
+            dict(Backlog=_ts('2018-01-01'), Committed=_ts('2018-01-05'), Build=_ts('2018-01-06'), Test=_ts('2018-01-08'), Done=_ts('2018-01-09')),
+        ]), columns=minimal_cycle_time_columns)
     }
 
 @pytest.fixture
@@ -240,11 +274,11 @@ def minimal_cfd_results(minimal_cycle_time_results, cfd_columns):
             {'Backlog': 4.0, 'Committed': 3.0, 'Build': 1.0, 'Test': 1.0, 'Done': 0.0},
             {'Backlog': 4.0, 'Committed': 3.0, 'Build': 1.0, 'Test': 1.0, 'Done': 1.0},
         ], columns=cfd_columns, index=[
-            Timestamp('2018-01-01 00:00:00', freq='D'),
-            Timestamp('2018-01-02 00:00:00', freq='D'),
-            Timestamp('2018-01-03 00:00:00', freq='D'),
-            Timestamp('2018-01-04 00:00:00', freq='D'),
-            Timestamp('2018-01-05 00:00:00', freq='D'),
-            Timestamp('2018-01-06 00:00:00', freq='D')
+            _ts('2018-01-01', '00:00:00', freq='D'),
+            _ts('2018-01-02', '00:00:00', freq='D'),
+            _ts('2018-01-03', '00:00:00', freq='D'),
+            _ts('2018-01-04', '00:00:00', freq='D'),
+            _ts('2018-01-05', '00:00:00', freq='D'),
+            _ts('2018-01-06', '00:00:00', freq='D')
         ])
     })
