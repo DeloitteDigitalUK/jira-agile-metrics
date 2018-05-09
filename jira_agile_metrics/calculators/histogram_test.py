@@ -1,5 +1,4 @@
 import pytest
-import datetime
 from pandas import DataFrame
 
 from .cycletime import CycleTimeCalculator
@@ -9,9 +8,7 @@ from ..utils import extend_dict
 
 @pytest.fixture
 def settings(minimal_settings):
-    return extend_dict(minimal_settings, {
-        
-    })
+    return extend_dict(minimal_settings, {})
 
 @pytest.fixture
 def query_manager(minimal_query_manager):
