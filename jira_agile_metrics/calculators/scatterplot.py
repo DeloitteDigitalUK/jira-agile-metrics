@@ -1,5 +1,6 @@
 import pandas as pd
 import matplotlib.pyplot as plt
+import matplotlib.dates as mdates
 
 from ..calculator import Calculator
 from ..utils import get_extension, set_chart_style
@@ -74,6 +75,7 @@ class ScatterplotCalculator(Calculator):
             ax.set_title(self.settings['scatterplot_chart_title'])
 
         ax.plot_date(x=chart_data['completed_date'], y=ct_days, ms=5)
+        ax.xaxis.set_major_formatter(mdates.DateFormatter('%d/%m/%Y'))
 
         # Add quantiles
         left, right = ax.get_xlim()
@@ -86,7 +88,7 @@ class ScatterplotCalculator(Calculator):
                 ha="left"
             )
 
-        set_chart_style('darkgrid')
+        set_chart_style()
 
         # Write file
         

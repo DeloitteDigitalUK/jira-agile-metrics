@@ -487,6 +487,7 @@ all items returned by the second query, it will be `Team 2`.
 
 ## Changelog
 
-0.1 - 
+### 0.1
+
     * Forked from `jira-agile-metrics`
 

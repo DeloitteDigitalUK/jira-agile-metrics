@@ -57,8 +57,6 @@ class ThroughputCalculator(Calculator):
         if self.settings['throughput_chart_title']:
             ax.set_title(self.settings['throughput_chart_title'])
 
-        fig.autofmt_xdate()
-
         # Calculate zero-indexed days to allow linear regression calculation
         day_zero = chart_data.index[0]
         chart_data['day'] = (chart_data.index - day_zero).days
@@ -73,6 +71,7 @@ class ThroughputCalculator(Calculator):
         ax.set_ylabel("Number of items")
 
         ax.bar(chart_data.index, chart_data['count'])
+        plt.xticks(chart_data.index, [d.date().strftime('%d/%m/%Y') for d in chart_data.index], rotation=70, size='small')
 
         _, top = ax.get_ylim()
         ax.set_ylim(0, top + 1)
@@ -90,7 +89,7 @@ class ThroughputCalculator(Calculator):
 
         ax.plot(chart_data.index, chart_data['fitted'], '--', linewidth=2)
 
-        set_chart_style('darkgrid')
+        set_chart_style()
 
         fig = ax.get_figure()
         fig.savefig(output_file, bbox_inches='tight', dpi=300)

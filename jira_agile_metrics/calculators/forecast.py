@@ -164,7 +164,7 @@ class BurnupForecastCalculator(Calculator):
         left, right = ax.get_xlim()
         ax.hlines(target, left, right, linestyles='--', linewidths=1)
         ax.annotate("Target: %d" % (target,),
-            xy=(0.01, target),
+            xy=(0.02, target),
             xycoords=transform_horizontal,
             fontsize="x-small",
             ha="left",
@@ -183,7 +183,7 @@ class BurnupForecastCalculator(Calculator):
 
         ax.legend(handles[:2], labels[:2], loc='upper center', bbox_to_anchor=(0.5, -0.2), ncol=2)
         
-        set_chart_style('whitegrid')
+        set_chart_style()
 
         fig = ax.get_figure()
         fig.savefig(output_file, bbox_inches='tight', dpi=300)

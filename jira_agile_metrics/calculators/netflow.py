@@ -49,7 +49,7 @@ class NetFlowChartCalculator(Calculator):
         labels = [d.strftime("%d/%m/%Y") for d in chart_data.index]
         ax.set_xticklabels(labels, rotation=70, size='small')
 
-        set_chart_style('darkgrid')
+        set_chart_style()
 
         fig = ax.get_figure()
         fig.savefig(output_file, bbox_inches='tight', dpi=300)

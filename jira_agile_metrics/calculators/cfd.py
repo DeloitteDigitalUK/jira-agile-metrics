@@ -88,7 +88,7 @@ class CFDCalculator(Calculator):
         data.drop([backlog_column], axis=1).plot.area(ax=ax, stacked=False, legend=False)
         ax.legend(loc=0, title="", frameon=True)
 
-        set_chart_style('whitegrid')
+        set_chart_style()
 
         fig = ax.get_figure()
         fig.savefig(output_file, bbox_inches='tight', dpi=300)

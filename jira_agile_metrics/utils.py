@@ -32,8 +32,10 @@ def get_extension(filename):
 def to_days_since_epoch(d):
     return (d - datetime.datetime(1970, 1, 1)).days
 
-def set_chart_context(context="talk"):
+def set_chart_context(context):
     sns.set_context(context)
 
-def set_chart_style(style="darkgrid"):
+def set_chart_style(style="whitegrid", despine=True):
     sns.set_style(style)
+    if despine:
+        sns.despine()

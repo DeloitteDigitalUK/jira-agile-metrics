@@ -154,7 +154,7 @@ def main():
     override_options(options['settings'], args)
 
     # Set charting context, which determines how charts are rendered
-    set_chart_context()
+    set_chart_context("paper")
 
     # Query JIRA and run calculators
 

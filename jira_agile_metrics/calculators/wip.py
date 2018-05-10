@@ -46,7 +46,7 @@ class WIPChartCalculator(Calculator):
         ax.set_xlabel("Week")
         ax.set_ylabel("WIP")
 
-        set_chart_style('darkgrid')
+        set_chart_style()
 
         fig = ax.get_figure()
         fig.savefig(output_file, bbox_inches='tight', dpi=300)

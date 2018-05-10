@@ -74,13 +74,13 @@ class HistogramCalculator(Calculator):
             ax.vlines(value, bottom, top - 0.001, linestyles='--', linewidths=1)
             ax.annotate("%.0f%% (%.0f days)" % ((quantile * 100), value,),
                 xy=(value, top),
-                xytext=(value, top - 0.001),
+                xytext=(value - 0.1, top - 0.001),
                 rotation="vertical",
                 fontsize="x-small",
                 ha="right"
             )
 
-        set_chart_style('darkgrid')
+        set_chart_style()
         
         fig = ax.get_figure()
         fig.savefig(output_file, bbox_inches='tight', dpi=300)

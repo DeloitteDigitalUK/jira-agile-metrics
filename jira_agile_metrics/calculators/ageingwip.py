@@ -80,7 +80,7 @@ class AgeingWIPChartCalculator(Calculator):
         _, top = ax.get_ylim()
         ax.set_ylim(0, top)
 
-        set_chart_style('whitegrid')
+        set_chart_style()
 
         fig = ax.get_figure()
         fig.savefig(output_file, bbox_inches='tight', dpi=300)
