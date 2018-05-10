@@ -363,7 +363,7 @@ In the configuration file:
         Burnup forecast chart trials: 100 # number of Monte Carlo trials to run to estimate completion date
 
         Burnup forecast chart throughput window: 60 # Days in the past to use for calculating historical throughput
-        Burnup forecast chart throughput window end: 2018-06-01 # Calculate throughput window to this date (defaults to today)
+        Burnup forecast chart throughput window end: 2018-06-01 # Calculate throughput window to this date (defaults to last day of burnup)
         Burnup forecast chart target: 100 # items to complete in total; by default uses the current size of the backlog
         Burnup forecast chart deadline: 2018-06-01 # deadline date, in ISO format; if not set, no deadline is drawn.
         Burnup forecast chart deadline confidence: .85 # percentile to use to compare forecast to deadline

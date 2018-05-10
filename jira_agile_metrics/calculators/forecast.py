@@ -17,12 +17,15 @@ class BurnupForecastCalculator(Calculator):
     def run(self):
         burnup_data = self.get_result(BurnupCalculator)
         cycle_data = self.get_result(CycleTimeCalculator)
+
+        if len(cycle_data.index) == 0:
+            return None
         
-        throughput_window_end = self.settings['burnup_forecast_chart_throughput_window_end'] or datetime.date.today()
+        throughput_window_end = self.settings['burnup_forecast_chart_throughput_window_end'] or cycle_data['completed_timestamp'].max().date()
         throughput_window = self.settings['burnup_forecast_chart_throughput_window']
 
-        backlog_column = burnup_data.columns[0]
-        done_column = burnup_data.columns[-1]
+        backlog_column = self.settings['backlog_column'] or burnup_data.columns[0]
+        done_column = self.settings['done_column'] or burnup_data.columns[-1]
 
         target = self.settings['burnup_forecast_chart_target'] or burnup_data[backlog_column].max()
         trials = self.settings['burnup_forecast_chart_trials']
@@ -37,6 +40,7 @@ class BurnupForecastCalculator(Calculator):
             .rename(columns={'key': 'count'}) \
             .groupby('completed_timestamp').count() \
             .resample("1D").sum() \
+            .reindex(index=pd.DatetimeIndex(start=throughput_window_start, end=throughput_window_end, freq='D')) \
             .fillna(0)
         
         return burnup_monte_carlo(
@@ -62,7 +66,7 @@ class BurnupForecastCalculator(Calculator):
         backlog_column = burnup_data.columns[0]
         target = self.settings['burnup_forecast_chart_target'] or burnup_data[backlog_column].max()
 
-        if len(burnup_data.index) == 0:
+        if burnup_data is None or len(burnup_data.index) == 0:
             print("WARNING: Cannot draw burnup chart with no completed items")
             return
 
