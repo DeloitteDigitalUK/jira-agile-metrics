@@ -305,7 +305,7 @@ Mondays.
 ### Net flow chart
 
 Shows the difference between arrivals and departures week on week. In a
-perfeclty stable system, the net flow would be 0.
+perfectly stable system, the net flow would be 0.
 
 In the configuration file:
 
