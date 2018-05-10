@@ -62,8 +62,6 @@ def test_calculate_wip(query_manager, settings, results):
 
     data = calculator.run()
 
-    print(results[CFDCalculator])
-
     assert list(data.index) == [
         Timestamp('2018-01-01 00:00:00', freq='D'),
         Timestamp('2018-01-02 00:00:00', freq='D'),
@@ -98,8 +96,6 @@ def test_calculate_wip_different_columns(query_manager, settings, results):
     calculator = WIPChartCalculator(query_manager, settings, results)
 
     data = calculator.run()
-
-    print(results[CFDCalculator])
 
     assert list(data.index) == [
         Timestamp('2018-01-01 00:00:00', freq='D'),
