@@ -20,12 +20,12 @@ class BurnupForecastCalculator(Calculator):
 
         if len(cycle_data.index) == 0:
             return None
-        
-        throughput_window_end = self.settings['burnup_forecast_chart_throughput_window_end'] or cycle_data['completed_timestamp'].max().date()
-        throughput_window = self.settings['burnup_forecast_chart_throughput_window']
 
         backlog_column = self.settings['backlog_column'] or burnup_data.columns[0]
         done_column = self.settings['done_column'] or burnup_data.columns[-1]
+        
+        throughput_window_end = self.settings['burnup_forecast_chart_throughput_window_end'] or cycle_data[done_column].max().date()
+        throughput_window = self.settings['burnup_forecast_chart_throughput_window']
 
         target = self.settings['burnup_forecast_chart_target'] or burnup_data[backlog_column].max()
         trials = self.settings['burnup_forecast_chart_trials']
@@ -34,10 +34,10 @@ class BurnupForecastCalculator(Calculator):
 
         # calculate daily throughput
         throughput_data = cycle_data[
-            (cycle_data['completed_timestamp'] >= throughput_window_start) &
-            (cycle_data['completed_timestamp'] <= throughput_window_end)
-        ][['completed_timestamp', 'key']] \
-            .rename(columns={'key': 'count'}) \
+            (cycle_data[done_column] >= throughput_window_start) &
+            (cycle_data[done_column] <= throughput_window_end)
+        ][[done_column, 'key']] \
+            .rename(columns={'key': 'count', done_column: 'completed_timestamp'}) \
             .groupby('completed_timestamp').count() \
             .resample("1D").sum() \
             .reindex(index=pd.DatetimeIndex(start=throughput_window_start, end=throughput_window_end, freq='D')) \
@@ -222,7 +222,7 @@ def burnup_monte_carlo(start_value, target_value, start_date, throughput_data, t
             current_value += get_sample()
 
             dates.append(current_date)
-            steps.append(current_value)
+            steps.append(min(current_value, target_value))  # don't overshoot the target
 
         series["Trial %d" % t] = pd.Series(steps, index=dates, name="Trial %d" % t)
 
