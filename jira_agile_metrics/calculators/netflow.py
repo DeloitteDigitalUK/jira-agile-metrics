@@ -14,13 +14,13 @@ class NetFlowChartCalculator(Calculator):
         cycle_names = [s['name'] for s in self.settings['cycle']]
 
         start_column = self.settings['committed_column'] or cycle_names[1]
-        end_column = self.settings['final_column'] or cycle_names[-2]
+        end_column = self.settings['done_column'] or cycle_names[-1]
         frequency = self.settings['net_flow_chart_frequency']
         
         net_flow_data = cfd_data[[start_column, end_column]].resample(frequency, label='left').max()
-        net_flow_data['arrivals'] = net_flow_data[start_column].diff()
-        net_flow_data['departures'] = net_flow_data[end_column].diff()
-        net_flow_data['net_flow'] = net_flow_data['departures'] - net_flow_data['arrivals']
+        net_flow_data['arrivals'] = net_flow_data[start_column].diff().fillna(net_flow_data[start_column])
+        net_flow_data['departures'] = net_flow_data[end_column].diff().fillna(net_flow_data[end_column])
+        net_flow_data['net_flow'] = net_flow_data['arrivals'] - net_flow_data['departures']
         net_flow_data['positive'] = net_flow_data['net_flow'] >= 0
 
         return net_flow_data
