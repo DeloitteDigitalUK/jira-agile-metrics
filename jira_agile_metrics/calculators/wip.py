@@ -15,10 +15,9 @@ class WIPChartCalculator(Calculator):
         cycle_names = [s['name'] for s in self.settings['cycle']]
 
         start_column = self.settings['committed_column'] or cycle_names[1]
-        end_column = self.settings['final_column'] or cycle_names[-2]
+        end_column = self.settings['done_column'] or cycle_names[-1]
         
-        wip_data = cfd_data[[start_column, end_column]]
-        return pd.DataFrame({'wip': wip_data[start_column] - wip_data[end_column]})
+        return pd.DataFrame({'wip': cfd_data[start_column] - cfd_data[end_column]}, index=cfd_data.index)
     
     def write(self):
         output_file = self.settings['wip_chart']
