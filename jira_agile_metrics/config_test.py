@@ -204,3 +204,49 @@ Output:
         'wip_chart_frequency': '3D',
         'wip_chart_title': 'Work in Progress'
     }
+
+def test_config_to_options_strips_directories():
+
+    options = config_to_options("""\
+Connection:
+    Domain: https://foo.com
+
+Query: (filter=123)
+
+Workflow:
+    Backlog: Backlog
+    In progress: Build
+    Done: Done
+
+Output:
+    Cycle time data: tmp/cycletime.csv
+    Percentiles data: /tmp/percentiles.csv
+    Scatterplot data: ../scatterplot.csv
+    Scatterplot chart: /foo/bar/baz/tmp/scatterplot.png
+    Histogram chart: tmp/histogram.png
+    CFD data: tmp/cfd.csv
+    CFD chart: tmp/cfd.png
+    Histogram data: tmp/histogram.csv
+    Throughput data: tmp/throughput.csv
+    Throughput chart: tmp/throughput.png
+    Burnup chart: tmp/burnup.png
+    Burnup forecast chart: tmp/burnup-forecast.png
+    WIP chart: tmp/wip.png
+    Ageing WIP chart: tmp/ageing-wip.png
+    Net flow chart: tmp/net-flow.png
+""")
+
+    assert options['settings']['cycle_time_data'] == 'cycletime.csv'
+    assert options['settings']['ageing_wip_chart'] == 'ageing-wip.png'
+    assert options['settings']['burnup_chart'] == 'burnup.png'
+    assert options['settings']['burnup_forecast_chart'] == 'burnup-forecast.png'
+    assert options['settings']['cfd_chart'] == 'cfd.png'
+    assert options['settings']['histogram_chart'] == 'histogram.png'
+    assert options['settings']['histogram_data'] == 'histogram.csv'
+    assert options['settings']['net_flow_chart'] == 'net-flow.png'
+    assert options['settings']['percentiles_data'] == 'percentiles.csv'
+    assert options['settings']['scatterplot_chart'] == 'scatterplot.png'
+    assert options['settings']['scatterplot_data'] == 'scatterplot.csv'
+    assert options['settings']['throughput_chart'] == 'throughput.png'
+    assert options['settings']['throughput_data'] == 'throughput.csv'
+    assert options['settings']['wip_chart'] == 'wip.png'

@@ -1,5 +1,6 @@
 import yaml
 import datetime
+import os.path
 
 from pydicti import odicti
 
@@ -147,6 +148,26 @@ def config_to_options(data):
                 if not isinstance(value, datetime.date):
                     raise ConfigError("Value %s for key %s is not a date" % (value, key,))
                 options['settings'][key] = value
+        # file name values
+        for key in [
+            'cycle_time_data',
+            'cfd_data',
+            'scatterplot_data',
+            'histogram_data',
+            'throughput_data',
+            'percentiles_data',
+            'scatterplot_chart',
+            'histogram_chart',
+            'cfd_chart',
+            'throughput_chart',
+            'burnup_chart',
+            'burnup_forecast_chart',
+            'wip_chart',
+            'ageing_wip_chart',
+            'net_flow_chart',
+        ]:
+            if expand_key(key) in config['output']:
+                options['settings'][key] = os.path.basename(config['output'][expand_key(key)])
 
         # string values that copy straight over
         for key in [
@@ -154,42 +175,16 @@ def config_to_options(data):
             'committed_column',
             'final_column',
             'done_column',
-
             'throughput_frequency',
-
-            'cycle_time_data',
-            'cfd_data',
-            'scatterplot_data',
-            'histogram_data',
-            'throughput_data',
-            'percentiles_data',
-
-            'scatterplot_chart',
             'scatterplot_chart_title',
-            
-            'histogram_chart',
             'histogram_chart_title',
-
-            'cfd_chart',
             'cfd_chart_title',
-            
-            'throughput_chart',
             'throughput_chart_title',
-            
-            'burnup_chart',
             'burnup_chart_title',
-
-            'burnup_forecast_chart',
             'burnup_forecast_chart_title',
-        
-            'wip_chart',
             'wip_chart_title',
             'wip_chart_frequency',
-
-            'ageing_wip_chart',
             'ageing_wip_chart_title',
-
-            'net_flow_chart',
             'net_flow_chart_title',
             'net_flow_chart_frequency',
         ]:
