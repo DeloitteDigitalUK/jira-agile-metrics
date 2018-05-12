@@ -1,7 +1,11 @@
+import logging
+
 from ..calculator import Calculator
 from ..utils import get_extension
 
 from .cycletime import CycleTimeCalculator
+
+logger = logging.getLogger(__name__)
 
 class PercentilesCalculator(Calculator):
     """Build percentiles for `cycle_time` in cycle data as a DataFrame
@@ -9,17 +13,23 @@ class PercentilesCalculator(Calculator):
 
     def run(self):
         cycle_data = self.get_result(CycleTimeCalculator)
-        return cycle_data['cycle_time'].dropna().quantile(self.settings['quantiles'])
+
+        quantiles = self.settings['quantiles']
+        logger.debug("Calculating percentiles at %s", ', '.join(['%.2f' % (q * 100.0) for q in quantiles]))
+
+        return cycle_data['cycle_time'].dropna().quantile(quantiles)
 
     def write(self):
         output_file = self.settings['percentiles_data']
         if not output_file:
+            logger.debug("No output file specified for percentiles data")
             return
 
         output_extension = get_extension(output_file)
 
         file_data = self.get_result()
 
+        logger.info("Writing percentiles data to %s", output_file)
         if output_extension == '.json':
             file_data.to_json(output_file, date_format='iso')
         elif output_extension == '.xlsx':

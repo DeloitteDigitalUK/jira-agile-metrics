@@ -1,6 +1,7 @@
 import argparse
 import getpass
 import datetime
+import logging
 
 import dateutil.parser
 
@@ -11,6 +12,8 @@ from .webapp.app import app as webapp
 from .querymanager import QueryManager
 from .calculator import run_calculators
 from .utils import set_chart_context
+
+logger = logging.getLogger(__name__)
 
 def to_quantiles(quantiles):
     return [float(s.strip()) for s in quantiles.split(',') if s]
@@ -24,6 +27,7 @@ def configure_argument_parser():
     # Basic options
     parser.add_argument('config', metavar='config.yml', nargs='?', help='Configuration file')
     parser.add_argument('-v', dest='verbose', action='store_true', help='Verbose output')
+    parser.add_argument('-vv', dest='very_verbose', action='store_true', help='Even more verbose output')
     parser.add_argument('-n', metavar='N', dest='max_results', type=int, help='Only fetch N most recently updated issues')
     
     parser.add_argument('--server', metavar='127.0.0.1:8080', help='Run as a web server instead of a command line tool, on the given host and/or port. The remaining options do not apply.')
@@ -100,7 +104,7 @@ def get_jira_client(connection):
     password = connection['password']
     jira_client_options = connection['jira_client_options']
 
-    print("Connecting to", url)
+    logger.info("Connecting to %s", url)
 
     if not username:
         username = input("Username: ")
@@ -137,9 +141,19 @@ def run_command_line(args):
     if not args.config:
         args.print_usage()
         return
+    
+    logging.basicConfig(
+        format='%(levelname)s: %(message)s',
+        level=(
+            logging.DEBUG if args.very_verbose else
+            logging.INFO if args.verbose else
+            logging.WARNING
+        )
+    )
 
     # Configuration and settings (command line arguments override config file options)
 
+    logger.debug("Parsing options from %s", args.config)
     with open(args.config) as config:
         options = config_to_options(config.read())
 
@@ -154,5 +168,6 @@ def run_command_line(args):
 
     jira = get_jira_client(options['connection'])
 
+    logger.info("Running calculators")
     query_manager = QueryManager(jira, options['settings'])
     run_calculators(CALCULATORS, query_manager, options['settings'])

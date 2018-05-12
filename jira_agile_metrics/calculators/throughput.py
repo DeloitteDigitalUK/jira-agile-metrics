@@ -1,3 +1,4 @@
+import logging
 import pandas as pd
 import matplotlib.pyplot as plt
 import statsmodels.formula.api as sm
@@ -6,6 +7,8 @@ from ..calculator import Calculator
 from ..utils import get_extension, set_chart_style
 
 from .cycletime import CycleTimeCalculator
+
+logger = logging.getLogger(__name__)
 
 class ThroughputCalculator(Calculator):
     """Build a data frame with columns `completed_timestamp` of the
@@ -16,6 +19,8 @@ class ThroughputCalculator(Calculator):
     def run(self):
         cycle_data = self.get_result(CycleTimeCalculator)
         frequency = self.settings['throughput_frequency']
+        
+        logger.debug("Calculating throughput at frequency %s", frequency)
 
         if len(cycle_data.index) == 0:
             return pd.DataFrame([], columns=['count'], index=[])
@@ -31,13 +36,18 @@ class ThroughputCalculator(Calculator):
         
         if self.settings['throughput_data']:
             self.write_file(data, self.settings['throughput_data'])
+        else:
+            logger.debug("No output file specified for throughput data")
         
         if self.settings['throughput_chart']:
             self.write_chart(data, self.settings['throughput_chart'])
+        else:
+            logger.debug("No output file specified for throughput chart")
 
     def write_file(self, data, output_file):
         output_extension = get_extension(output_file)
 
+        logger.info("Writing throughput data to %s", output_file)
         if output_extension == '.json':
             data.to_json(output_file, date_format='iso')
         elif output_extension == '.xlsx':
@@ -49,7 +59,7 @@ class ThroughputCalculator(Calculator):
         chart_data = data.copy()
 
         if len(chart_data.index) == 0:
-            print("WARNING: Cannot draw throughput chart with no completed items")
+            logger.warning("Cannot draw throughput chart with no completed items")
             return
         
         fig, ax = plt.subplots()
@@ -67,7 +77,7 @@ class ThroughputCalculator(Calculator):
 
         # Plot
 
-        ax.set_xlabel("Completed date")
+        ax.set_xlabel("Period starting")
         ax.set_ylabel("Number of items")
 
         ax.bar(chart_data.index, chart_data['count'])
@@ -92,5 +102,6 @@ class ThroughputCalculator(Calculator):
         set_chart_style()
 
         # Write file
+        logger.info("Writing throughput chart to %s", output_file)
         fig.savefig(output_file, bbox_inches='tight', dpi=300)
         plt.close(fig)

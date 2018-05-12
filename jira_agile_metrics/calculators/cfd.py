@@ -1,3 +1,4 @@
+import logging
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
@@ -6,6 +7,8 @@ from ..calculator import Calculator
 from ..utils import get_extension, set_chart_style
 
 from .cycletime import CycleTimeCalculator
+
+logger = logging.getLogger(__name__)
 
 class CFDCalculator(Calculator):
     """Create the data to build a cumulative flow diagram: a DataFrame,
@@ -54,13 +57,18 @@ class CFDCalculator(Calculator):
 
         if self.settings['cfd_data']:
             self.write_file(data, self.settings['cfd_data'])
+        else:
+            logger.debug("No output file specified for CFD file")
         
         if self.settings['cfd_chart']:
             self.write_chart(data, self.settings['cfd_chart'])
+        else:
+            logger.debug("No output file specified for CFD chart")
 
     def write_file(self, data, output_file):
         output_extension = get_extension(output_file)
 
+        logger.info("Writing CFD data to %s", output_file)
         if output_extension == '.json':
             data.to_json(output_file, date_format='iso')
         elif output_extension == '.xlsx':
@@ -70,7 +78,7 @@ class CFDCalculator(Calculator):
     
     def write_chart(self, data, output_file):
         if len(data.index) == 0:
-            print("WARNING: Cannot draw CFD with no data")
+            logger.warning("Cannot draw CFD with no data")
             return
 
         fig, ax = plt.subplots()
@@ -85,11 +93,16 @@ class CFDCalculator(Calculator):
 
         backlog_column = self.settings['backlog_column'] or data.columns[0]
 
+        if backlog_column not in data.columns[0]:
+            logger.error("Backlog column %s does not exist", backlog_column)
+            return None
+
         data.drop([backlog_column], axis=1).plot.area(ax=ax, stacked=False, legend=False)
         ax.legend(loc=0, title="", frameon=True)
 
         set_chart_style()
 
         # Write file
+        logger.info("Writing CFD chart to %s", output_file)
         fig.savefig(output_file, bbox_inches='tight', dpi=300)
         plt.close(fig)

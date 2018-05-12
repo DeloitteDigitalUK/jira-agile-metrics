@@ -1,6 +1,9 @@
 import itertools
+import logging
 import dateutil.parser
 import dateutil.tz
+
+logger = logging.getLogger(__name__)
 
 class IssueSnapshot(object):
     """A snapshot of the key fields of an issue at a point in its change history
@@ -46,6 +49,7 @@ class QueryManager(object):
         self.fields_to_attributes = {}
 
         # Look up fields in JIRA and resolve attributes to fields
+        logger.debug("Resolving JIRA fields")
         fields = self.jira.fields()
         field_id = None
 
@@ -53,7 +57,7 @@ class QueryManager(object):
             try:
                 field_id = next((f['id'] for f in fields if f['name'].lower() == field.lower()))
             except StopIteration:
-                raise Exception("JIRA field with name `%s` does not exist (did you try to use the field id instead?)" % field)
+                raise ValueError("JIRA field with name `%s` does not exist (did you try to use the field id instead?)" % field)
             else:
                 self.attributes_to_fields[name] = field_id
                 self.fields_to_attributes[field_id] = name
@@ -90,9 +94,11 @@ class QueryManager(object):
                 attribute_name = self.fields_to_attributes.get(field_id, None)
                 if attribute_name not in self.settings['known_values']:
                     value = values[0]
+                    logger.debug("Resolving value for %s to %s as %s is not in known_values", field_id, value, attribute_name)
                 else:
                     try:
                         value = next(filter(lambda v: v in values, self.settings['known_values'][attribute_name]))
+                        logger.debug("Resolving value for %s to %s as %s from known_values", field_id, value, attribute_name)
                     except StopIteration:
                         value = None
 
@@ -148,12 +154,13 @@ class QueryManager(object):
         JQL.
         """
 
-        if self.settings.get('verbose', False):
-            print("Fetching issues with query:", jql)
+        max_results = self.settings['max_results']
 
-        issues = self.jira.search_issues(jql, expand='changelog', maxResults=self.settings['max_results'])
+        logger.info("Fetching issues with query `%s`", jql)
+        if max_results:
+            logger.info("Limiting to %d results", max_results)
 
-        if self.settings.get('verbose', False):
-            print("Fetched", len(issues), "issues")
+        issues = self.jira.search_issues(jql, expand='changelog', maxResults=max_results)
+        logger.info("Fetched %d issues", len(issues))
 
         return issues

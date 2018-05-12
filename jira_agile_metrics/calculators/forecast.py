@@ -1,3 +1,4 @@
+import logging
 import datetime
 
 import pandas as pd
@@ -9,6 +10,8 @@ from ..utils import set_chart_style, to_days_since_epoch
 
 from .cycletime import CycleTimeCalculator
 from .burnup import BurnupCalculator
+
+logger = logging.getLogger(__name__)
 
 class BurnupForecastCalculator(Calculator):
     """Draw a burn-up chart with a forecast run to completion
@@ -23,22 +26,34 @@ class BurnupForecastCalculator(Calculator):
 
         # This calculation is expensive. Only run it if we intend to write a file.
         if not self.settings['burnup_forecast_chart']:
+            logger.debug("Not calculating burnup forecast chart data as no output file specified")
             return None
 
         backlog_column = self.settings['backlog_column'] or burnup_data.columns[0]
         done_column = self.settings['done_column'] or burnup_data.columns[-1]
 
+        if backlog_column not in burnup_data.columns:
+            logger.error("Backlog column %s does not exist", backlog_column)
+            return None
+        if done_column not in burnup_data.columns:
+            logger.error("Backlog column %s does not exist", done_column)
+            return None
+
         if cycle_data[done_column].max() is pd.NaT:
+            logger.warning("Unable to draw burnup forecast chart with zero completed items.")
             return None
         
         throughput_window_end = self.settings['burnup_forecast_chart_throughput_window_end'] or cycle_data[done_column].max().date()
         throughput_window = self.settings['burnup_forecast_chart_throughput_window']
+        throughput_window_start = throughput_window_end - datetime.timedelta(days=throughput_window)
+        logger.info("Sampling throughput between %s and %s", throughput_window_start.isoformat(), throughput_window_end.isoformat())
 
         target = self.settings['burnup_forecast_chart_target'] or burnup_data[backlog_column].max()
+        logger.info("Running forecast to completion of %d items", target)
+        
         trials = self.settings['burnup_forecast_chart_trials']
-
-        throughput_window_start = throughput_window_end - datetime.timedelta(days=throughput_window)
-
+        logger.debug("Running %d trials to calculate probable forecast outcomes", trials)
+        
         # calculate daily throughput
         throughput_data = cycle_data[
             (cycle_data[done_column] >= throughput_window_start) &
@@ -61,21 +76,32 @@ class BurnupForecastCalculator(Calculator):
     def write(self):
         output_file = self.settings['burnup_forecast_chart']
         if not output_file:
+            logger.debug("No output file specified for burnup forecast chart")
+            return
+        
+        burnup_data = self.get_result(BurnupCalculator)
+        if burnup_data is None or len(burnup_data.index) == 0:
+            logger.warning("Cannot draw burnup forecast chart with zero items")
+            return
+        
+        mc_trials = self.get_result()
+        if mc_trials is None:
+            logger.warning("Cannot draw burnup forecast chart with zero completed trials")
             return
 
         deadline = self.settings['burnup_forecast_chart_deadline']
+        if deadline:
+            logger.debug("Forecasting with deadline", deadline.isoformat())
+
         deadline_confidence = self.settings['burnup_forecast_chart_deadline_confidence']
+        if deadline_confidence:
+            logger.debug("Forecasting deadline at %.2f%% confidence", deadline_confidence * 100.0)
+
         quantiles = self.settings['quantiles']
+        logger.debug("Showing forecast at quantiles %s", ', '.join(['%.2f' % (q * 100.0) for q in quantiles]))
         
-        burnup_data = self.get_result(BurnupCalculator)
-        mc_trials = self.get_result()
-
-        backlog_column = burnup_data.columns[0]
+        backlog_column = self.settings['backlog_column'] or burnup_data.columns[0]
         target = self.settings['burnup_forecast_chart_target'] or burnup_data[backlog_column].max()
-
-        if burnup_data is None or len(burnup_data.index) == 0:
-            print("WARNING: Cannot draw burnup chart with no completed items")
-            return
 
         fig, ax = plt.subplots()
         
@@ -193,6 +219,7 @@ class BurnupForecastCalculator(Calculator):
         set_chart_style()
 
         # Write file
+        logger.info("Writing burnup forecast chart to %s", output_file)
         fig.savefig(output_file, bbox_inches='tight', dpi=300)
         plt.close(fig)
 
@@ -202,6 +229,7 @@ def burnup_monte_carlo(start_value, target_value, start_date, throughput_data, t
 
     # degenerate case - no steps, abort
     if throughput_data['count'].sum() <= 0:
+        logger.warning("No throughput samples available, aborting forecast simulations")
         return None
 
     # guess how far away we are; drawing samples one at a time is slow

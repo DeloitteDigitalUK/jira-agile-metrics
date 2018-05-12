@@ -1,3 +1,4 @@
+import logging
 import pandas as pd
 import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
@@ -6,6 +7,8 @@ from ..calculator import Calculator
 from ..utils import get_extension, set_chart_style
 
 from .cycletime import CycleTimeCalculator
+
+logger = logging.getLogger(__name__)
 
 class ScatterplotCalculator(Calculator):
     """Build scatterplot data for the cycle times: a data frame containing
@@ -37,9 +40,13 @@ class ScatterplotCalculator(Calculator):
 
         if self.settings['scatterplot_data']:
             self.write_file(data, self.settings['scatterplot_data'])
+        else:
+            logger.debug("No output file specified for scatterplot data")
         
         if self.settings['scatterplot_chart']:
             self.write_chart(data, self.settings['scatterplot_chart'])
+        else:
+            logger.debug("No output file specified for scatterplot chart")
 
     def write_file(self, data, output_file):
         output_extension = get_extension(output_file)
@@ -47,6 +54,7 @@ class ScatterplotCalculator(Calculator):
         file_data = data.copy()
         file_data['completed_date'] = file_data['completed_date'].map(pd.Timestamp.date)
 
+        logger.info("Writing scatterplot data to %s", output_file)
         if output_extension == '.json':
             file_data.to_json(output_file, date_format='iso')
         elif output_extension == '.xlsx':
@@ -55,15 +63,16 @@ class ScatterplotCalculator(Calculator):
             file_data.to_csv(output_file, index=False)
         
     def write_chart(self, data, output_file):
-        quantiles = self.settings['quantiles']
-
         chart_data = data.copy()
         chart_data['completed_date'] = chart_data['completed_date'].values.astype('datetime64[D]')
         ct_days = chart_data['cycle_time']
 
         if len(ct_days.index) < 2:
-            print("WARNING: Need at least 2 completed items to draw scatterplot")
+            logger.warning("Need at least 2 completed items to draw scatterplot")
             return
+        
+        quantiles = self.settings['quantiles']
+        logger.debug("Showing forecast at quantiles %s", ', '.join(['%.2f' % (q * 100.0) for q in quantiles]))
         
         fig, ax = plt.subplots()
         fig.autofmt_xdate()
@@ -91,5 +100,6 @@ class ScatterplotCalculator(Calculator):
         set_chart_style()
 
         # Write file
+        logger.info("Writing scatterplot chart to %s", output_file)
         fig.savefig(output_file, bbox_inches='tight', dpi=300)
         plt.close(fig)

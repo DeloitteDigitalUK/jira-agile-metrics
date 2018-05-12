@@ -1,8 +1,11 @@
 import json
+import logging
 import pandas as pd
 
 from ..calculator import Calculator
 from ..utils import get_extension, to_json_string, StatusTypes
+
+logger = logging.getLogger(__name__)
 
 class CycleTimeCalculator(Calculator):
     """Basic cycle time data, fetched from JIRA.
@@ -96,8 +99,7 @@ class CycleTimeCalculator(Calculator):
                 for snapshot in self.query_manager.iter_changes(issue, ['status']):
                     snapshot_cycle_step = self.cycle_lookup.get(snapshot.toString.lower(), None)
                     if snapshot_cycle_step is None:
-                        if self.settings.get('verbose', False):
-                            print(issue.key, "transitioned to unknown JIRA status", snapshot.toString)
+                        logger.warn("Issue %s transitioned to unknown JIRA status %s", issue.key, snapshot.toString)
                         continue
 
                     snapshot_cycle_step_name = snapshot_cycle_step['name']
@@ -113,8 +115,7 @@ class CycleTimeCalculator(Calculator):
                             found_cycle_name = True
                             continue
                         elif found_cycle_name and item[cycle_name] is not None:
-                            if self.settings.get('verbose', False):
-                                print(issue.key, "moved backwards to", snapshot_cycle_step_name, "wiping date for subsequent step", cycle_name)
+                            logger.info("Issue %s moved backwards to %s, wiping data for subsequent step %s", issue.key, snapshot_cycle_step_name, cycle_name)
                             item[cycle_name] = None
 
                 # Wipe timestamps if items have moved backwards; calculate cycle time
@@ -152,11 +153,12 @@ class CycleTimeCalculator(Calculator):
         )
 
     def write(self):
-        if not self.settings['cycle_time_data']:
-            return
-
         output_file = self.settings['cycle_time_data']
         output_extension = get_extension(output_file)
+
+        if not output_file:
+            logger.debug("No output file specified for cycle time data")
+            return
 
         cycle_data = self.get_result()
         cycle_names = [s['name'] for s in self.settings['cycle']]
@@ -165,6 +167,8 @@ class CycleTimeCalculator(Calculator):
 
         header = ['ID', 'Link', 'Name'] + cycle_names + ['Type', 'Status', 'Resolution'] + attribute_names + query_attribute_names
         columns = ['key', 'url', 'summary'] + cycle_names + ['issue_type', 'status', 'resolution'] + attribute_names + query_attribute_names
+
+        logger.info("Writing cycle time data to %s", output_file)
 
         if output_extension == '.json':
             values = [header] + [list(map(to_json_string, row)) for row in cycle_data[columns].values.tolist()]

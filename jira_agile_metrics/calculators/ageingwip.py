@@ -1,3 +1,4 @@
+import logging
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -7,6 +8,8 @@ from ..calculator import Calculator
 from ..utils import set_chart_style
 
 from .cycletime import CycleTimeCalculator
+
+logger = logging.getLogger(__name__)
 
 class AgeingWIPChartCalculator(Calculator):
     """Draw an ageing WIP chart
@@ -25,6 +28,16 @@ class AgeingWIPChartCalculator(Calculator):
         end_column = self.settings['final_column'] or cycle_names[-2]
         done_column = self.settings['done_column'] or cycle_names[-1]
         
+        if start_column not in cycle_names:
+            logger.error("Committed column %s does not exist", start_column)
+            return None
+        if end_column not in cycle_names:
+            logger.error("Final column %s does not exist", end_column)
+            return None
+        if done_column not in cycle_names:
+            logger.error("Done column %s does not exist", done_column)
+            return None
+
         today = pd.Timestamp.now().date() if today is None else today  # to allow testing
 
         # remove items that are done
@@ -62,12 +75,13 @@ class AgeingWIPChartCalculator(Calculator):
     def write(self):
         output_file = self.settings['ageing_wip_chart']
         if not output_file:
+            logger.debug("No output file specified for ageing WIP chart")
             return
 
         chart_data = self.get_result()
 
         if len(chart_data.index) == 0:
-            print("WARNING: Cannot draw ageing WIP chart with no completed items")
+            logger.warning("Unable to draw ageing WIP chart with zero completed items")
             return
 
         fig, ax = plt.subplots()
@@ -88,5 +102,6 @@ class AgeingWIPChartCalculator(Calculator):
         set_chart_style()
 
         # Write file
+        logger.info("Writing ageing WIP chart to %s", output_file)
         fig.savefig(output_file, bbox_inches='tight', dpi=300)
         plt.close(fig)

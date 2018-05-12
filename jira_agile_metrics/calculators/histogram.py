@@ -1,3 +1,4 @@
+import logging
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -7,6 +8,8 @@ from ..calculator import Calculator
 from ..utils import get_extension, set_chart_style
 
 from .cycletime import CycleTimeCalculator
+
+logger = logging.getLogger(__name__)
 
 class HistogramCalculator(Calculator):
     """Build histogram data for the cycle times in `cycle_data`. Returns
@@ -31,15 +34,20 @@ class HistogramCalculator(Calculator):
 
         if self.settings['histogram_data']:
             self.write_file(data, self.settings['histogram_data'])
+        else:
+            logger.debug("No output file specified for histogram data")
         
         if self.settings['histogram_chart']:
             self.write_chart(data, self.settings['histogram_chart'])
+        else:
+            logger.debug("No output file specified for histogram chart")
 
     def write_file(self, data, output_file):
         output_extension = get_extension(output_file)
 
         file_data = self.get_result()
 
+        logger.info("Writing histogram data to %s", output_file)
         if output_extension == '.json':
             file_data.to_json(output_file, date_format='iso')
         elif output_extension == '.xlsx':
@@ -48,15 +56,16 @@ class HistogramCalculator(Calculator):
             file_data.to_csv(output_file, header=True)
     
     def write_chart(self, data, output_file):
-        quantiles = self.settings['quantiles']
-
         cycle_data = self.get_result(CycleTimeCalculator)
         chart_data = cycle_data[['cycle_time']].dropna(subset=['cycle_time'])
         ct_days = chart_data['cycle_time'].dt.days
 
         if len(ct_days.index) < 2:
-            print("WARNING: Need at least 2 completed items to draw histogram")
+            logger.warning("Need at least 2 completed items to draw histogram")
             return
+        
+        quantiles = self.settings['quantiles']
+        logger.debug("Showing forecast at quantiles %s", ', '.join(['%.2f' % (q * 100.0) for q in quantiles]))
 
         fig, ax = plt.subplots()
 
@@ -83,5 +92,6 @@ class HistogramCalculator(Calculator):
         set_chart_style()
         
         # Write file
+        logger.info("Writing histogram chart to %s", output_file)
         fig.savefig(output_file, bbox_inches='tight', dpi=300)
         plt.close(fig)
