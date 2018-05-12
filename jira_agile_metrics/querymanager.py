@@ -3,6 +3,8 @@ import logging
 import dateutil.parser
 import dateutil.tz
 
+from .config import ConfigError
+
 logger = logging.getLogger(__name__)
 
 class IssueSnapshot(object):
@@ -57,7 +59,7 @@ class QueryManager(object):
             try:
                 field_id = next((f['id'] for f in fields if f['name'].lower() == field.lower()))
             except StopIteration:
-                raise ValueError("JIRA field with name `%s` does not exist (did you try to use the field id instead?)" % field)
+                raise ConfigError("JIRA field with name `%s` does not exist (did you try to use the field id instead?)" % field) from None
             else:
                 self.attributes_to_fields[name] = field_id
                 self.fields_to_attributes[field_id] = name

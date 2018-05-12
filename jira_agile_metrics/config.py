@@ -58,7 +58,11 @@ def expand_key(key):
     return str(key).replace('_', ' ').lower()
 
 def config_to_options(data):
-    config = ordered_load(data, yaml.SafeLoader)
+    try:
+        config = ordered_load(data, yaml.SafeLoader)
+    except Exception:
+        raise ConfigError("Unable to parse YAML configuration file.") from None
+
     options = {
         'connection': {
             'domain': None,
@@ -146,7 +150,10 @@ def config_to_options(data):
     if 'output' in config:
 
         if 'quantiles' in config['output']:
-            options['settings']['quantiles'] = list(map(float, config['output']['quantiles']))
+            try:
+                options['settings']['quantiles'] = list(map(float, config['output']['quantiles']))
+            except ValueError:
+                raise ConfigError("Could not convert value `%s` for key `quantiles` to a list of decimals" % (config['output']['quantiles'],)) from None
 
         # int values
         for key in [
@@ -155,14 +162,22 @@ def config_to_options(data):
             'burnup_forecast_chart_trials',
         ]:
             if expand_key(key) in config['output']:
-                options['settings'][key] = int(config['output'][expand_key(key)])
+                value = config['output'][expand_key(key)]
+                try:
+                    options['settings'][key] = int(value)
+                except ValueError:
+                    raise ConfigError("Could not convert value `%s` for key `%s` to integer" % (value, expand_key(key),)) from None
         
         # float values
         for key in [
             'burnup_forecast_chart_deadline_confidence',
         ]:
             if expand_key(key) in config['output']:
-                options['settings'][key] = float(config['output'][expand_key(key)])
+                value = config['output'][expand_key(key)]
+                try:
+                    options['settings'][key] = float(value)
+                except ValueError:
+                    raise ConfigError("Could not convert value `%s` for key `%s` to decimal" % (value, expand_key(key),)) from None
 
         # date values
         for key in [
@@ -172,8 +187,9 @@ def config_to_options(data):
             if expand_key(key) in config['output']:
                 value = config['output'][expand_key(key)]
                 if not isinstance(value, datetime.date):
-                    raise ConfigError("Value %s for key %s is not a date" % (value, key,))
+                    raise ConfigError("Value `%s` for key `%s` is not a date" % (value, expand_key(key),))
                 options['settings'][key] = value
+        
         # file name values
         for key in [
             'cycle_time_data',

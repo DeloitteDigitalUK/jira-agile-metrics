@@ -45,14 +45,14 @@ def run_calculators(calculators, query_manager, settings):
 
     # Run all calculators first
     for c in calculators:
-        logger.info("%s running...", c.__class__.__name__)
+        logger.info("\n%s running...", c.__class__.__name__)
         results[c.__class__] = c.run()
-        logger.info("%s completed", c.__class__.__name__)
+        logger.info("%s completed\n", c.__class__.__name__)
 
     # Write all files as a second pass
     for c in calculators:
-        logger.info("%s writing file...", c.__class__.__name__)
+        logger.info("\nWriting file for %s...", c.__class__.__name__)
         c.write()
-        logger.info("%s completed", c.__class__.__name__)
+        logger.info("%s completed\n", c.__class__.__name__)
 
     return results
