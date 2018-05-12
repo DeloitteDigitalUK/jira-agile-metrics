@@ -31,7 +31,6 @@ def run():
     log = ""
 
     # TODO: Need to catch and log errors and print output from calculators
-    # TODO: matplotlib-related crash when plotting more than one thing
 
     options = config_to_options(config.read())
     override_options(options['connection'], request.form)
@@ -45,10 +44,11 @@ def run():
 
     jira = get_jira_client(options['connection'])
     query_manager = QueryManager(jira, options['settings'])
-    data = get_archive(query_manager, options['settings'])
+    zip_data = get_archive(query_manager, options['settings'])
+    data = base64.b64encode(zip_data).decode('ascii')
 
     return render_template('results.html',
-        data=base64.b64encode(data).decode('ascii'),
+        data=data,
         error=error,
         log=log
     )
