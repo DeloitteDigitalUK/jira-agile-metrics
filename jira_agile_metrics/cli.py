@@ -143,7 +143,7 @@ def run_command_line(args):
         return
     
     logging.basicConfig(
-        format='%(levelname)s: %(message)s',
+        format='%(message)s',
         level=(
             logging.DEBUG if args.very_verbose else
             logging.INFO if args.verbose else
