@@ -51,5 +51,6 @@ class NetFlowChartCalculator(Calculator):
 
         set_chart_style()
 
-        fig = ax.get_figure()
+        # Write file
         fig.savefig(output_file, bbox_inches='tight', dpi=300)
+        plt.close(fig)

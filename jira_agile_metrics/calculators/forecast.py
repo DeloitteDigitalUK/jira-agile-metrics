@@ -23,6 +23,9 @@ class BurnupForecastCalculator(Calculator):
 
         backlog_column = self.settings['backlog_column'] or burnup_data.columns[0]
         done_column = self.settings['done_column'] or burnup_data.columns[-1]
+
+        if cycle_data[done_column].max() is pd.NaT:
+            return None
         
         throughput_window_end = self.settings['burnup_forecast_chart_throughput_window_end'] or cycle_data[done_column].max().date()
         throughput_window = self.settings['burnup_forecast_chart_throughput_window']
@@ -185,8 +188,9 @@ class BurnupForecastCalculator(Calculator):
         
         set_chart_style()
 
-        fig = ax.get_figure()
+        # Write file
         fig.savefig(output_file, bbox_inches='tight', dpi=300)
+        plt.close(fig)
 
 def burnup_monte_carlo(start_value, target_value, start_date, throughput_data, trials=100):
 

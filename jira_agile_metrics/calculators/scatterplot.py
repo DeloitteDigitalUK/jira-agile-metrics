@@ -91,6 +91,5 @@ class ScatterplotCalculator(Calculator):
         set_chart_style()
 
         # Write file
-        
-        fig = ax.get_figure()
         fig.savefig(output_file, bbox_inches='tight', dpi=300)
+        plt.close(fig)
