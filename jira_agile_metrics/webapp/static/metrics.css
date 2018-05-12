@@ -1,0 +1,56 @@
+body {
+    padding-top: 5rem;
+}
+
+.results-area {
+    max-width: 600px;
+    width: 100%;
+    padding: 15px;
+    margin: auto;
+}
+
+.upload-area {
+    padding: 3rem 1.5rem;
+    display: flex;
+    -ms-flex-align: center;
+    align-items: center;
+}
+
+.upload-area h1 {
+    text-align: center;
+}
+
+.form-upload {
+    width: 100%;
+    max-width: 350px;
+    padding: 15px;
+    margin: auto;
+  }
+  .form-upload .form-control {
+    position: relative;
+    box-sizing: border-box;
+    height: auto;
+    padding: 10px;
+    font-size: 16px;
+  }
+  .form-upload .form-control:focus {
+    z-index: 2;
+  }
+  .form-upload input[type="file"] {
+    margin: 1.5em auto;
+    border-bottom-right-radius: 0;
+    border-bottom-left-radius: 0;
+  }
+  .form-upload input[type="text"] {
+    margin-bottom: -1px;
+    border-bottom-right-radius: 0;
+    border-bottom-left-radius: 0;
+  }
+  .form-upload input[type="password"] {
+    margin-bottom: 10px;
+    border-top-left-radius: 0;
+    border-top-right-radius: 0;
+  }
+  .form-upload p {
+      text-align: center;
+  }

@@ -180,12 +180,20 @@ restrictive, or by using the `-n` flag to limit the number of issues fetched:
 If you want more information about what's going on, use the `-v` flag:
 
     $ jira-agile-metrics -v config.yaml
+ 
 
 ## Available metrics
 
 `jira-agile-metrics` can produce a number of data files and charts, which can
 be enabled in the `Output` section of the configuration file, or with a
 corresponding command line option.
+
+**Note:** In the configuration file, you can specify output file *names*, but
+not absolute or relative paths. Files will always be written to the current
+working directory. This is to prevent unexpeced behaviour and the potential of
+overwriting other files when configuration files are moved around or used on
+a remote machine. No such restriction applies to output files specified in
+command line arguments.
 
 ### Cycle time details
 

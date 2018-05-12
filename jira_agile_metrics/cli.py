@@ -6,36 +6,11 @@ import dateutil.parser
 
 from jira import JIRA
 
-from .config import config_to_options
+from .config import config_to_options, CALCULATORS
+from .webapp.app import app as webapp
 from .querymanager import QueryManager
 from .calculator import run_calculators
 from .utils import set_chart_context
-
-from .calculators.cycletime import CycleTimeCalculator
-from .calculators.cfd import CFDCalculator
-from .calculators.scatterplot import ScatterplotCalculator
-from .calculators.histogram import HistogramCalculator
-from .calculators.percentiles import PercentilesCalculator
-from .calculators.throughput import ThroughputCalculator
-from .calculators.burnup import BurnupCalculator
-from .calculators.wip import WIPChartCalculator
-from .calculators.netflow import NetFlowChartCalculator
-from .calculators.ageingwip import AgeingWIPChartCalculator
-from .calculators.forecast import BurnupForecastCalculator
-
-CALCULATORS = (
-    CycleTimeCalculator,  # should come first -- others depend on results from this one
-    CFDCalculator,        # needs to come before burn-up charts, wip charts, and net flow charts
-    ScatterplotCalculator,
-    HistogramCalculator,
-    PercentilesCalculator,
-    ThroughputCalculator,
-    BurnupCalculator,
-    WIPChartCalculator,
-    NetFlowChartCalculator,
-    AgeingWIPChartCalculator,
-    BurnupForecastCalculator,
-)
 
 def to_quantiles(quantiles):
     return [float(s.strip()) for s in quantiles.split(',') if s]
@@ -47,9 +22,11 @@ def configure_argument_parser():
     parser = argparse.ArgumentParser(description='Extract Agile metrics data from JIRA and produce data and charts.')
 
     # Basic options
-    parser.add_argument('config', metavar='config.yml', help='Configuration file')
+    parser.add_argument('config', metavar='config.yml', nargs='?', help='Configuration file')
     parser.add_argument('-v', dest='verbose', action='store_true', help='Verbose output')
     parser.add_argument('-n', metavar='N', dest='max_results', type=int, help='Only fetch N most recently updated issues')
+    
+    parser.add_argument('--server', metavar='127.0.0.1:8080', help='Run as a web server instead of a command line tool, on the given host and/or port. The remaining options do not apply.')
 
     # Connection options
     parser.add_argument('--domain', metavar='https://my.jira.com', help='JIRA domain name')
@@ -140,6 +117,23 @@ def main():
     parser = configure_argument_parser()
     args = parser.parse_args()
 
+    if args.server:
+        run_server(args)
+    else:
+        run_command_line(args)
+
+def run_server(args):
+    host = None
+    port = args.server
+    
+    if ':' in args.server:
+        (host, port) = args.server.split(':')
+    port = int(port)
+
+    set_chart_context("paper")
+    webapp.run(host=host, port=port)
+
+def run_command_line(args):
     if not args.config:
         args.print_usage()
         return

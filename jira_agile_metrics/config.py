@@ -6,6 +6,32 @@ from pydicti import odicti
 
 from .utils import StatusTypes
 
+from .calculators.cycletime import CycleTimeCalculator
+from .calculators.cfd import CFDCalculator
+from .calculators.scatterplot import ScatterplotCalculator
+from .calculators.histogram import HistogramCalculator
+from .calculators.percentiles import PercentilesCalculator
+from .calculators.throughput import ThroughputCalculator
+from .calculators.burnup import BurnupCalculator
+from .calculators.wip import WIPChartCalculator
+from .calculators.netflow import NetFlowChartCalculator
+from .calculators.ageingwip import AgeingWIPChartCalculator
+from .calculators.forecast import BurnupForecastCalculator
+
+CALCULATORS = (
+    CycleTimeCalculator,  # should come first -- others depend on results from this one
+    CFDCalculator,        # needs to come before burn-up charts, wip charts, and net flow charts
+    ScatterplotCalculator,
+    HistogramCalculator,
+    PercentilesCalculator,
+    ThroughputCalculator,
+    BurnupCalculator,
+    WIPChartCalculator,
+    NetFlowChartCalculator,
+    AgeingWIPChartCalculator,
+    BurnupForecastCalculator,
+)
+
 class ConfigError(Exception):
     pass
 
@@ -215,8 +241,8 @@ def config_to_options(data):
     if 'workflow' not in config:
         raise ConfigError("`Workflow` section not found")
 
-    if len(config['workflow'].keys()) < 2:
-        raise ConfigError("`Workflow` section must contain at least two statuses")
+    if len(config['workflow'].keys()) < 3:
+        raise ConfigError("`Workflow` section must contain at least three statuses")
 
     for name, statuses in config['workflow'].items():
         statuses = force_list(statuses)
