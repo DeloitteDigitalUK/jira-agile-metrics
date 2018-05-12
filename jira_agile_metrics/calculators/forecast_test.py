@@ -21,7 +21,8 @@ def settings(minimal_settings):
         'burnup_forecast_chart_trials': 10,
         'burnup_forecast_chart_deadline': datetime.date(2018, 1, 30),
         'burnup_forecast_chart_deadline_confidence': 0.85,
-        'quantiles': [0.1, 0.3, 0.5]
+        'quantiles': [0.1, 0.3, 0.5],
+        'burnup_forecast_chart': 'forecast.png'  # without a file, calculator stops
     })
 
 @pytest.fixture

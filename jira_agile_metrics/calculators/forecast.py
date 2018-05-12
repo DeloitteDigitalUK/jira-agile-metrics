@@ -21,6 +21,10 @@ class BurnupForecastCalculator(Calculator):
         if len(cycle_data.index) == 0:
             return None
 
+        # This calculation is expensive. Only run it if we intend to write a file.
+        if not self.settings['burnup_forecast_chart']:
+            return None
+
         backlog_column = self.settings['backlog_column'] or burnup_data.columns[0]
         done_column = self.settings['done_column'] or burnup_data.columns[-1]
 
