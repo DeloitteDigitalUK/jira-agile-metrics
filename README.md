@@ -47,6 +47,30 @@ line arguments. For a full list, run:
 
     $ jira-agile-metrics --help
 
+### Server mode
+
+`jira-agile-metrics` comes with a simple web server that can be used to produce
+metrics by uploading a configuration file and downloading a ZIP file with data
+and charts. To start it, run:
+
+    $ jira-agile-metrics --server 5000
+
+This will start a server on port `5000` (you can also specify a bind host name
+or IP address, e.g. `0.0.0.0:5000`). Visit this address in a web browser and
+upload a file.
+
+In this mode, all other command line options are ignored.
+
+**Note:** The web server is designed for low-volume usage only, and does not
+have a sophisticated security model. It is simply a more accessible front end
+to the features of the command line tool. The server will wait, synchronously,
+whilst JIRA is queried and charts are produced, which can take a long time.
+During this time, the browser will wait, and threads will block.
+
+**Warning:** The web server does not encrypt requests, which means that by
+default JIRA credentials are transmitted in plain-text. You are strongly adviced
+to configure a reverse proxy (e.g. `nginx`) with SSL enabled in front of it.
+
 ### An important note about passwords
 
 The tool uses a simple username/password combination to connect to JIRA. You
