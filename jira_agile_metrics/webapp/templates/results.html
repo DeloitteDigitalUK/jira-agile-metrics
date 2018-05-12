@@ -3,19 +3,17 @@
 
 <div class="results-area">
 
-    <h1 class="h3 mb-3 font-weight-normal">Results</h1>
-
     {% if has_error %}
     <div class="alert alert-danger" role="alert">
         A fatal error occurred. See output log for details.
     </div>
     {% else %}
-    <p class="lead">
-        Your output file should begin downloading immediately.
-    </p>
+    <div class="alert alert-success" role="alert">
+        Processing complete. Your output file should begin downloading immediately.
+    </div>
     {% endif %}
 
-    <h2 class="h4 font-weight-normal">Output log</h2>
+    <h2 class="h4 font-weight-normal">Processing log</h2>
 
     <pre>{{ log }}</pre>
 
