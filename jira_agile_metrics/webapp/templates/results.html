@@ -4,9 +4,16 @@
 <div class="results-area">
 
     <h1 class="h3 mb-3 font-weight-normal">Results</h1>
+
+    {% if has_error %}
+    <div class="alert alert-danger" role="alert">
+        A fatal error occurred. See output log for details.
+    </div>
+    {% else %}
     <p class="lead">
         Your output file should begin downloading immediately.
     </p>
+    {% endif %}
 
     <h2 class="h4 font-weight-normal">Output log</h2>
 
@@ -58,7 +65,9 @@ function b64toBlob(b64Data, contentType, sliceSize) {
 
 var data = '{{ data }}';
 
-saveData(b64toBlob(data, 'application/octet-stream'), 'metrics.zip');
+if(data) {
+    saveData(b64toBlob(data, 'application/octet-stream'), 'metrics.zip');
+}
 
 </script>
 
