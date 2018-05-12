@@ -90,33 +90,6 @@ def configure_argument_parser():
 
     return parser
 
-def override_options(options, arguments):
-    """Update `options` dict with settings from `arguments`
-    with the same key.
-    """
-    for key in options.keys():
-        if getattr(arguments, key, None) is not None:
-            options[key] = getattr(arguments, key)
-
-def get_jira_client(connection):
-    url = connection['domain']
-    username = connection['username']
-    password = connection['password']
-    jira_client_options = connection['jira_client_options']
-
-    logger.info("Connecting to %s", url)
-
-    if not username:
-        username = input("Username: ")
-
-    if not password:
-        password = getpass.getpass("Password: ")
-
-    options = {'server': url}
-    options.update(jira_client_options)
-
-    return JIRA(options, basic_auth=(username, password))
-
 def main():
     parser = configure_argument_parser()
     args = parser.parse_args()
@@ -171,3 +144,30 @@ def run_command_line(args):
     logger.info("Running calculators")
     query_manager = QueryManager(jira, options['settings'])
     run_calculators(CALCULATORS, query_manager, options['settings'])
+
+def override_options(options, arguments):
+    """Update `options` dict with settings from `arguments`
+    with the same key.
+    """
+    for key in options.keys():
+        if getattr(arguments, key, None) is not None:
+            options[key] = getattr(arguments, key)
+
+def get_jira_client(connection):
+    url = connection['domain']
+    username = connection['username']
+    password = connection['password']
+    jira_client_options = connection['jira_client_options']
+
+    logger.info("Connecting to %s", url)
+
+    if not username:
+        username = input("Username: ")
+
+    if not password:
+        password = getpass.getpass("Password: ")
+
+    options = {'server': url}
+    options.update(jira_client_options)
+
+    return JIRA(options, basic_auth=(username, password))

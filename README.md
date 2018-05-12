@@ -521,5 +521,4 @@ all items returned by the second query, it will be `Team 2`.
 
 ### 0.1
 
-    * Forked from `jira-agile-metrics`
-
+* Forked from `jira-agile-metrics`
