@@ -13,6 +13,11 @@ class AgeingWIPChartCalculator(Calculator):
     """
 
     def run(self, today=None):
+
+        # short circuit relatively expensive calculation if it won't be used
+        if not self.settings['ageing_wip_chart']:
+            return None
+
         cycle_data = self.get_result(CycleTimeCalculator)
         cycle_names = [s['name'] for s in self.settings['cycle']]
 
