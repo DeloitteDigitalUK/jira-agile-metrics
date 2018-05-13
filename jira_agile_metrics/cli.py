@@ -95,11 +95,11 @@ def main():
     args = parser.parse_args()
 
     if args.server:
-        run_server(args)
+        run_server(parser, args)
     else:
-        run_command_line(args)
+        run_command_line(parser, args)
 
-def run_server(args):
+def run_server(parser, args):
     host = None
     port = args.server
     
@@ -110,9 +110,9 @@ def run_server(args):
     set_chart_context("paper")
     webapp.run(host=host, port=port)
 
-def run_command_line(args):
+def run_command_line(parser, args):
     if not args.config:
-        args.print_usage()
+        parser.print_usage()
         return
     
     logging.basicConfig(
