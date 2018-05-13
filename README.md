@@ -91,7 +91,7 @@ There is a separate Docker image for running the web server, which uses `nginx`
 and `uwsgi` for improved performance and stability (but still not SSL, which
 would need to be configured with a domain-specific certificate):
 
-    $ docker run -d --rm -p 8080:80 --name jira_metrics jira-agile-metrics-server
+    $ docker run -d --rm -p 8080:80 --name jira_metrics optilude/jira-agile-metrics:server
 
 This will run the server in daemon mode and bind it to port `8080` on the local
 host. To stop it, run:
