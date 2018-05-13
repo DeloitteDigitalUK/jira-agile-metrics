@@ -98,6 +98,8 @@ host. To stop it, run:
 
     $ docker stop jira_metrics
 
+See the [Docker documentation](https://docs.docker.com) for more details.
+
 ### An important note about passwords
 
 The tool uses a simple username/password combination to connect to JIRA. You
