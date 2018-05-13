@@ -30,7 +30,7 @@ If you prefer, you can use [Docker](http://docker.com) to install and run
 `jira-agile-metrics` with all the relevant dependencies in place. After
 installing Docker, run:
 
-    $ docker run -it --rm -v $PWD:/data jira-agile-metrics config.yml
+    $ docker run -it --rm -v $PWD:/data optilude/jira-agile-metrics config.yml
 
 This will run `jira-agile-metrics` with the configuration file `config.yml` from
 the current directory, writing outputs also to the current directory. The
