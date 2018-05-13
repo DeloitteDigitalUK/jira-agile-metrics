@@ -85,6 +85,19 @@ During this time, the browser will wait, and threads will block.
 default JIRA credentials are transmitted in plain-text. You are strongly adviced
 to configure a reverse proxy (e.g. `nginx`) with SSL enabled in front of it.
 
+#### Using Docker to run the web server
+
+There is a separate Docker image for running the web server, which uses `nginx`
+and `uwsgi` for improved performance and stability (but still not SSL, which
+would need to be configured with a domain-specific certificate):
+
+    $ docker run -d --rm -p 8080:80 --name jira_metrics jira-agile-metrics-server
+
+This will run the server in daemon mode and bind it to port `8080` on the local
+host. To stop it, run:
+
+    $ docker stop jira_metrics
+
 ### An important note about passwords
 
 The tool uses a simple username/password combination to connect to JIRA. You
