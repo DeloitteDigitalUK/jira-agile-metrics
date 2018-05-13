@@ -24,6 +24,20 @@ directory. You can test it using:
 ... which should print a help message with a whole slew of options. More on
 those below.
 
+### Using Docker
+
+If you prefer, you can use [Docker](http://docker.com) to install and run
+`jira-agile-metrics` with all the relevant dependencies in place. After
+installing Docker, run:
+
+    $ docker run -it --rm -v $PWD:/data jira-agile-metrics config.yml
+
+This will run `jira-agile-metrics` with the configuration file `config.yml` from
+the current directory, writing outputs also to the current directory. The
+argument `-v $PWD:/data` mounts the `/data` volume, where output files will be
+written, to the current working directory. You can of course specify a
+different bind mount.
+
 ## Usage
 
 The basic usage pattern is to run `jira-agile-metrics` with a configuration
