@@ -1,0 +1,10 @@
+FROM tiangolo/uwsgi-nginx-flask:python3.6
+
+LABEL version="0.1"
+LABEL description="Web server version of jira-agile-metrics"
+
+COPY . /app
+RUN pip install --no-cache-dir /app
+
+ENV STATIC_PATH=/app/jira_agile_metrics/webapp/static
+ENV MPLBACKEND="agg"
