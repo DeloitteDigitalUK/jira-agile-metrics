@@ -154,11 +154,12 @@ class CycleTimeCalculator(Calculator):
 
     def write(self):
         output_file = self.settings['cycle_time_data']
-        output_extension = get_extension(output_file)
-
+        
         if not output_file:
             logger.debug("No output file specified for cycle time data")
             return
+
+        output_extension = get_extension(output_file)
 
         cycle_data = self.get_result()
         cycle_names = [s['name'] for s in self.settings['cycle']]
