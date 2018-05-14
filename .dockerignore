@@ -1,7 +1,10 @@
 .git
 
-__pycache__/
-*.py[cod]
+# Important for pytest to work
+**/__pycache__
+**/*.pyc
+**/*.pyo
+
 *$py.class
 
 # C extensions
@@ -26,4 +29,4 @@ coverage.xml
 # VS Code
 .vscode
 .flake8
-.pytest_cache/
+.pytest_cache
