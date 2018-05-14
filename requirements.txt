@@ -1,0 +1,11 @@
+jira
+PyYAML
+pandas
+numpy
+seaborn
+matplotlib
+statsmodels
+python-dateutil
+pydicti
+openpyxl
+flask

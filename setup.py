@@ -8,6 +8,9 @@ here = path.abspath(path.dirname(__file__))
 with open(path.join(here, 'README.md'), encoding='utf-8') as f:
     long_description = f.read()
 
+with open(path.join(here, 'requirements.txt')) as f:
+    install_requires = f.readlines()
+
 setup(
     name='jira-agile-metrics',
     version='0.1',
@@ -19,19 +22,7 @@ setup(
     license='MIT',
     keywords='agile jira analytics metrics',
     packages=find_packages(exclude=['contrib', 'docs', 'tests*']),
-    install_requires=[
-        'jira',
-        'PyYAML',
-        'pandas',
-        'numpy',
-        'seaborn',
-        'matplotlib',
-        'statsmodels',
-        'python-dateutil',
-        'pydicti',
-        'openpyxl',
-        'flask',
-    ],
+    install_requires=install_requires,
     tests_require=[
         'pytest'
     ],
