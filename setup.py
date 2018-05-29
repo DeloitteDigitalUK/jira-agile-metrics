@@ -16,6 +16,7 @@ setup(
     version='0.1',
     description='Agile metrics and summary data extracted from JIRA',
     long_description=long_description,
+    long_description_content_type="text/markdown",
     author='Martin Aspeli',
     author_email='optilude@gmail.com',
     url='https://github.com/optilude/jira-agile-metrics',
