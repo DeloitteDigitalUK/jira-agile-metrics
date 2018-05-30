@@ -222,7 +222,8 @@ If you save this file as e.g. `config.yaml`, you can run:
 
 This should prompt you for a username and password, and then connect to your
 JIRA instance, fetch the issues matching the query, calculate metrics, and
-write a number of CSV and PNG files to the current directory.
+write a number of CSV and PNG files to the current working directory (you can
+use the `--output-directory` option to write to another directory).
 
 When testing configuration, it is often helpful to fetch just a small number of
 issues to speed things up. You can either do this by making your query more
@@ -547,6 +548,10 @@ all items returned by the second query, it will be `Team 2`.
   `gcc` brew.
 
 ## Changelog
+
+### 0.2
+
+* Added `--output-directory` option.
 
 ### 0.1
 

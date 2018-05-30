@@ -1,3 +1,4 @@
+import os
 import argparse
 import getpass
 import datetime
@@ -31,6 +32,10 @@ def configure_argument_parser():
     parser.add_argument('-n', metavar='N', dest='max_results', type=int, help='Only fetch N most recently updated issues')
     
     parser.add_argument('--server', metavar='127.0.0.1:8080', help='Run as a web server instead of a command line tool, on the given host and/or port. The remaining options do not apply.')
+
+    # Output directory and bulk mode
+
+    parser.add_argument('--output-directory', metavar='metrics', help="Write output files to this directory, rather than the current working directory.")
 
     # Connection options
     parser.add_argument('--domain', metavar='https://my.jira.com', help='JIRA domain name')
@@ -136,6 +141,11 @@ def run_command_line(parser, args):
 
     # Set charting context, which determines how charts are rendered
     set_chart_context("paper")
+
+    # Set output directory if required
+    if args.output_directory:
+        logger.info("Changing working directory to %s" % args.output_directory)
+        os.chdir(args.output_directory)
 
     # Query JIRA and run calculators
 
