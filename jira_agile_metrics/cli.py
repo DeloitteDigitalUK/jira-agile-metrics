@@ -17,7 +17,10 @@ from .utils import set_chart_context
 logger = logging.getLogger(__name__)
 
 def to_quantiles(quantiles):
-    return [float(s.strip()) for s in quantiles.split(',') if s]
+    return list(map(float, to_list(quantiles)))
+
+def to_list(string_value):
+    return [s.strip() for s in string_value.split(',') if s]
 
 def configure_argument_parser():
     """Configure an ArgumentParser that manages command line options.
@@ -82,7 +85,7 @@ def configure_argument_parser():
     parser.add_argument('--burnup-forecast-chart-throughput-window', metavar='60', type=int, default=60, help="How many days in the past to use for calculating throughput")
     parser.add_argument('--burnup-forecast-chart-throughput-window-end', metavar=datetime.date.today().isoformat(), type=dateutil.parser.parse, help="By default, the throughput window runs to today's date. Use this option to set an alternative end date for the window.")
 
-    parser.add_argument('--wip-chart', metavar='wip', help="Draw weekly WIP box plot")
+    parser.add_argument('--wip-chart', metavar='wip.png', help="Draw weekly WIP box plot")
     parser.add_argument('--wip-chart-title', metavar='"Weekly WIP"', help="Title for WIP chart")
     parser.add_argument('--wip-chart-frequency', metavar='1W-MON', default="1W-MON", help="Frequency interval for WIP chart (1W-Mon means 1 week, starting Mondays)")
 
@@ -92,6 +95,36 @@ def configure_argument_parser():
     parser.add_argument('--net-flow-chart', metavar='net-flow.png', help="Draw weekly net flow bar chart")
     parser.add_argument('--net-flow-chart-title', metavar='"Net flow"', help="Title for net flow bar chart`")
     parser.add_argument('--net-flow-chart-frequency', metavar='1W-MON', default="1W-MON", help="Frequency interval for net flow chart (1W-Mon means 1 week, starting Mondays)")
+
+    parser.add_argument('--defects-query', metavar='"issueType=Bug"', help="JQL query used to identify defects")
+    parser.add_argument('--defects-by-priority-chart', metavar='defects-by-priority.png', help="Draw stacked bar chart of defects grouped by priority over time")
+    parser.add_argument('--defects-by-priority-chart-title', metavar='"Defects by priority', help="Title for defects-by-priority chart")
+    parser.add_argument('--defects-by-priority-field', metavar='Priority', help="Name of field identifying defect priority")
+    parser.add_argument('--defects-by-priority-values', metavar='"Low,Medium,High"', type=to_list, help="List of valid values, in order, for defect priorities")
+    parser.add_argument('--defects-by-type-chart', metavar='defects-by-type.png', help="Draw stacked bar chart of defects grouped by type over time")
+    parser.add_argument('--defects-by-type-chart-title', metavar='"Defects by type', help="Title for defects-by-type chart")
+    parser.add_argument('--defects-by-type-field', metavar='Priority', help="Name of field identifying defect type")
+    parser.add_argument('--defects-by-type-values', metavar='"Requirements,Enironmental,Code"', type=to_list, help="List of valid values, in order, for defect values")
+    parser.add_argument('--defects-by-environment-chart', metavar='defects-by-environment.png', help="Draw stacked bar chart of defects grouped by environment over time")
+    parser.add_argument('--defects-by-environment-chart-title', metavar='"Defects by environment', help="Title for defects-by-environment chart")
+    parser.add_argument('--defects-by-environment-field', metavar='Priority', help="Name of field identifying the environment in which a defect was discovered")
+    parser.add_argument('--defects-by-environment-values', metavar='"SIT,UAT,Prod"', type=to_list, help="List of valid values, in order, for defect environments")
+    parser.add_argument('--defects-frequency', metavar='1MS', default="1MS", help="Frequency to use when grouping historical defect counts. Defaults to monthly.")
+    parser.add_argument('--defects-window', metavar=6, type=int, default=6, help="How many periods to show.")
+
+    parser.add_argument('--debt-query', metavar='"issueType=Debt"', help="JQL query used to identify technical debt items")
+    parser.add_argument('--debt-chart', metavar='tech-debt.png', help="Draw a stacked bar chart of technical debt groued by type over time")
+    parser.add_argument('--debt-chart-title', metavar='Technical debt', help="Title for the technical debt chart")
+    parser.add_argument('--debt-priority-field', metavar='Priority', help="Name of field identifying technical debt item priority")
+    parser.add_argument('--debt-priority-values', metavar='"Low,Medium,High"', type=to_list, help="List of valid values, in order, for technical debt item priorities")
+    parser.add_argument('--debt-frequency', metavar='1MS', default="1MS", help="Frequency to use when grouping historical technical debt item counts. Defaults to monthly.")
+    parser.add_argument('--debt-window', metavar=6, type=int, default=6, help="How many periods to show.")
+
+    parser.add_argument('--waste-query', metavar='"issueType=Story AND resolution=Withdrawn"', help="JQL query used to identify waste items, e.g. those withdrawn after work has begun")
+    parser.add_argument('--waste-chart', metavar='waste.png', help="Draw a stacked bar chart of wasted items, grouped by last non-resolved status")
+    parser.add_argument('--waste-chart-title', metavar='Waste', help="Title for the waste chart")
+    parser.add_argument('--waste-frequency', metavar='1MS', default="1MS", help="Frequency to use when grouping historical waste counts. Defaults to monthly.")
+    parser.add_argument('--waste-window', metavar=6, type=int, default=6, help="How many periods to show.")
 
     return parser
 

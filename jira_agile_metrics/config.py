@@ -129,6 +129,36 @@ def config_to_options(data):
             'net_flow_chart': None,
             'net_flow_chart_title': None,
             'net_flow_chart_frequency': '1W-MON',
+
+            'defects_query': None,
+            'defects_by_priority_chart': None,
+            'defects_by_priority_chart_title': None,
+            'defects_by_priority_field': None,
+            'defects_by_priority_values': None,
+            'defects_by_type_chart': None,
+            'defects_by_type_chart_title': None,
+            'defects_by_type_field': None,
+            'defects_by_type_values': None,
+            'defects_by_environment_chart': None,
+            'defects_by_environment_chart_title': None,
+            'defects_by_environment_field': None,
+            'defects_by_environment_values': None,
+            'defects_frequency': '1MS',
+            'defects_window': 6,
+
+            'debt_query': None,
+            'debt_chart': None,
+            'debt_chart_title': None,
+            'debt_priority_field': None,
+            'debt_priority_values': None,
+            'debt_frequency': '1MS',
+            'debt_window': 6,
+
+            'waste_query': None,
+            'waste_chart': None,
+            'waste_chart_title': None,
+            'waste_frequency': '1MS',
+            'waste_window': 6,
         }
     }
 
@@ -160,6 +190,9 @@ def config_to_options(data):
             'burnup_forecast_chart_throughput_window',
             'burnup_forecast_chart_target',
             'burnup_forecast_chart_trials',
+            'defects_window',
+            'debt_window',
+            'waste_window',
         ]:
             if expand_key(key) in config['output']:
                 value = config['output'][expand_key(key)]
@@ -207,9 +240,24 @@ def config_to_options(data):
             'wip_chart',
             'ageing_wip_chart',
             'net_flow_chart',
+            'defects_by_priority_chart',
+            'defects_by_type_chart',
+            'defects_by_environment_chart',
+            'debt_chart',
+            'waste_chart',
         ]:
             if expand_key(key) in config['output']:
                 options['settings'][key] = os.path.basename(config['output'][expand_key(key)])
+
+        # list values
+        for key in [
+            'defects_by_priority_values',
+            'defects_by_type_values',
+            'defects_by_environment_values',
+            'debt_priority_values',
+        ]:
+            if expand_key(key) in config['output']:
+                options['settings'][key] = force_list(config['output'][expand_key(key)])
 
         # string values that copy straight over
         for key in [
@@ -229,6 +277,21 @@ def config_to_options(data):
             'ageing_wip_chart_title',
             'net_flow_chart_title',
             'net_flow_chart_frequency',
+            'defects_query',
+            'defects_by_priority_chart_title',
+            'defects_by_priority_field',
+            'defects_by_type_chart_title',
+            'defects_by_type_field',
+            'defects_by_environment_chart_title',
+            'defects_by_environment_field',
+            'defects_frequency',
+            'debt_query',
+            'debt_chart_title',
+            'debt_priority_field',
+            'debt_frequency',
+            'waste_query',
+            'waste_chart_title',
+            'waste_frequency',
         ]:
             if expand_key(key) in config['output']:
                 options['settings'][key] = config['output'][expand_key(key)]
