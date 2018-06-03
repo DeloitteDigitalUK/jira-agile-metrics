@@ -126,46 +126,47 @@ Output:
     Net flow chart frequency: 5D
 
     Defects query: issueType = Bug
+    Defects frequency: 4W-MON
+    Defects window: 3
     Defects by priority chart: defects-by-priority.png
     Defects by priority chart title: Defects by priority
-    Defects by priority field: Priority
-    Defects by priority values:
+    Defects by priority chart field: Priority
+    Defects by priority chart values:
         - Low
         - Medium
         - High
     Defects by type chart: defects-by-type.png
     Defects by type chart title: Defects by type
-    Defects by type field: Type
-    Defects by type values:
+    Defects by type chart field: Type
+    Defects by type chart values:
         - Config
         - Data
         - Code
     Defects by environment chart: defects-by-environment.png
     Defects by environment chart title: Defects by environment
-    Defects by environment field: Environment
-    Defects by environment values:
+    Defects by environment chart field: Environment
+    Defects by environment chart values:
         - SIT
         - UAT
         - PROD
-    Defects frequency: 4W-MON
-    Defects window: 3
+    
 
-    Debt query: issueType = "Tech debt"
     Debt chart: tech-debt.png
+    Debt chart query: issueType = "Tech debt"
     Debt chart title: Technical debt
-    Debt priority field: Priority
-    Debt priority values:
+    Debt chart priority field: Priority
+    Debt chart priority values:
         - Low
         - Medium
         - High
-    Debt frequency: 4W-MON
-    Debt window: 3
+    Debt chart frequency: 4W-MON
+    Debt chart window: 3
 
-    Waste query: issueType = Story AND resolution IN (Withdrawn, Invalid)
     Waste chart: waste.png
+    Waste chart query: issueType = Story AND resolution IN (Withdrawn, Invalid)
     Waste chart title: Waste
-    Waste frequency: 4W-MON
-    Waste window: 3
+    Waste chart frequency: 4W-MON
+    Waste chart window: 3
 """)
 
     assert options['connection'] == {
@@ -247,34 +248,35 @@ Output:
         'wip_chart_title': 'Work in Progress',
 
         'defects_query': 'issueType = Bug',
-        'defects_by_priority_chart': 'defects-by-priority.png',
-        'defects_by_priority_chart_title': 'Defects by priority',
-        'defects_by_priority_field': 'Priority',
-        'defects_by_priority_values': ['Low', 'Medium', 'High'],
-        'defects_by_type_chart': 'defects-by-type.png',
-        'defects_by_type_chart_title': 'Defects by type',
-        'defects_by_type_field': 'Type',
-        'defects_by_type_values': ['Config', 'Data', 'Code'],
-        'defects_by_environment_chart': 'defects-by-environment.png',
-        'defects_by_environment_chart_title': 'Defects by environment',
-        'defects_by_environment_field': 'Environment',
-        'defects_by_environment_values': ['SIT', 'UAT', 'PROD'],
         'defects_frequency': '4W-MON',
         'defects_window': 3,
 
-        'debt_query': 'issueType = "Tech debt"',
+        'defects_by_priority_chart': 'defects-by-priority.png',
+        'defects_by_priority_chart_title': 'Defects by priority',
+        'defects_by_priority_chart_field': 'Priority',
+        'defects_by_priority_chart_values': ['Low', 'Medium', 'High'],
+        'defects_by_type_chart': 'defects-by-type.png',
+        'defects_by_type_chart_title': 'Defects by type',
+        'defects_by_type_chart_field': 'Type',
+        'defects_by_type_chart_values': ['Config', 'Data', 'Code'],
+        'defects_by_environment_chart': 'defects-by-environment.png',
+        'defects_by_environment_chart_title': 'Defects by environment',
+        'defects_by_environment_chart_field': 'Environment',
+        'defects_by_environment_chart_values': ['SIT', 'UAT', 'PROD'],
+        
         'debt_chart': 'tech-debt.png',
+        'debt_chart_query': 'issueType = "Tech debt"',
         'debt_chart_title': 'Technical debt',
-        'debt_priority_field': 'Priority',
-        'debt_priority_values': ['Low', 'Medium', 'High'],
-        'debt_frequency': '4W-MON',
-        'debt_window': 3,
+        'debt_chart_priority_field': 'Priority',
+        'debt_chart_priority_values': ['Low', 'Medium', 'High'],
+        'debt_chart_frequency': '4W-MON',
+        'debt_chart_window': 3,
 
-        'waste_query': 'issueType = Story AND resolution IN (Withdrawn, Invalid)',
         'waste_chart': 'waste.png',
+        'waste_chart_query': 'issueType = Story AND resolution IN (Withdrawn, Invalid)',
         'waste_chart_title': 'Waste',
-        'waste_frequency': '4W-MON',
-        'waste_window': 3,
+        'waste_chart_frequency': '4W-MON',
+        'waste_chart_window': 3,
     }
 
 def test_config_to_options_strips_directories():
