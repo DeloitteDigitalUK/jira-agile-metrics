@@ -1,22 +1,8 @@
 import json
 
 from .cli import (
-    to_quantiles,
-    to_list,
     override_options
 )
-
-def test_to_quantiles():
-    assert to_quantiles("0.1,0.5,0.6") == [0.1, 0.5, 0.6]
-    assert to_quantiles("0.1, 0.5, 0.6") == [0.1, 0.5, 0.6]
-    assert to_quantiles(".1, 0.5,.6") == [0.1, 0.5, 0.6]
-    assert to_quantiles("") == []
-    assert to_quantiles("1,2,3") == [1.0, 2.0, 3.0]
-
-def test_to_list():
-    assert to_list("one,two,three") == ["one", "two", "three"]
-    assert to_list("one, two,three") == ["one", "two", "three"]
-    assert to_list("") == []
 
 def test_override_options():
 

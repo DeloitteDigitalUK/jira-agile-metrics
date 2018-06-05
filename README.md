@@ -21,8 +21,7 @@ directory. You can test it using:
 
     $ jira-agile-metrics --help
 
-... which should print a help message with a whole slew of options. More on
-those below.
+... which should print a help message.
 
 ### Using Docker
 
@@ -43,11 +42,12 @@ different bind mount.
 The basic usage pattern is to run `jira-agile-metrics` with a configuration
 file, written in YAML format (see below), which describes:
 
-  - how to connect to a remote JIRA instance;
-  - what metrics (spreadsheet-like data files, charts as images) to output;
-  - various settings used to calculate those metrics; and
-  - a description of the stages of the workflow the relevant JIRA tickets go
-    through.
+- how to connect to a remote JIRA instance (this can also be set using command
+  line options);
+- what metrics (spreadsheet-like data files, charts as images) to output;
+- various settings used to calculate those metrics; and
+- a description of the stages of the workflow the relevant JIRA tickets go
+  through.
 
 The tool will then connect to JIRA using its web services API, run a query to
 the relevant tickets and their history, and calculate the requierd metrics.
@@ -55,11 +55,6 @@ the relevant tickets and their history, and calculate the requierd metrics.
 The outputs are written to local filesystem files. Data files can be written in
 CSV, XLSX or JSON formats (depending on the extension of the desired output
 file), whilst charts are written as PNG images.
-
-Most of the options in the configuration file can be overridden using command
-line arguments. For a full list, run:
-
-    $ jira-agile-metrics --help
 
 ### Server mode
 
@@ -110,17 +105,17 @@ There are three ways to provide the credentials for JIRA -- in particular, the
 password, which should be kept scret. You should think carefully about which
 approach makes most sense for you.
 
-  - The safest option is to not set it in either the configuration file, or as
-    a command line option. In this case, you will be prompted to input a
-    password (and username, if you didn't set this either) each time the tool
-    is run.
-  - You can use the `--username` and/or `--password` command line options to set
-    credentails when you invoke the `jira-agile-metrics` command. This keeps
-    them out of the configuration file, but if you do this in an interactive
-    shell that records command history (i.e. virtually all of them), your
-    password will likely be stored in plain text in the command history!
-  - If you are confident you can keep the configuration file secret, you can
-    store them there, under the `Connection` section (see below).
+- The safest option is to not set it in either the configuration file, or as
+  a command line option. In this case, you will be prompted to input a
+  password (and username, if you didn't set this either) each time the tool
+  is run.
+- You can use the `--username` and/or `--password` command line options to set
+  credentails when you invoke the `jira-agile-metrics` command. This keeps
+  them out of the configuration file, but if you do this in an interactive
+  shell that records command history (i.e. virtually all of them), your
+  password will likely be stored in plain text in the command history!
+- If you are confident you can keep the configuration file secret, you can
+  store them there, under the `Connection` section (see below).
 
 ### What issues should you include?
 
@@ -234,7 +229,10 @@ restrictive, or by using the `-n` flag to limit the number of issues fetched:
 If you want more information about what's going on, use the `-v` flag:
 
     $ jira-agile-metrics -v config.yaml
- 
+
+And if you are realy curious:
+
+    $ jira-agile-metrics -vv config.yaml
 
 ## Available metrics
 
@@ -409,14 +407,14 @@ the scope.
 
 The simulation can be calibrated with a series of options to set:
 
-    - The number of trials to run. Each trial will be drawn as a hypotehtical
-      burn-up to completion.
-    - The window of time from which to sample historical throughput. This should
-      be representative of the near future, and ideally about 6-12 weeks long.
-    - The target to aim for, as a number of stories to have completed. Defaults
-      to the size of the backlog, but can be set to an assumed figure.
-    - A deadline date, which, if set, can be compared to a forecast at a given
-      confidence interval.
+- The number of trials to run. Each trial will be drawn as a hypotehtical
+  burn-up to completion.
+- The window of time from which to sample historical throughput. This should
+  be representative of the near future, and ideally about 6-12 weeks long.
+- The target to aim for, as a number of stories to have completed. Defaults
+  to the size of the backlog, but can be set to an assumed figure.
+- A deadline date, which, if set, can be compared to a forecast at a given
+  confidence interval.
 
 In the configuration file:
 
@@ -540,12 +538,178 @@ all items returned by the second query, it will be `Team 2`.
   whatever makes sense.
 * If you are on a Mac and you get an error about Python not being installed as
   a framework, try to create a file `~/.matplotlib/matplotlibrc` with the
-  following contents::
+  following contents:
 
     backend : Agg
+
 * To install the charting dependencies on a Mac, you might need to install a
   `gfortran` compiler for `scipy`. Use [Homebrew](http://brew.sh) and install the
   `gcc` brew.
+
+## Output settings reference
+
+The following options can be set in the `Output:` section of the configuration
+file.
+
+### General options
+
+These options affect multiple charts and files.
+
+- `Quantiles: <list>` – Quantiles to use when calculating percentiles.
+- `Backlog column: <name>` --Name of the backlog column. Defaults to the first column.
+- `Committed column: <name>` – Name of the column from which work is considered
+   committed. Defaults to the second column.
+- `Final column: <name>` – Name of the final 'work' column. Defaults to the
+   penultimate column.
+- `Done column: <name>` – Name of the 'done' column. Defaults to the last column.
+- `Throughput frequency: <freq>` – Interval to use for calculating frequency,
+   e.g. 1D for daily or 1W for weekly.
+
+### Data files
+
+These options name data files to write. Use an extension of `.csv`, `.xlsx`, or
+`.json` according to the required file format.
+
+- `Cycle time data: <filename>.[csv,xlsx,json]` – Output file suitable for
+   processing Actionable Agile. Contains all issues described by the configuration
+   file, metadata, and dates of entry to each state in the cycle.
+- `CFD data: <filename>.[csv,xlsx,json]` – Calculate data to draw a Cumulative
+   Flow Diagram and write to file. Hint: Plot as a (non-stacked) area chart.
+- `Scatterplot data: <filename>.[csv,xlsx,json]` – Calculate data to draw a
+   cycle time scatter plot and write to file. Hint: Plot as a scatter chart.
+- `Histogram data: <filename>.[csv,xlsx,json]` – Calculate data to draw a cycle
+   time histogram and write to file. Hint: Plot as a column chart.
+- `Throughput data: <filename>.[csv,xlsx,json]` – Calculate daily throughput
+   data and write to file. Hint: Plot as a column chart.
+- `Percentiles data: <filename>.[csv,xlsx,json]` – Calculate cycle time
+   percentiles and write to file.
+
+### Scatterplot chart
+
+- `Scatterplot chart: <filename>.png` – Draw cycle time scatter plot.
+- `Scatterplot chart title: <title>` – Title for cycle time
+   scatter plot.
+
+### Histogram chart
+
+- `Histogram chart: <filename>.png` – Draw cycle time histogram.
+- `Histogram chart title: <title>` – Title for cycle time
+   histogram.
+
+### Cumulative Flow Diagram
+
+- `CFD chart: <filename>.png` – Draw Cumulative Flow Diagram.
+- `CFD chart title: <title>` – Title for the CFD.
+
+### Throughput chart
+
+- `Throughput chart: <filename>.png` – Draw weekly throughput chart with trend
+  line.
+- `Throughput chart title: <title>` – Title for throughput chart.
+
+### Burnup chart
+
+- `Burnup chart: <filename>.png` – Draw simple burn-up chart.
+- `Burnup-chart-title <title>` – Title for burn-up charts_scatterplot.
+
+### Burnup forecast chart
+
+- `Burnup forecast chart: <filename>.png` – Draw burn-up chart with Monte Carlo
+   simulation forecast to completion.
+- `Burnup forecast chart title: <title>` – Title for burn-up forecast chart.
+- `Burnup forecast chart target: <number>` – Target completion scope for
+   forecast. Defaults to current size of backlog.
+- `Burnup forecast chart deadline: <date>` – Deadline date for completion of
+   backlog. If set, it will be shown on the chart, and the forecast delta will
+   also be shown. Use ISO date format, e.g. `2018-01-02` for January 2nd 2018.
+- `Burnup forecast chart deadline confidence: <number>` – Quantile to use when
+   comparing deadline to forecast. Use a fraction, e.g. `0.85`.
+- `Burnup forecast chart trials: <number>` – Number of iterations in Monte
+   Carlo simulation.
+- `Burnup forecast chart throughput window: <number>` – How many days in the
+   past to use for calculating throughput.
+- `Burnup forecast chart throughput window end: <date>` – By default, the
+   throughput window runs to today's date. Use this option to set an alternative
+   end date for the window. Use ISO date format, e.g. `2018-01-02` for January
+   2nd 2018.
+
+### WIP chart
+
+- `WIP chart: <filename>.png` –  Draw weekly WIP box plot.
+- `WIP chart title: <title>` – Title for WIP chart
+- `WIP chart frequency: <freq>` – Frequency interval for WIP chart. `1W-Mon`
+   means 1 week, starting Mondays.
+
+### Ageing WIP chart
+
+- `Ageing WIP chart: <filename>.png` – Draw current ageing WIP chart.
+- `Ageing WIP chart title: <title>` – Title for ageing WIP chart.
+
+### Net flow chart
+
+- `Net flow chart: <filename>.png` – Draw weekly net flow bar chart.
+- `Net flow chart title: <title>` – Title for net flow bar chart.
+- `Net flow chart frequency: <freq>` – Frequency interval for net flow chart.
+  `1W-Mon` means 1 week, starting Mondays.
+
+### Defect density charts
+
+- `Defects query: <query>` – JQL query used to identify defects.
+- `Defects window: <number>` – How many months to show.
+
+- `Defects by priority chart: <filename>.png` – Draw stacked bar chart of
+   defects grouped by priority over time.
+- `defects-by priority chart title: <title>` – Title for defects-by-priority
+   chart.
+- `Defects by priority chart field: <fieldname>` – Name of field identifying
+   defect priority.
+- `Defects by priority chart values: <list>` – List of valid values, in order,
+   for defect priorities.
+
+- `Defects by type chart: <filename>.png` – Draw stacked bar chart of defects
+   grouped by type over time.
+- `Defects by type chart title: <title>` – Title for defects-by-type chart.
+- `Defects by type chart field: <fieldname>` – Name of field identifying defect
+   type.
+- `Defects by type chart values: <list>` – List of valid values, in order, for
+   defect values.
+- `Defects by environment chart: <filename>.png` – Draw stacked bar chart of
+   defects grouped by environment over time.
+- `Defects by environment chart title: <title>` – Title for defects-by-
+   environment chart.
+- `Defects by environment chart field: <fieldname>` – Name of field identifying
+   the environment in which a defect was discovered.
+- `Defects by environment chart values: <list>` – List of valid values, in
+   order, for defect environments.
+
+### Debt density chart
+
+- `Debt query: <query>` – JQL query used to identify technical debt items.
+- `Debt priority field: <fieldname>` – Name of field identifying technical debt
+   item priority.
+- `Debt priority values: <list>` – List of valid values, in order, for
+   technical debt item priorities.
+
+- `Debt chart: <filename>.png` – Draw a stacked bar chart of technical debt
+   grouped by priority over time.
+- `Debt chart title: <title>` – Title for the technical debt chart.
+- `Debt chart window: <number>` – How many months to show.
+
+- `Debt age chart: <filename>.png` – Draw a stacked bar chart of technical debt
+   grouped by priority by age.
+- `Debt age chart title: <title>` – Title for the technical debt age chart.
+- `Debt age chart bins: <list>` – List of bins for bracketing the ages shown.
+   Defaults to `30`, `60`, and `90`, which will group ages into `0-30 days`,
+   `31-60 days`, `61-90 days` and `91 days or more`.
+
+### Waste chart
+
+- `Waste chart: <filename>.png` – Draw a stacked bar chart of wasted items,
+   grouped by last non-resolved status.
+- `Waste chart query: <query>` – JQL query used to identify waste items, e.g.
+   those withdrawn after work has begun.
+- `Waste chart title: <title>` – Title for the waste chart.
+- `Waste chart window: <number>` – How many months to show.
 
 ## Changelog
 
