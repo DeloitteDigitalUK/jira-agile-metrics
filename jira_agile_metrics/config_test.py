@@ -126,7 +126,6 @@ Output:
     Net flow chart frequency: 5D
 
     Defects query: issueType = Bug
-    Defects frequency: 4W-MON
     Defects window: 3
     Defects by priority chart: defects-by-priority.png
     Defects by priority chart title: Defects by priority
@@ -151,21 +150,25 @@ Output:
         - PROD
     
 
-    Debt chart: tech-debt.png
-    Debt chart query: issueType = "Tech debt"
-    Debt chart title: Technical debt
-    Debt chart priority field: Priority
-    Debt chart priority values:
+    Debt query: issueType = "Tech debt"
+    Debt priority field: Priority
+    Debt priority values:
         - Low
         - Medium
         - High
-    Debt chart frequency: 4W-MON
+    Debt chart: tech-debt.png
+    Debt chart title: Technical debt
     Debt chart window: 3
+    Debt age chart: tech-debt-age.png
+    Debt age chart title: Technical debt age
+    Debt age chart bins:
+        - 10
+        - 20
+        - 30
 
     Waste chart: waste.png
     Waste chart query: issueType = Story AND resolution IN (Withdrawn, Invalid)
     Waste chart title: Waste
-    Waste chart frequency: 4W-MON
     Waste chart window: 3
 """)
 
@@ -248,7 +251,6 @@ Output:
         'wip_chart_title': 'Work in Progress',
 
         'defects_query': 'issueType = Bug',
-        'defects_frequency': '4W-MON',
         'defects_window': 3,
 
         'defects_by_priority_chart': 'defects-by-priority.png',
@@ -264,18 +266,19 @@ Output:
         'defects_by_environment_chart_field': 'Environment',
         'defects_by_environment_chart_values': ['SIT', 'UAT', 'PROD'],
         
+        'debt_query': 'issueType = "Tech debt"',
+        'debt_priority_field': 'Priority',
+        'debt_priority_values': ['Low', 'Medium', 'High'],
         'debt_chart': 'tech-debt.png',
-        'debt_chart_query': 'issueType = "Tech debt"',
         'debt_chart_title': 'Technical debt',
-        'debt_chart_priority_field': 'Priority',
-        'debt_chart_priority_values': ['Low', 'Medium', 'High'],
-        'debt_chart_frequency': '4W-MON',
         'debt_chart_window': 3,
+        'debt_age_chart': 'tech-debt-age.png',
+        'debt_age_chart_title': 'Technical debt age',
+        'debt_age_chart_bins': [10, 20, 30],
 
         'waste_chart': 'waste.png',
         'waste_chart_query': 'issueType = Story AND resolution IN (Withdrawn, Invalid)',
         'waste_chart_title': 'Waste',
-        'waste_chart_frequency': '4W-MON',
         'waste_chart_window': 3,
     }
 

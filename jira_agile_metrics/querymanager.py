@@ -52,17 +52,19 @@ class QueryManager(object):
 
         # Look up fields in JIRA and resolve attributes to fields
         logger.debug("Resolving JIRA fields")
-        fields = self.jira.fields()
+        self.jira_fields = self.jira.fields()
         field_id = None
 
         for name, field in self.settings['attributes'].items():
-            try:
-                field_id = next((f['id'] for f in fields if f['name'].lower() == field.lower()))
-            except StopIteration:
-                raise ConfigError("JIRA field with name `%s` does not exist (did you try to use the field id instead?)" % field) from None
-            else:
-                self.attributes_to_fields[name] = field_id
-                self.fields_to_attributes[field_id] = name
+            field_id = self.field_name_to_id(field)
+            self.attributes_to_fields[name] = field_id
+            self.fields_to_attributes[field_id] = name
+
+    def field_name_to_id(self, name):
+        try:
+            return next((f['id'] for f in self.jira_fields if f['name'].lower() == name.lower()))
+        except StopIteration:
+            raise ConfigError("JIRA field with name `%s` does not exist (did you try to use the field id instead?)" % name) from None
 
     def resolve_attribute_value(self, issue, attribute_name):
         """Given an attribute name (i.e. one named in the config file and
@@ -151,7 +153,7 @@ class QueryManager(object):
 
     # Basic queries
 
-    def find_issues(self, jql):
+    def find_issues(self, jql, expand='changelog'):
         """Return a list of issues with changelog metadata for the given
         JQL.
         """
@@ -162,7 +164,7 @@ class QueryManager(object):
         if max_results:
             logger.info("Limiting to %d results", max_results)
 
-        issues = self.jira.search_issues(jql, expand='changelog', maxResults=max_results)
+        issues = self.jira.search_issues(jql, expand=expand, maxResults=max_results)
         logger.info("Fetched %d issues", len(issues))
 
         return issues

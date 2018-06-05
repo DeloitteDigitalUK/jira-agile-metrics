@@ -131,7 +131,6 @@ def config_to_options(data):
             'net_flow_chart_frequency': '1W-MON',
 
             'defects_query': None,
-            'defects_frequency': '1MS',
             'defects_window': 6,
             'defects_by_priority_chart': None,
             'defects_by_priority_chart_title': None,
@@ -146,18 +145,19 @@ def config_to_options(data):
             'defects_by_environment_chart_field': None,
             'defects_by_environment_chart_values': None,
         
+            'debt_query': None,
+            'debt_priority_field': None,
+            'debt_priority_values': None,
             'debt_chart': None,
-            'debt_chart_query': None,
             'debt_chart_title': None,
-            'debt_chart_priority_field': None,
-            'debt_chart_priority_values': None,
-            'debt_chart_frequency': '1MS',
             'debt_chart_window': 6,
+            'debt_age_chart': None,
+            'debt_age_chart_title': None,
+            'debt_age_chart_bins': [30, 60, 90],
 
             'waste_chart': None,
             'waste_chart_query': None,
             'waste_chart_title': None,
-            'waste_chart_frequency': '1MS',
             'waste_chart_window': 6,
         }
     }
@@ -244,6 +244,7 @@ def config_to_options(data):
             'defects_by_type_chart',
             'defects_by_environment_chart',
             'debt_chart',
+            'debt_age_chart',
             'waste_chart',
         ]:
             if expand_key(key) in config['output']:
@@ -254,7 +255,8 @@ def config_to_options(data):
             'defects_by_priority_chart_values',
             'defects_by_type_chart_values',
             'defects_by_environment_chart_values',
-            'debt_chart_priority_values',
+            'debt_priority_values',
+            'debt_age_chart_bins',
         ]:
             if expand_key(key) in config['output']:
                 options['settings'][key] = force_list(config['output'][expand_key(key)])
@@ -278,20 +280,18 @@ def config_to_options(data):
             'net_flow_chart_title',
             'net_flow_chart_frequency',
             'defects_query',
-            'defects_frequency',
             'defects_by_priority_chart_title',
             'defects_by_priority_chart_field',
             'defects_by_type_chart_title',
             'defects_by_type_chart_field',
             'defects_by_environment_chart_title',
             'defects_by_environment_chart_field',
-            'debt_chart_query',
+            'debt_query',
+            'debt_priority_field',
             'debt_chart_title',
-            'debt_chart_priority_field',
-            'debt_chart_frequency',
+            'debt_age_chart_title',
             'waste_chart_query',
             'waste_chart_title',
-            'waste_chart_frequency',
         ]:
             if expand_key(key) in config['output']:
                 options['settings'][key] = config['output'][expand_key(key)]
