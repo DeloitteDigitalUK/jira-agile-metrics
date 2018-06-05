@@ -1,10 +1,7 @@
 import os
 import argparse
 import getpass
-import datetime
 import logging
-
-import dateutil.parser
 
 from jira import JIRA
 
@@ -31,7 +28,6 @@ def configure_argument_parser():
     parser.add_argument('--server', metavar='127.0.0.1:8080', help='Run as a web server instead of a command line tool, on the given host and/or port. The remaining options do not apply.')
 
     # Output directory
-
     parser.add_argument('--output-directory', metavar='metrics', help="Write output files to this directory, rather than the current working directory.")
 
     # Connection options
