@@ -6,7 +6,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 
 from ..calculator import Calculator
-from ..utils import breakdown_by_period, set_chart_style, to_bin
+from ..utils import breakdown_by_month, set_chart_style, to_bin
 
 logger = logging.getLogger(__name__)
 
@@ -24,9 +24,13 @@ class DebtCalculator(Calculator):
     `debt_age_chart_title`, grouping by item age.
     """
 
-    def run(self):
+    def run(self, now=None):
 
         query = self.settings['debt_query']
+
+        # Allows unit testing to use a fixed date
+        if now is None:
+            now = datetime.datetime.utcnow()
 
         # This calculation is expensive. Only run it if we have a query.
         if not query:
@@ -51,10 +55,10 @@ class DebtCalculator(Calculator):
 
         for issue in self.query_manager.find_issues(query, expand=None):
 
-            priority = self.query_manager.resolve_field_value(issue, priority_field_id) if priority_field else None,
+            priority = self.query_manager.resolve_field_value(issue, priority_field_id) if priority_field else None
             created_date = dateutil.parser.parse(issue.fields.created)
             resolved_date = dateutil.parser.parse(issue.fields.resolutiondate) if issue.fields.resolutiondate else None
-            age = (resolved_date.replace(tzinfo=None) if resolved_date is not None else datetime.datetime.utcnow()) - created_date.replace(tzinfo=None)
+            age = (resolved_date.replace(tzinfo=None) if resolved_date is not None else now) - created_date.replace(tzinfo=None)
 
             item = {
                 'key': issue.key,
@@ -89,7 +93,7 @@ class DebtCalculator(Calculator):
         window = self.settings['debt_chart_window']
         priority_values = self.settings['debt_priority_values']
 
-        breakdown = breakdown_by_period(chart_data, 'created', 'resolved', 'key', 'priority', priority_values)
+        breakdown = breakdown_by_month(chart_data, 'created', 'resolved', 'key', 'priority', priority_values)
         breakdown = breakdown[-window:]
 
         fig, ax = plt.subplots()

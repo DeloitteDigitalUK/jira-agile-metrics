@@ -1,10 +1,22 @@
 # To-do
 
-- Add time slicer (last X months) to various charts.
+- Add time slicer (last X months) to various charts:
+  - CFD (index, days)
+  - Burnup (index, days)
+  - Forecast (index, days)
+  
+  - Histogram (`completed_timestamp` > min date)
+  - Scatterplot (`completed_date` > min date)
+  
+  - Net flow (index, periods)
+  - Throughput (index, periods)
+  - WIP (index, periods)
+
+  - Debt (index, months)
+  - Defects (index, months)
+  - Waste (index, months)
 
 ## Tests
-
-- Debt calculator (including if priority is None)
 
 ## Docs
 
@@ -13,12 +25,6 @@
 - Defects
 
 ## New reports
-
-### Waste
-
-- Query for tickets (JQL)
-- Store: last non-resolved state, most recent state
-- Stacked bar chart: For each of the last X months, how many stories withdrawn, grouped by status
 
 ### Defect concentration
 
@@ -30,6 +36,12 @@
 - Stacked bar chart: For each month, number of tickets open, grouped by environment found
 - Stacked bar chart: For each month, number of tickets open, grouped by type
 - Stacked bar chart: For each month, number of tickets open, grouped by priority
+
+### Waste
+
+- Query for tickets (JQL)
+- Store: last non-resolved state, most recent state
+- Stacked bar chart: For each of the last X months, how many stories withdrawn, grouped by status
 
 ### Blocked time
 

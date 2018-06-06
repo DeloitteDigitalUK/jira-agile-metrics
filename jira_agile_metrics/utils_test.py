@@ -115,6 +115,27 @@ def test_breakdown_by_month_no_column_spec():
         {'high': 2, 'med': 2},
     ]
 
+def test_breakdown_by_month_none_values():
+
+    df = pd.DataFrame([
+        {'key': 'ABC-1', 'priority': None, 'start': pd.Timestamp(2018, 1, 1), 'end': pd.Timestamp(2018, 3, 20)},
+        {'key': 'ABC-2', 'priority': None, 'start': pd.Timestamp(2018, 1, 2), 'end': pd.Timestamp(2018, 1, 20)},
+        {'key': 'ABC-3', 'priority': None, 'start': pd.Timestamp(2018, 2, 3), 'end': pd.Timestamp(2018, 3, 20)},
+        {'key': 'ABC-4', 'priority': None, 'start': pd.Timestamp(2018, 1, 4), 'end': pd.Timestamp(2018, 3, 20)},
+        {'key': 'ABC-5', 'priority': None, 'start': pd.Timestamp(2018, 2, 5), 'end': pd.Timestamp(2018, 2, 20)},
+        {'key': 'ABC-6', 'priority': None, 'start': pd.Timestamp(2018, 3, 6), 'end': pd.Timestamp(2018, 3, 20)}
+    ], columns=['key', 'priority', 'start', 'end'])
+
+    breakdown = breakdown_by_month(df, 'start', 'end', 'key', 'priority')
+    assert list(breakdown.columns) == [None]
+    
+    assert list(breakdown.index) == [
+        pd.Timestamp(2018, 1, 1),
+        pd.Timestamp(2018, 2, 1),
+        pd.Timestamp(2018, 3, 1),
+    ]
+    assert breakdown.to_dict('records') == [{None: 3}, {None: 4}, {None: 4}]
+
 def test_to_bin():
 
     assert to_bin(0, [10, 20, 30]) == (0, 10)
