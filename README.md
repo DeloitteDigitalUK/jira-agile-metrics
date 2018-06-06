@@ -656,35 +656,37 @@ These options name data files to write. Use an extension of `.csv`, `.xlsx`, or
 
 - `Defects query: <query>` – JQL query used to identify defects.
 - `Defects window: <number>` – How many months to show.
+- `Defects priority field: <fieldname>` – Name of field identifying
+   defect priority.
+- `Defects priority values: <list>` – List of valid values, in order,
+   for defect priorities.
+- `Defects type field: <fieldname>` – Name of field identifying defect
+   type.
+- `Defects type values: <list>` – List of valid values, in order, for
+   defect values.
+- `Defects environment field: <fieldname>` – Name of field identifying
+   the environment in which a defect was discovered.
+- `Defects environment values: <list>` – List of valid values, in
+   order, for defect environments.
 
 - `Defects by priority chart: <filename>.png` – Draw stacked bar chart of
    defects grouped by priority over time.
 - `defects-by priority chart title: <title>` – Title for defects-by-priority
    chart.
-- `Defects by priority chart field: <fieldname>` – Name of field identifying
-   defect priority.
-- `Defects by priority chart values: <list>` – List of valid values, in order,
-   for defect priorities.
 
 - `Defects by type chart: <filename>.png` – Draw stacked bar chart of defects
    grouped by type over time.
 - `Defects by type chart title: <title>` – Title for defects-by-type chart.
-- `Defects by type chart field: <fieldname>` – Name of field identifying defect
-   type.
-- `Defects by type chart values: <list>` – List of valid values, in order, for
-   defect values.
+
 - `Defects by environment chart: <filename>.png` – Draw stacked bar chart of
    defects grouped by environment over time.
 - `Defects by environment chart title: <title>` – Title for defects-by-
    environment chart.
-- `Defects by environment chart field: <fieldname>` – Name of field identifying
-   the environment in which a defect was discovered.
-- `Defects by environment chart values: <list>` – List of valid values, in
-   order, for defect environments.
 
 ### Debt density chart
 
 - `Debt query: <query>` – JQL query used to identify technical debt items.
+- `Debt window: <number>` – How many months to show in the debt chart.
 - `Debt priority field: <fieldname>` – Name of field identifying technical debt
    item priority.
 - `Debt priority values: <list>` – List of valid values, in order, for
@@ -693,7 +695,7 @@ These options name data files to write. Use an extension of `.csv`, `.xlsx`, or
 - `Debt chart: <filename>.png` – Draw a stacked bar chart of technical debt
    grouped by priority over time.
 - `Debt chart title: <title>` – Title for the technical debt chart.
-- `Debt chart window: <number>` – How many months to show.
+
 
 - `Debt age chart: <filename>.png` – Draw a stacked bar chart of technical debt
    grouped by priority by age.

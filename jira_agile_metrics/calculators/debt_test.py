@@ -27,7 +27,7 @@ def settings(minimal_settings):
         'debt_priority_values': ['Low', 'Medium', 'High'],
         'debt_chart': 'debt-chart.png',
         'debt_chart_title': 'Debt chart',
-        'debt_chart_window': 3,
+        'debt_window': 3,
         'debt_age_chart': 'debt-age-chart.png',
         'debt_age_chart_title': 'Debt age',
         'debt_age_chart_bins': [10, 20, 30]

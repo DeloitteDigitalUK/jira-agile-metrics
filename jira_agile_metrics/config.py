@@ -134,33 +134,34 @@ def config_to_options(data):
 
             'defects_query': None,
             'defects_window': 6,
+            'defects_priority_field': None,
+            'defects_priority_values': None,
+            'defects_type_field': None,
+            'defects_type_values': None,
+            'defects_environment_field': None,
+            'defects_environment_values': None,
+
             'defects_by_priority_chart': None,
             'defects_by_priority_chart_title': None,
-            'defects_by_priority_chart_field': None,
-            'defects_by_priority_chart_values': None,
             'defects_by_type_chart': None,
             'defects_by_type_chart_title': None,
-            'defects_by_type_chart_field': None,
-            'defects_by_type_chart_values': None,
             'defects_by_environment_chart': None,
             'defects_by_environment_chart_title': None,
-            'defects_by_environment_chart_field': None,
-            'defects_by_environment_chart_values': None,
         
             'debt_query': None,
+            'debt_window': 6,
             'debt_priority_field': None,
             'debt_priority_values': None,
             'debt_chart': None,
             'debt_chart_title': None,
-            'debt_chart_window': 6,
             'debt_age_chart': None,
             'debt_age_chart_title': None,
             'debt_age_chart_bins': [30, 60, 90],
 
             'waste_chart': None,
+            'waste_window': 6,
             'waste_chart_query': None,
             'waste_chart_title': None,
-            'waste_chart_window': 6,
         }
     }
 
@@ -193,8 +194,8 @@ def config_to_options(data):
             'burnup_forecast_chart_target',
             'burnup_forecast_chart_trials',
             'defects_window',
-            'debt_chart_window',
-            'waste_chart_window',
+            'debt_window',
+            'waste_window',
         ]:
             if expand_key(key) in config['output']:
                 value = config['output'][expand_key(key)]
@@ -254,9 +255,9 @@ def config_to_options(data):
 
         # list values
         for key in [
-            'defects_by_priority_chart_values',
-            'defects_by_type_chart_values',
-            'defects_by_environment_chart_values',
+            'defects_priority_values',
+            'defects_type_values',
+            'defects_environment_values',
             'debt_priority_values',
             'debt_age_chart_bins',
         ]:
@@ -283,11 +284,11 @@ def config_to_options(data):
             'net_flow_chart_frequency',
             'defects_query',
             'defects_by_priority_chart_title',
-            'defects_by_priority_chart_field',
+            'defects_priority_field',
             'defects_by_type_chart_title',
-            'defects_by_type_chart_field',
+            'defects_type_field',
             'defects_by_environment_chart_title',
-            'defects_by_environment_chart_field',
+            'defects_environment_field',
             'debt_query',
             'debt_priority_field',
             'debt_chart_title',

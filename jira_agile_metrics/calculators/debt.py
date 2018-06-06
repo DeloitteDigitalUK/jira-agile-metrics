@@ -15,7 +15,7 @@ class DebtCalculator(Calculator):
 
     Queries JIRA with JQL set in `debt_query` and draws a stacked bar
     chart in the file `debt_chart` with title `debt_chart_title`. The bars are
-    the last 6 months (or another window set in `debt_chart_window`), grouped by
+    the last 6 months (or another window set in `debt_window`), grouped by
     priority. The field giving the priority is set with `debt_chart_priority`.
     To force the list of valid values and their order, provide a list of strings
     in `debt_priority_values`.
@@ -90,7 +90,7 @@ class DebtCalculator(Calculator):
             self.write_debt_age_chart(chart_data, self.settings['debt_age_chart'])
     
     def write_debt_chart(self, chart_data, output_file):
-        window = self.settings['debt_chart_window']
+        window = self.settings['debt_window']
         priority_values = self.settings['debt_priority_values']
 
         breakdown = breakdown_by_month(chart_data, 'created', 'resolved', 'key', 'priority', priority_values)

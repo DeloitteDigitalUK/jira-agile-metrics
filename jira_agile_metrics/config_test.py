@@ -127,30 +127,30 @@ Output:
 
     Defects query: issueType = Bug
     Defects window: 3
-    Defects by priority chart: defects-by-priority.png
-    Defects by priority chart title: Defects by priority
-    Defects by priority chart field: Priority
-    Defects by priority chart values:
+    Defects priority field: Priority
+    Defects priority values:
         - Low
         - Medium
         - High
-    Defects by type chart: defects-by-type.png
-    Defects by type chart title: Defects by type
-    Defects by type chart field: Type
-    Defects by type chart values:
+    Defects type field: Type
+    Defects type values:
         - Config
         - Data
         - Code
-    Defects by environment chart: defects-by-environment.png
-    Defects by environment chart title: Defects by environment
-    Defects by environment chart field: Environment
-    Defects by environment chart values:
+    Defects environment field: Environment
+    Defects environment values:
         - SIT
         - UAT
         - PROD
+    Defects by priority chart: defects-by-priority.png
+    Defects by priority chart title: Defects by priority
+    Defects by type chart: defects-by-type.png
+    Defects by type chart title: Defects by type
+    Defects by environment chart: defects-by-environment.png
+    Defects by environment chart title: Defects by environment
     
-
     Debt query: issueType = "Tech debt"
+    Debt window: 3
     Debt priority field: Priority
     Debt priority values:
         - Low
@@ -158,7 +158,6 @@ Output:
         - High
     Debt chart: tech-debt.png
     Debt chart title: Technical debt
-    Debt chart window: 3
     Debt age chart: tech-debt-age.png
     Debt age chart title: Technical debt age
     Debt age chart bins:
@@ -167,9 +166,9 @@ Output:
         - 30
 
     Waste chart: waste.png
+    Waste window: 3
     Waste chart query: issueType = Story AND resolution IN (Withdrawn, Invalid)
     Waste chart title: Waste
-    Waste chart window: 3
 """)
 
     assert options['connection'] == {
@@ -252,34 +251,35 @@ Output:
 
         'defects_query': 'issueType = Bug',
         'defects_window': 3,
+        'defects_priority_field': 'Priority',
+        'defects_priority_values': ['Low', 'Medium', 'High'],
+        'defects_type_field': 'Type',
+        'defects_type_values': ['Config', 'Data', 'Code'],
+        'defects_environment_field': 'Environment',
+        'defects_environment_values': ['SIT', 'UAT', 'PROD'],
 
         'defects_by_priority_chart': 'defects-by-priority.png',
         'defects_by_priority_chart_title': 'Defects by priority',
-        'defects_by_priority_chart_field': 'Priority',
-        'defects_by_priority_chart_values': ['Low', 'Medium', 'High'],
         'defects_by_type_chart': 'defects-by-type.png',
         'defects_by_type_chart_title': 'Defects by type',
-        'defects_by_type_chart_field': 'Type',
-        'defects_by_type_chart_values': ['Config', 'Data', 'Code'],
         'defects_by_environment_chart': 'defects-by-environment.png',
         'defects_by_environment_chart_title': 'Defects by environment',
-        'defects_by_environment_chart_field': 'Environment',
-        'defects_by_environment_chart_values': ['SIT', 'UAT', 'PROD'],
         
         'debt_query': 'issueType = "Tech debt"',
+        'debt_window': 3,
         'debt_priority_field': 'Priority',
         'debt_priority_values': ['Low', 'Medium', 'High'],
         'debt_chart': 'tech-debt.png',
         'debt_chart_title': 'Technical debt',
-        'debt_chart_window': 3,
         'debt_age_chart': 'tech-debt-age.png',
         'debt_age_chart_title': 'Technical debt age',
         'debt_age_chart_bins': [10, 20, 30],
 
         'waste_chart': 'waste.png',
+        'waste_window': 3,
         'waste_chart_query': 'issueType = Story AND resolution IN (Withdrawn, Invalid)',
         'waste_chart_title': 'Waste',
-        'waste_chart_window': 3,
+        
     }
 
 def test_config_to_options_strips_directories():
