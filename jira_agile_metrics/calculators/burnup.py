@@ -1,4 +1,5 @@
 import logging
+import pandas as pd
 import matplotlib.pyplot as plt
 
 from ..calculator import Calculator
@@ -38,6 +39,11 @@ class BurnupCalculator(Calculator):
         if len(chart_data.index) == 0:
             logger.warning("Unable to draw burnup chart with no data items")
             return
+        
+        window = self.settings['burnup_window']
+        if window:
+            start = chart_data.index.max() - pd.Timedelta(window, 'D')
+            chart_data = chart_data[start:]
 
         fig, ax = plt.subplots()
         
@@ -50,7 +56,13 @@ class BurnupCalculator(Calculator):
         ax.set_ylabel("Number of items")
 
         chart_data.plot.line(ax=ax, legend=True)
-        ax.legend(loc=0, title="", frameon=True)
+        
+        # Place legend underneath graph
+        box = ax.get_position()
+        handles, labels = ax.get_legend_handles_labels()
+        ax.set_position([box.x0, box.y0 + box.height * 0.1, box.width, box.height * 0.9])
+
+        ax.legend(handles[:2], labels[:2], loc='upper center', bbox_to_anchor=(0.5, -0.2), ncol=2)
 
         set_chart_style()
 

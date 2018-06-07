@@ -277,6 +277,10 @@ In the configuration file:
 
 You can also use `.json` or `.xlsx` formats for the data file.
 
+To only show the 30 most recent days in the chart:
+
+        CFD window: 30
+
 ### Cycle time scatter plot
 
 Raw data for creating a valid Cycle Time scatter plot graph, and/or an image
@@ -419,6 +423,10 @@ In the configuration file:
         Burnup chart: burnup.png
         Burnup chart title: Burn-up
 
+To only show the 30 most recent days in the chart:
+
+        Burnup window: 30
+
 ### Burn-up chart with forecast line
 
 A more advanced version of the burn-up chart, which will run a Monte Carlo
@@ -447,6 +455,10 @@ In the configuration file:
         Burnup forecast chart target: 100 # items to complete in total; by default uses the current size of the backlog
         Burnup forecast chart deadline: 2018-06-01 # deadline date, in ISO format; if not set, no deadline is drawn.
         Burnup forecast chart deadline confidence: .85 # percentile to use to compare forecast to deadline
+
+To only show the 30 most recent days in the chart:
+
+        Burnup forecast window: 30
 
 ## More details about the configuration file format
 
@@ -621,6 +633,8 @@ These options name data files to write. Use an extension of `.csv`, `.xlsx`, or
 
 ### Cumulative Flow Diagram
 
+- `CFD window: <number>` – Number of recent periods to show in the CFD.
+   Defaults to showing all periods.
 - `CFD chart: <filename>.png` – Draw Cumulative Flow Diagram.
 - `CFD chart title: <title>` – Title for the CFD.
 
@@ -636,11 +650,15 @@ These options name data files to write. Use an extension of `.csv`, `.xlsx`, or
 
 ### Burnup chart
 
+- `Burnup window: <number>` – Number of recent periods to show in burnup.
+   Defaults to showing all periods.
 - `Burnup chart: <filename>.png` – Draw simple burn-up chart.
 - `Burnup-chart-title <title>` – Title for burn-up charts_scatterplot.
 
 ### Burnup forecast chart
 
+- `Burnup forecast window: <number>` – Number of recent periods to show in the
+   burnup forecast chart. Defaults to showing all periods.
 - `Burnup forecast chart: <filename>.png` – Draw burn-up chart with Monte Carlo
    simulation forecast to completion.
 - `Burnup forecast chart title: <title>` – Title for burn-up forecast chart.

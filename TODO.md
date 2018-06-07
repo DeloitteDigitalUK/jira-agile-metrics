@@ -1,9 +1,4 @@
 # To-do
-
-- Add time slicer (last X months) to various charts:
-  - CFD (index, days)
-  - Burnup (index, days)
-  - Forecast (index, days)
   
 ## Bugs
 

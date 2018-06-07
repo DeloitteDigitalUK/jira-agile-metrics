@@ -101,6 +101,7 @@ def config_to_options(data):
             'histogram_chart': None,
             'histogram_chart_title': None,
 
+            'cfd_window': None,
             'cfd_data': None,
             'cfd_chart': None,
             'cfd_chart_title': None,
@@ -111,9 +112,11 @@ def config_to_options(data):
             'throughput_chart': None,
             'throughput_chart_title': None,
             
+            'burnup_window': None,
             'burnup_chart': None,
             'burnup_chart_title': None,
 
+            'burnup_forecast_window': None,
             'burnup_forecast_chart': None,
             'burnup_forecast_chart_title': None,
             'burnup_forecast_chart_target': None,
@@ -136,7 +139,6 @@ def config_to_options(data):
             'net_flow_chart': None,
             'net_flow_chart_title': None,
             
-
             'defects_query': None,
             'defects_window': None,
             'defects_priority_field': None,
@@ -200,6 +202,9 @@ def config_to_options(data):
             'wip_window',
             'net_flow_window',
             'throughput_window',
+            'cfd_window',
+            'burnup_window',
+            'burnup_forecast_window',
             'burnup_forecast_chart_throughput_window',
             'burnup_forecast_chart_target',
             'burnup_forecast_chart_trials',

@@ -81,6 +81,11 @@ class CFDCalculator(Calculator):
             logger.warning("Cannot draw CFD with no data")
             return
 
+        window = self.settings['cfd_window']
+        if window:
+            start = data.index.max() - pd.Timedelta(window, 'D')
+            data = data[start:]
+
         fig, ax = plt.subplots()
         
         if self.settings['cfd_chart_title']:
@@ -93,12 +98,12 @@ class CFDCalculator(Calculator):
 
         backlog_column = self.settings['backlog_column'] or data.columns[0]
 
-        if backlog_column not in data.columns[0]:
+        if backlog_column not in data.columns:
             logger.error("Backlog column %s does not exist", backlog_column)
             return None
 
         data.drop([backlog_column], axis=1).plot.area(ax=ax, stacked=False, legend=False)
-        ax.legend(loc=0, title="", frameon=True)
+        ax.legend(loc='center left', bbox_to_anchor=(1, 0.5))
 
         set_chart_style()
 

@@ -84,6 +84,11 @@ class BurnupForecastCalculator(Calculator):
             logger.warning("Cannot draw burnup forecast chart with zero items")
             return
         
+        window = self.settings['burnup_forecast_window']
+        if window:
+            start = burnup_data.index.max() - pd.Timedelta(window, 'D')
+            burnup_data = burnup_data[start:]
+        
         mc_trials = self.get_result()
         if mc_trials is None:
             logger.warning("Cannot draw burnup forecast chart with zero completed trials")

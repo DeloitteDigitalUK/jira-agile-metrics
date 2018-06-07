@@ -93,6 +93,7 @@ Output:
     Histogram chart: histogram.png
     Histogram chart title: Cycle time histogram
 
+    CFD window: 30
     CFD data: cfd.csv
     CFD chart: cfd.png
     CFD chart title: Cumulative Flow Diagram
@@ -104,10 +105,12 @@ Output:
     Throughput data: throughput.csv
     Throughput chart: throughput.png
     Throughput chart title: Throughput trend
-    
+
+    Burnup window: 30
     Burnup chart: burnup.png
     Burnup chart title: Burn-up
 
+    Burnup forecast window: 30
     Burnup forecast chart: burnup-forecast.png
     Burnup forecast chart title: Burn-up forecast
     Burnup forecast chart target: 100
@@ -215,9 +218,11 @@ Output:
         'ageing_wip_chart': 'ageing-wip.png',
         'ageing_wip_chart_title': 'Ageing WIP',
         
+        'burnup_window': 30,
         'burnup_chart': 'burnup.png',
         'burnup_chart_title': 'Burn-up',
         
+        'burnup_forecast_window': 30,
         'burnup_forecast_chart': 'burnup-forecast.png',
         'burnup_forecast_chart_deadline': datetime.date(2018, 6, 1),
         'burnup_forecast_chart_deadline_confidence': 0.85,
@@ -227,6 +232,7 @@ Output:
         'burnup_forecast_chart_title': 'Burn-up forecast',
         'burnup_forecast_chart_trials': 50,
         
+        'cfd_window': 30,
         'cfd_chart': 'cfd.png',
         'cfd_chart_title': 'Cumulative Flow Diagram',
         'cfd_data': 'cfd.csv',
