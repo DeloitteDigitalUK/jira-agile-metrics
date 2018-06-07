@@ -46,10 +46,17 @@ class WIPChartCalculator(Calculator):
         if self.settings['wip_chart_title']:
             ax.set_title(self.settings['wip_chart_title'])
 
-        frequency = self.settings['wip_chart_frequency']
+        frequency = self.settings['wip_frequency']
         logger.debug("Calculating WIP chart with frequency %s", frequency)
 
-        groups = chart_data[['wip']].groupby(pd.Grouper(freq=frequency, label='left'))
+        wip_data = chart_data[['wip']]
+
+        window = self.settings['wip_window']
+        if window:
+            start = pd.Timestamp.today().normalize() - (window * pd.tseries.frequencies.to_offset(frequency))
+            wip_data = wip_data[start:]
+
+        groups = wip_data.groupby(pd.Grouper(freq=frequency, label='left', closed='left'))
         labels = [x[0].strftime("%d/%m/%Y") for x in groups]
 
         groups.boxplot(subplots=False, ax=ax, showmeans=True, return_type='axes')

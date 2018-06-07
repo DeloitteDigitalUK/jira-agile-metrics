@@ -12,7 +12,7 @@ def settings(minimal_settings):
     return extend_dict(minimal_settings, {
         'committed_column': None,
         'done_column': None,
-        'net_flow_chart_frequency': 'D'
+        'net_flow_frequency': 'D'
     })
 
 @pytest.fixture

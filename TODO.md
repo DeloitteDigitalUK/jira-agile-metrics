@@ -8,9 +8,7 @@
   - Histogram (`completed_timestamp` > min date)
   - Scatterplot (`completed_date` > min date)
   
-  - Net flow (index, periods)
-  - Throughput (index, periods)
-  - WIP (index, periods)
+## Bugs
 
 ## Tests
 

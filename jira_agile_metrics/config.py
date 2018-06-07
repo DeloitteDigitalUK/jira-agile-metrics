@@ -88,24 +88,24 @@ def config_to_options(data):
             'final_column': None,
             'done_column': None,
 
-            'throughput_frequency': '1W-MON',
-            
             'cycle_time_data': None,
-            'cfd_data': None,
-            'scatterplot_data': None,
-            'histogram_data': None,
-            'throughput_data': None,
             'percentiles_data': None,
 
+            'scatterplot_data': None,
             'scatterplot_chart': None,
             'scatterplot_chart_title': None,
             
+            'histogram_data': None,
             'histogram_chart': None,
             'histogram_chart_title': None,
 
+            'cfd_data': None,
             'cfd_chart': None,
             'cfd_chart_title': None,
             
+            'throughput_frequency': '1W-MON',
+            'throughput_window': None,
+            'throughput_data': None,
             'throughput_chart': None,
             'throughput_chart_title': None,
             
@@ -121,19 +121,22 @@ def config_to_options(data):
             'burnup_forecast_chart_throughput_window': 60,
             'burnup_forecast_chart_throughput_window_end': None,
 
+            'wip_frequency': '1W-MON',
+            'wip_window': None,
             'wip_chart': None,
             'wip_chart_title': None,
-            'wip_chart_frequency': '1W-MON',
 
             'ageing_wip_chart': None,
             'ageing_wip_chart_title': None,
 
+            'net_flow_frequency': '1W-MON',
+            'net_flow_window': None,
             'net_flow_chart': None,
             'net_flow_chart_title': None,
-            'net_flow_chart_frequency': '1W-MON',
+            
 
             'defects_query': None,
-            'defects_window': 6,
+            'defects_window': None,
             'defects_priority_field': None,
             'defects_priority_values': None,
             'defects_type_field': None,
@@ -149,7 +152,7 @@ def config_to_options(data):
             'defects_by_environment_chart_title': None,
         
             'debt_query': None,
-            'debt_window': 6,
+            'debt_window': None,
             'debt_priority_field': None,
             'debt_priority_values': None,
             'debt_chart': None,
@@ -159,7 +162,7 @@ def config_to_options(data):
             'debt_age_chart_bins': [30, 60, 90],
 
             'waste_chart': None,
-            'waste_window': 6,
+            'waste_window': None,
             'waste_chart_query': None,
             'waste_chart_title': None,
         }
@@ -190,6 +193,9 @@ def config_to_options(data):
 
         # int values
         for key in [
+            'wip_window',
+            'net_flow_window',
+            'throughput_window',
             'burnup_forecast_chart_throughput_window',
             'burnup_forecast_chart_target',
             'burnup_forecast_chart_trials',
@@ -278,10 +284,10 @@ def config_to_options(data):
             'burnup_chart_title',
             'burnup_forecast_chart_title',
             'wip_chart_title',
-            'wip_chart_frequency',
+            'wip_frequency',
             'ageing_wip_chart_title',
             'net_flow_chart_title',
-            'net_flow_chart_frequency',
+            'net_flow_frequency',
             'defects_query',
             'defects_by_priority_chart_title',
             'defects_priority_field',

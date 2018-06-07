@@ -26,7 +26,7 @@ class NetFlowChartCalculator(Calculator):
             logger.error("Done column %s does not exist", done_column)
             return None
 
-        frequency = self.settings['net_flow_chart_frequency']
+        frequency = self.settings['net_flow_frequency']
         logger.debug("Calculating net flow at frequency %s", frequency)
         
         net_flow_data = cfd_data[[start_column, done_column]].resample(frequency, label='left').max()
@@ -57,7 +57,13 @@ class NetFlowChartCalculator(Calculator):
         ax.set_xlabel("Period starting")
         ax.set_ylabel("Net flow (departures - arrivals)")
 
-        chart_data['net_flow'].plot.bar(ax=ax, color=chart_data['positive'].map({True: 'r', False: 'b'}),)
+        net_flow_data = chart_data['net_flow']
+
+        window = self.settings['net_flow_window']
+        if window:
+            net_flow_data = net_flow_data[-window:]
+
+        net_flow_data.plot.bar(ax=ax, color=chart_data['positive'].map({True: 'r', False: 'b'}),)
 
         labels = [d.strftime("%d/%m/%Y") for d in chart_data.index]
         ax.set_xticklabels(labels, rotation=70, size='small')

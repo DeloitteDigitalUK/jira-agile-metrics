@@ -67,6 +67,10 @@ class ThroughputCalculator(Calculator):
         if self.settings['throughput_chart_title']:
             ax.set_title(self.settings['throughput_chart_title'])
 
+        window = self.settings['throughput_window']
+        if window:
+            chart_data = chart_data[-window:]
+
         # Calculate zero-indexed days to allow linear regression calculation
         day_zero = chart_data.index[0]
         chart_data['day'] = (chart_data.index - day_zero).days

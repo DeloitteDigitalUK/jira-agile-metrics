@@ -97,8 +97,9 @@ Output:
 
     Histogram data: histogram.csv
     
-    Throughput data: throughput.csv
     Throughput frequency: 1D
+    Throughput window: 3
+    Throughput data: throughput.csv
     Throughput chart: throughput.png
     Throughput chart title: Throughput trend
     
@@ -114,16 +115,18 @@ Output:
     Burnup forecast chart throughput window: 30
     Burnup forecast chart throughput window end: 2018-03-01
 
+    WIP frequency: 3D
+    WIP window: 3
     WIP chart: wip.png
     WIP chart title: Work in Progress
-    WIP chart frequency: 3D
 
     Ageing WIP chart: ageing-wip.png
     Ageing WIP chart title: Ageing WIP
 
+    Net flow frequency: 5D
+    Net flow window: 3
     Net flow chart: net-flow.png
     Net flow chart title: Net flow
-    Net flow chart frequency: 5D
 
     Defects query: issueType = Bug
     Defects window: 3
@@ -230,8 +233,9 @@ Output:
         'histogram_chart_title': 'Cycle time histogram',
         'histogram_data': 'histogram.csv',
         
+        'net_flow_frequency': '5D',
+        'net_flow_window': 3,
         'net_flow_chart': 'net-flow.png',
-        'net_flow_chart_frequency': '5D',
         'net_flow_chart_title': 'Net flow',
         
         'percentiles_data': 'percentiles.csv',
@@ -240,13 +244,15 @@ Output:
         'scatterplot_chart_title': 'Cycle time scatter plot',
         'scatterplot_data': 'scatterplot.csv',
         
+        'throughput_frequency': '1D',
+        'throughput_window': 3,
         'throughput_chart': 'throughput.png',
         'throughput_chart_title': 'Throughput trend',
         'throughput_data': 'throughput.csv',
-        'throughput_frequency': '1D',
         
+        'wip_frequency': '3D',
+        'wip_window': 3,
         'wip_chart': 'wip.png',
-        'wip_chart_frequency': '3D',
         'wip_chart_title': 'Work in Progress',
 
         'defects_query': 'issueType = Bug',

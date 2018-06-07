@@ -346,6 +346,10 @@ To change the frequency from weekly to something else, use:
 Here, `1D` means daily. The default is `1W-MON`, which means weekly starting on
 Mondays.
 
+To only show the 6 most recent periods (e.g. weeks) in the chart:
+
+        Throughput window: 6
+
 ### WIP box plot
 
 Shows a box plot of WIP, week by week (or some other frequency).
@@ -357,10 +361,14 @@ In the configuration file:
 
 To change the frequency from weekly to something else, use:
 
-        WIP chart frequency: 1D
+        WIP frequency: 1D
 
 Here, `1D` means daily. The default is `1W-MON`, which means weekly starting on
 Mondays.
+
+To only show the 6 most recent periods (e.g. weeks) in the chart:
+
+        WIP window: 6
 
 ### Net flow chart
 
@@ -374,10 +382,14 @@ In the configuration file:
 
 To change the frequency from weekly to something else, use:
 
-        Net flow chart frequency: 1D
+        Net flow frequency: 1D
 
 Here, `1D` means daily. The default is `1W-MON`, which means weekly starting on
 Mondays.
+
+To only show the 6 most recent periods (e.g. weeks) in the chart:
+
+        Net flow window: 6
 
 ### Ageing WIP chart
 
@@ -562,8 +574,6 @@ These options affect multiple charts and files.
 - `Final column: <name>` – Name of the final 'work' column. Defaults to the
    penultimate column.
 - `Done column: <name>` – Name of the 'done' column. Defaults to the last column.
-- `Throughput frequency: <freq>` – Interval to use for calculating frequency,
-   e.g. 1D for daily or 1W for weekly.
 
 ### Data files
 
@@ -580,7 +590,8 @@ These options name data files to write. Use an extension of `.csv`, `.xlsx`, or
 - `Histogram data: <filename>.[csv,xlsx,json]` – Calculate data to draw a cycle
    time histogram and write to file. Hint: Plot as a column chart.
 - `Throughput data: <filename>.[csv,xlsx,json]` – Calculate daily throughput
-   data and write to file. Hint: Plot as a column chart.
+   data and write to file. Hint: Plot as a column chart. Respects the
+   `Throughput frequency` setting (see below).
 - `Percentiles data: <filename>.[csv,xlsx,json]` – Calculate cycle time
    percentiles and write to file.
 
@@ -603,6 +614,10 @@ These options name data files to write. Use an extension of `.csv`, `.xlsx`, or
 
 ### Throughput chart
 
+- `Throughput frequency: <freq>` – Interval to use for calculating frequency,
+   e.g. 1D for daily or 1W for weekly.
+- `WIP window: <number>` – Number of recent periods to show in throughput chart.
+   Defaults to showing all periods.
 - `Throughput chart: <filename>.png` – Draw weekly throughput chart with trend
   line.
 - `Throughput chart title: <title>` – Title for throughput chart.
@@ -635,10 +650,12 @@ These options name data files to write. Use an extension of `.csv`, `.xlsx`, or
 
 ### WIP chart
 
+- `WIP frequency: <freq>` – Frequency interval for WIP chart. `1W-Mon`
+   means 1 week, starting Mondays.
+- `WIP window: <number>` – Number of recent periods to show in WIP chart.
+   Defaults to showing all periods.
 - `WIP chart: <filename>.png` –  Draw weekly WIP box plot.
 - `WIP chart title: <title>` – Title for WIP chart
-- `WIP chart frequency: <freq>` – Frequency interval for WIP chart. `1W-Mon`
-   means 1 week, starting Mondays.
 
 ### Ageing WIP chart
 
@@ -647,10 +664,12 @@ These options name data files to write. Use an extension of `.csv`, `.xlsx`, or
 
 ### Net flow chart
 
+- `Net flow frequency: <freq>` – Frequency interval for net flow chart.
+  `1W-Mon` means 1 week, starting Mondays.
+- `Net flow window: <number>` – Number of recent periods to show in net flow
+   chart. Defaults to showing all periods.
 - `Net flow chart: <filename>.png` – Draw weekly net flow bar chart.
 - `Net flow chart title: <title>` – Title for net flow bar chart.
-- `Net flow chart frequency: <freq>` – Frequency interval for net flow chart.
-  `1W-Mon` means 1 week, starting Mondays.
 
 ### Defect density charts
 
@@ -686,7 +705,8 @@ These options name data files to write. Use an extension of `.csv`, `.xlsx`, or
 ### Debt density chart
 
 - `Debt query: <query>` – JQL query used to identify technical debt items.
-- `Debt window: <number>` – How many months to show in the debt chart.
+- `Debt window: <number>` – How many months to show in the debt chart. Defaults
+   to showing all months for which there is data.
 - `Debt priority field: <fieldname>` – Name of field identifying technical debt
    item priority.
 - `Debt priority values: <list>` – List of valid values, in order, for

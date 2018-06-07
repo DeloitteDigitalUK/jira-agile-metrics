@@ -94,7 +94,9 @@ class DebtCalculator(Calculator):
         priority_values = self.settings['debt_priority_values']
 
         breakdown = breakdown_by_month(chart_data, 'created', 'resolved', 'key', 'priority', priority_values)
-        breakdown = breakdown[-window:]
+        
+        if window:
+            breakdown = breakdown[-window:]
 
         fig, ax = plt.subplots()
         
