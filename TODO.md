@@ -5,9 +5,6 @@
   - Burnup (index, days)
   - Forecast (index, days)
   
-  - Histogram (`completed_timestamp` > min date)
-  - Scatterplot (`completed_date` > min date)
-  
 ## Bugs
 
 ## Tests

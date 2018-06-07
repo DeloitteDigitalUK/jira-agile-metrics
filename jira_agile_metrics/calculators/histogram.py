@@ -57,15 +57,21 @@ class HistogramCalculator(Calculator):
     
     def write_chart(self, data, output_file):
         cycle_data = self.get_result(CycleTimeCalculator)
-        chart_data = cycle_data[['cycle_time']].dropna(subset=['cycle_time'])
-        ct_days = chart_data['cycle_time'].dt.days
+        chart_data = cycle_data[['cycle_time', 'completed_timestamp']].dropna(subset=['cycle_time'])
 
+        window = self.settings['histogram_window']
+        if window:
+            start = chart_data['completed_timestamp'].max().normalize() - pd.Timedelta(window, 'D')
+            chart_data = chart_data[chart_data.completed_timestamp >= start]
+        
+        ct_days = chart_data['cycle_time'].dt.days
+        
         if len(ct_days.index) < 2:
             logger.warning("Need at least 2 completed items to draw histogram")
             return
         
         quantiles = self.settings['quantiles']
-        logger.debug("Showing forecast at quantiles %s", ', '.join(['%.2f' % (q * 100.0) for q in quantiles]))
+        logger.debug("Showing histogram at quantiles %s", ', '.join(['%.2f' % (q * 100.0) for q in quantiles]))
 
         fig, ax = plt.subplots()
 

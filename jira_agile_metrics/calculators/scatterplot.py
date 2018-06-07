@@ -63,13 +63,19 @@ class ScatterplotCalculator(Calculator):
             file_data.to_csv(output_file, index=False)
         
     def write_chart(self, data, output_file):
-        chart_data = data.copy()
-        chart_data['completed_date'] = chart_data['completed_date'].values.astype('datetime64[D]')
-        ct_days = chart_data['cycle_time']
-
-        if len(ct_days.index) < 2:
+        if len(data.index) < 2:
             logger.warning("Need at least 2 completed items to draw scatterplot")
             return
+            
+        chart_data = pd.DataFrame({
+            'completed_date': data['completed_date'].values.astype('datetime64[D]'),
+            'cycle_time': data['cycle_time']
+        }, index=data.index)
+
+        window = self.settings['scatterplot_window']
+        if window:
+            start = chart_data['completed_date'].max().normalize() - pd.Timedelta(window, 'D')
+            chart_data = chart_data[chart_data.completed_date >= start]
         
         quantiles = self.settings['quantiles']
         logger.debug("Showing forecast at quantiles %s", ', '.join(['%.2f' % (q * 100.0) for q in quantiles]))
@@ -83,12 +89,12 @@ class ScatterplotCalculator(Calculator):
         if self.settings['scatterplot_chart_title']:
             ax.set_title(self.settings['scatterplot_chart_title'])
 
-        ax.plot_date(x=chart_data['completed_date'], y=ct_days, ms=5)
+        ax.plot_date(x=chart_data['completed_date'], y=chart_data['cycle_time'], ms=5)
         ax.xaxis.set_major_formatter(mdates.DateFormatter('%d/%m/%Y'))
 
         # Add quantiles
         left, right = ax.get_xlim()
-        for quantile, value in ct_days.quantile(quantiles).iteritems():
+        for quantile, value in chart_data['cycle_time'].quantile(quantiles).iteritems():
             ax.hlines(value, left, right, linestyles='--', linewidths=1)
             ax.annotate("%.0f%% (%.0f days)" % ((quantile * 100), value,),
                 xy=(left, value),

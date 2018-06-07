@@ -84,10 +84,12 @@ Output:
     Cycle time data: cycletime.csv
     Percentiles data: percentiles.csv
     
+    Scatterplot window: 30
     Scatterplot data: scatterplot.csv
     Scatterplot chart: scatterplot.png
     Scatterplot chart title: Cycle time scatter plot
     
+    Histogram window: 30
     Histogram chart: histogram.png
     Histogram chart title: Cycle time histogram
 
@@ -229,6 +231,7 @@ Output:
         'cfd_chart_title': 'Cumulative Flow Diagram',
         'cfd_data': 'cfd.csv',
         
+        'histogram_window': 30,
         'histogram_chart': 'histogram.png',
         'histogram_chart_title': 'Cycle time histogram',
         'histogram_data': 'histogram.csv',
@@ -240,6 +243,7 @@ Output:
         
         'percentiles_data': 'percentiles.csv',
         
+        'scatterplot_window': 30,
         'scatterplot_chart': 'scatterplot.png',
         'scatterplot_chart_title': 'Cycle time scatter plot',
         'scatterplot_data': 'scatterplot.csv',

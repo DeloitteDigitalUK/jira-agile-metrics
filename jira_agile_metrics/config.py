@@ -91,10 +91,12 @@ def config_to_options(data):
             'cycle_time_data': None,
             'percentiles_data': None,
 
+            'scatterplot_window': None,
             'scatterplot_data': None,
             'scatterplot_chart': None,
             'scatterplot_chart_title': None,
             
+            'histogram_window': None,
             'histogram_data': None,
             'histogram_chart': None,
             'histogram_chart_title': None,
@@ -193,6 +195,8 @@ def config_to_options(data):
 
         # int values
         for key in [
+            'scatterplot_window',
+            'histogram_window',
             'wip_window',
             'net_flow_window',
             'throughput_window',

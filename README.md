@@ -309,6 +309,10 @@ To get the quantile values (number of day at each quantile) in a data file, use:
 
         Percentiles data: percentiles.csv
 
+To only show the 30 most recent days in the chart:
+
+        Scatterplot window: 30
+
 ### Cycle time histogram
 
 This is a different view of the cycle time , calculatd and/or plotted as a
@@ -324,6 +328,10 @@ In the configuration file:
 You can also use `.json` or `.xlsx` formats for the data file.
 
 This also respects the `Quantiles` option (see above).
+
+To only show the 30 most recent days in the chart:
+
+        Histogram window: 30
 
 ### Throughput data
 
@@ -597,12 +605,16 @@ These options name data files to write. Use an extension of `.csv`, `.xlsx`, or
 
 ### Scatterplot chart
 
+- `Scatterplot window: <number>` – Number of recent days to show in scatterplot.
+   Defaults to showing all data.
 - `Scatterplot chart: <filename>.png` – Draw cycle time scatter plot.
 - `Scatterplot chart title: <title>` – Title for cycle time
    scatter plot.
 
 ### Histogram chart
 
+- `Histogram window: <number>` – Number of recent days to show in histogram.
+   Defaults to showing all data.
 - `Histogram chart: <filename>.png` – Draw cycle time histogram.
 - `Histogram chart title: <title>` – Title for cycle time
    histogram.
@@ -616,7 +628,7 @@ These options name data files to write. Use an extension of `.csv`, `.xlsx`, or
 
 - `Throughput frequency: <freq>` – Interval to use for calculating frequency,
    e.g. 1D for daily or 1W for weekly.
-- `WIP window: <number>` – Number of recent periods to show in throughput chart.
+- `Throughput window: <number>` – Number of recent periods to show in throughput chart.
    Defaults to showing all periods.
 - `Throughput chart: <filename>.png` – Draw weekly throughput chart with trend
   line.
