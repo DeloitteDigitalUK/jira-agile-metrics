@@ -53,7 +53,7 @@ class WIPChartCalculator(Calculator):
 
         window = self.settings['wip_window']
         if window:
-            start = pd.Timestamp.today().normalize() - (window * pd.tseries.frequencies.to_offset(frequency))
+            start = wip_data.index.max().normalize() - (window * pd.tseries.frequencies.to_offset(frequency))
             wip_data = wip_data[start:]
 
         groups = wip_data.groupby(pd.Grouper(freq=frequency, label='left', closed='left'))
