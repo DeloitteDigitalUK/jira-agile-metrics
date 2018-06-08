@@ -97,9 +97,9 @@ class CycleTimeCalculator(Calculator):
 
                 # Record date of status changes
                 for snapshot in self.query_manager.iter_changes(issue, ['status']):
-                    snapshot_cycle_step = self.cycle_lookup.get(snapshot.toString.lower(), None)
+                    snapshot_cycle_step = self.cycle_lookup.get(snapshot.to_string.lower(), None)
                     if snapshot_cycle_step is None:
-                        logger.warn("Issue %s transitioned to unknown JIRA status %s", issue.key, snapshot.toString)
+                        logger.warn("Issue %s transitioned to unknown JIRA status %s", issue.key, snapshot.to_string)
                         continue
 
                     snapshot_cycle_step_name = snapshot_cycle_step['name']

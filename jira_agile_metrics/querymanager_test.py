@@ -68,8 +68,8 @@ def test_iter_changes(jira, settings):
     changes = list(qm.iter_changes(issues[0], ['status']))
 
     assert changes == [
-        IssueSnapshot(change="status", key="A-1", date=datetime.datetime(2018, 1, 1, 1, 1, 1), fromString=None,      toString="Backlog"),
-        IssueSnapshot(change="status", key="A-1", date=datetime.datetime(2018, 1, 2, 1, 1, 1), fromString="Backlog", toString="Next"),
-        IssueSnapshot(change="status", key="A-1", date=datetime.datetime(2018, 1, 3, 1, 1, 1), fromString="Next",    toString="Done"),
-        IssueSnapshot(change="status", key="A-1", date=datetime.datetime(2018, 1, 4, 1, 1, 1), fromString="Done",    toString="QA")
+        IssueSnapshot(change="status", key="A-1", date=datetime.datetime(2018, 1, 1, 1, 1, 1), from_string=None,      to_string="Backlog"),
+        IssueSnapshot(change="status", key="A-1", date=datetime.datetime(2018, 1, 2, 1, 1, 1), from_string="Backlog", to_string="Next"),
+        IssueSnapshot(change="status", key="A-1", date=datetime.datetime(2018, 1, 3, 1, 1, 1), from_string="Next",    to_string="Done"),
+        IssueSnapshot(change="status", key="A-1", date=datetime.datetime(2018, 1, 4, 1, 1, 1), from_string="Done",    to_string="QA")
     ]

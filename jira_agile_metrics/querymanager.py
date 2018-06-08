@@ -11,25 +11,25 @@ class IssueSnapshot(object):
     """A snapshot of the key fields of an issue at a point in its change history
     """
 
-    def __init__(self, change, key, date, fromString, toString):
+    def __init__(self, change, key, date, from_string, to_string):
         self.change = change
         self.key = key
         self.date = date.astimezone(dateutil.tz.tzutc())
-        self.fromString = fromString
-        self.toString = toString
+        self.from_string = from_string
+        self.to_string = to_string
 
     def __eq__(self, other):
         return all((
             self.change == other.change,
             self.key == other.key,
             self.date.isoformat() == other.date.isoformat(),
-            self.fromString == other.fromString,
-            self.toString == other.toString
+            self.from_string == other.from_string,
+            self.to_string == other.to_string
         ))
 
     def __repr__(self):
         return "<IssueSnapshot change=%s key=%s date=%s from=%s to=%s>" % (
-            self.change, self.key, self.date.isoformat(), self.fromString, self.toString,
+            self.change, self.key, self.date.isoformat(), self.from_string, self.to_string,
         )
 
 class QueryManager(object):
@@ -134,8 +134,8 @@ class QueryManager(object):
                 change=field,
                 key=issue.key,
                 date=dateutil.parser.parse(issue.fields.created),
-                fromString=None,
-                toString=initial_value,
+                from_string=None,
+                to_string=initial_value,
             )
 
         for change in issue.changelog.histories:
@@ -147,8 +147,8 @@ class QueryManager(object):
                         change=item.field,
                         key=issue.key,
                         date=change_date,
-                        fromString=item.fromString,
-                        toString=item.toString
+                        from_string=item.fromString,
+                        to_string=item.toString
                     )
 
     # Basic queries
