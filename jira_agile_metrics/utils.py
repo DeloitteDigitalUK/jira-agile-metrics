@@ -30,7 +30,7 @@ def get_extension(filename):
     return os.path.splitext(filename)[1].lower()
 
 def to_days_since_epoch(d):
-    return (d - datetime.datetime(1970, 1, 1)).days
+    return (d - datetime.date(1970, 1, 1)).days
 
 def set_chart_context(context):
     sns.set_context(context)

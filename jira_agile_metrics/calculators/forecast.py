@@ -138,13 +138,13 @@ class BurnupForecastCalculator(Calculator):
             if deadline_confidence is not None:
                 deadline_confidence_quantiles = finish_dates.quantile([deadline_confidence]).dt.normalize()
                 if len(deadline_confidence_quantiles) > 0:
-                    deadline_confidence_date = pd.Timestamp(deadline_confidence_quantiles.values[0]).to_pydatetime()
+                    deadline_confidence_date = pd.Timestamp(deadline_confidence_quantiles.values[0]).to_pydatetime().date()
 
             bottom, top = ax.get_ylim()
             for percentile, value in finish_date_quantiles.iteritems():
                 ax.vlines(value, bottom, target, linestyles='--', linewidths=0.5)
                 ax.annotate("%.0f%% (%s)" % ((percentile * 100), value.strftime("%d/%m/%Y"),),
-                    xy=(to_days_since_epoch(value), 0.35),
+                    xy=(to_days_since_epoch(value.to_pydatetime().date()), 0.35),
                     xycoords=transform_vertical,
                     rotation="vertical",
                     ha="left",
