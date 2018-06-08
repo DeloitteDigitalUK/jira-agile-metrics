@@ -69,6 +69,9 @@ class DebtCalculator(Calculator):
 
     def write(self):
         chart_data = self.get_result()
+        if chart_data is None:
+            return
+
         if len(chart_data.index) == 0:
             logger.warning("Cannot draw debt chart with zero items")
             return
