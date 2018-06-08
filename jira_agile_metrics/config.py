@@ -18,6 +18,7 @@ from .calculators.netflow import NetFlowChartCalculator
 from .calculators.ageingwip import AgeingWIPChartCalculator
 from .calculators.forecast import BurnupForecastCalculator
 from .calculators.debt import DebtCalculator
+from .calculators.defects import DefectsCalculator
 
 CALCULATORS = (
     CycleTimeCalculator,  # should come first -- others depend on results from this one
@@ -32,6 +33,7 @@ CALCULATORS = (
     AgeingWIPChartCalculator,
     BurnupForecastCalculator,
     DebtCalculator,
+    DefectsCalculator,
 )
 
 class ConfigError(Exception):
