@@ -19,6 +19,7 @@ from .calculators.ageingwip import AgeingWIPChartCalculator
 from .calculators.forecast import BurnupForecastCalculator
 from .calculators.debt import DebtCalculator
 from .calculators.defects import DefectsCalculator
+from .calculators.waste import WasteCalculator
 
 CALCULATORS = (
     CycleTimeCalculator,  # should come first -- others depend on results from this one
@@ -34,6 +35,7 @@ CALCULATORS = (
     BurnupForecastCalculator,
     DebtCalculator,
     DefectsCalculator,
+    WasteCalculator,
 )
 
 class ConfigError(Exception):
@@ -167,9 +169,10 @@ def config_to_options(data):
             'debt_age_chart_title': None,
             'debt_age_chart_bins': [30, 60, 90],
 
-            'waste_chart': None,
+            'waste_query': None,
             'waste_window': None,
-            'waste_chart_query': None,
+            'waste_frequency': 'MS',
+            'waste_chart': None,
             'waste_chart_title': None,
         }
     }
@@ -310,7 +313,8 @@ def config_to_options(data):
             'debt_priority_field',
             'debt_chart_title',
             'debt_age_chart_title',
-            'waste_chart_query',
+            'waste_query',
+            'waste_frequency',
             'waste_chart_title',
         ]:
             if expand_key(key) in config['output']:

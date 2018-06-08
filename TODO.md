@@ -12,13 +12,6 @@
 
 ## New reports
 
-### Waste
-
-- Query for tickets (JQL)
-- Window (months)
-- Store: last non-resolved state, most recent state
-- Stacked bar chart: For each of the last X months, how many stories withdrawn, grouped by status
-
 ### Blocked time
 
 Note: this is harder to do, and maybe we will never get the data close to right

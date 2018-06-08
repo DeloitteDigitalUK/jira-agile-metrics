@@ -746,7 +746,6 @@ These options name data files to write. Use an extension of `.csv`, `.xlsx`, or
    grouped by priority over time.
 - `Debt chart title: <title>` – Title for the technical debt chart.
 
-
 - `Debt age chart: <filename>.png` – Draw a stacked bar chart of technical debt
    grouped by priority by age.
 - `Debt age chart title: <title>` – Title for the technical debt age chart.
@@ -756,14 +755,22 @@ These options name data files to write. Use an extension of `.csv`, `.xlsx`, or
 
 ### Waste chart
 
+- `Waste query: <query>` – JQL query used to identify waste items, e.g.
+   those withdrawn after work has begun.
+- `Waste frequency: <freq>` – Frequency to group waste chart by. Defaults to
+   month start (`MS`). Use e.g. `2W-WED` to group by fortnight starting
+   Wednesday.
+- `Waste window: <number>` – How many months to show.
 - `Waste chart: <filename>.png` – Draw a stacked bar chart of wasted items,
    grouped by last non-resolved status.
-- `Waste chart query: <query>` – JQL query used to identify waste items, e.g.
-   those withdrawn after work has begun.
 - `Waste chart title: <title>` – Title for the waste chart.
-- `Waste chart window: <number>` – How many months to show.
 
 ## Changelog
+
+### 0.3
+
+* Added debt, defects, and waste charts.
+* Added `window` options to most charts.
 
 ### 0.2
 

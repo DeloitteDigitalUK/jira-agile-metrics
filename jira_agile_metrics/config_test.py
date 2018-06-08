@@ -173,9 +173,10 @@ Output:
         - 20
         - 30
 
-    Waste chart: waste.png
+    Waste query: issueType = Story AND resolution IN (Withdrawn, Invalid)
     Waste window: 3
-    Waste chart query: issueType = Story AND resolution IN (Withdrawn, Invalid)
+    Waste frequency: 2W-WED
+    Waste chart: waste.png
     Waste chart title: Waste
 """)
 
@@ -291,9 +292,10 @@ Output:
         'debt_age_chart_title': 'Technical debt age',
         'debt_age_chart_bins': [10, 20, 30],
 
-        'waste_chart': 'waste.png',
+        'waste_query': 'issueType = Story AND resolution IN (Withdrawn, Invalid)',
         'waste_window': 3,
-        'waste_chart_query': 'issueType = Story AND resolution IN (Withdrawn, Invalid)',
+        'waste_frequency': '2W-WED',
+        'waste_chart': 'waste.png',
         'waste_chart_title': 'Waste',
         
     }
