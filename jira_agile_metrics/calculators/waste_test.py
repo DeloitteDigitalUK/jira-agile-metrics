@@ -162,7 +162,7 @@ def test_query(jira, settings):
 
     assert data.to_dict('records') == [
         {'key': 'A-1', 'last_status': 'Test',      'resolution': 'Withdrawn', 'withdrawn_date': Timestamp('2018-01-06 02:02:02')},
-        {'key': 'A-4', 'last_status': 'Backlog',   'resolution': 'Withdrawn', 'withdrawn_date': Timestamp('2018-01-09 02:02:02')},
+        {'key': 'A-2', 'last_status': 'Committed', 'resolution': 'Withdrawn', 'withdrawn_date': Timestamp('2018-01-07 02:02:02')},
         {'key': 'A-6', 'last_status': 'foobar',    'resolution': 'Withdrawn', 'withdrawn_date': Timestamp('2018-01-06 02:02:02')},
         {'key': 'A-7', 'last_status': None,        'resolution': 'Withdrawn', 'withdrawn_date': Timestamp('2018-01-06 02:02:02')},
     ]
