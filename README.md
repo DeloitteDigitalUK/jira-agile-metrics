@@ -268,6 +268,8 @@ and/or an image file of the same. The CFD shows the number of work items in
 each stage of the flow as a stacked area chart, day by day. This allows us to
 visualise WIP, cycle time, and throughput.
 
+![](./docs/images/cfd.png)
+
 In the configuration file:
 
     Output:
@@ -287,6 +289,8 @@ Raw data for creating a valid Cycle Time scatter plot graph, and/or an image
 file of the same. This chart plots the end-to-end cycle time (excluding time
 spent in the backlog) for each work item against its completion date, and
 overlays quantiles (e.g. 85% of tickets took 18 days or fewer)
+
+![](./docs/images/scatterplot.png)
 
 In the configuration file:
 
@@ -322,6 +326,8 @@ To only show the 30 most recent days in the chart:
 This is a different view of the cycle time , calculatd and/or plotted as a
 histogram.
 
+![](./docs/images/histogram.png)
+
 In the configuration file:
 
     Output:
@@ -341,6 +347,8 @@ To only show the 30 most recent days in the chart:
 
 Weekly throughput, i.e. the number of items completed week by week. The chart
 also shows a trend line.
+
+![](./docs/images/throughput.png)
 
 In the configuration file:
 
@@ -366,6 +374,8 @@ To only show the 6 most recent periods (e.g. weeks) in the chart:
 
 Shows a box plot of WIP, week by week (or some other frequency).
 
+![](./docs/images/wip.png)
+
 In the configuration file:
 
         WIP chart: wip.png
@@ -386,6 +396,8 @@ To only show the 6 most recent periods (e.g. weeks) in the chart:
 
 Shows the difference between arrivals and departures week on week. In a
 perfectly stable system, the net flow would be 0.
+
+![](./docs/images/net-flow.png)
 
 In the configuration file:
 
@@ -408,6 +420,8 @@ To only show the 6 most recent periods (e.g. weeks) in the chart:
 Shows the cycle time to date for each work item, grouped into the stages of
 the workflow. This can help identify slow-moving tickets.
 
+![](./docs/images/ageing-wip.png)
+
 In the configuration file:
 
         Ageing WIP chart: ageing-wip.png
@@ -417,6 +431,8 @@ In the configuration file:
 
 A basic Agile burn-up chart, based on a count of items completed and in the
 backlog.
+
+![](./docs/images/burnup.png)
 
 In the configuration file:
 
@@ -432,6 +448,8 @@ To only show the 30 most recent days in the chart:
 A more advanced version of the burn-up chart, which will run a Monte Carlo
 simulation based on historical throughput to forecast a completion date for
 the scope.
+
+![](./docs/images/burnup-forecast.png)
 
 The simulation can be calibrated with a series of options to set:
 
@@ -464,6 +482,12 @@ To only show the 30 most recent days in the chart:
 
 Three charts for analysing the amount of defects that have been open
 historically, grouped in various ways into stacked bar graphs.
+
+![](./docs/images/defects-by-priority.png)
+
+![](./docs/images/defects-by-type.png)
+
+![](./docs/images/defects-by-environment.png)
 
 These charts all rely on a separate JIRA query:
 
@@ -517,6 +541,11 @@ omit the values list, all unique values will be shown.
 ## Technical debt
 
 Two charts that show the nature and age of recorded (unresolved) technical debt.
+
+![](./docs/images/tech-debt.png)
+
+![](./docs/images/tech-debt-age.png)
+
 These require a separate JIRA query. You should also identify the field
 indicating priority:
 
@@ -559,6 +588,8 @@ has started. It relies on a separate JIRA query, and assumes that withdrawn
 work items are all "resolved" in JIRA. Moreover, it assumes that these work
 items follow the same workflow as that used for the other charts and files,
 i.e. as mapped in the `Workflow` section of the configuration file.
+
+![](./docs/images/waste.png)
 
 Here is an example:
 
