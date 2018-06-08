@@ -56,6 +56,10 @@ class BurnupCalculator(Calculator):
         ax.set_ylabel("Number of items")
 
         chart_data.plot.line(ax=ax, legend=True)
+
+        bottom = chart_data[chart_data.columns[-1]].min()
+        top = chart_data[chart_data.columns[0]].max()
+        ax.set_ylim(bottom=bottom, top=top)
         
         # Place legend underneath graph
         box = ax.get_position()

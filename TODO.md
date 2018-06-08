@@ -12,18 +12,6 @@
 
 ## New reports
 
-### Defect concentration
-
-- Query for tickets (JQL)
-- Priority (field name)
-- Type (field name)
-- Environment (field name)
-- Window (months)
-- Store: created date, closed date, priority, type, environment
-- Stacked bar chart: For each month, number of tickets open, grouped by environment found
-- Stacked bar chart: For each month, number of tickets open, grouped by type
-- Stacked bar chart: For each month, number of tickets open, grouped by priority
-
 ### Waste
 
 - Query for tickets (JQL)
