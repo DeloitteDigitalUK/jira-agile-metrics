@@ -6,10 +6,6 @@
 
 ## Docs
 
-- Debt
-- Waste
-- Defects
-
 ## New reports
 
 ### Blocked time
