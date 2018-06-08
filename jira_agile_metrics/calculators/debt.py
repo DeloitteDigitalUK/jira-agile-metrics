@@ -37,13 +37,11 @@ class DebtCalculator(Calculator):
             logger.debug("Not calculating debt chart data as no query specified")
             return None
         
-        priority_field = self.settings['debt_priority_field']
-        priority_field_id = None
-
         # Resolve field name to field id for later lookup
-        if priority_field:
-            priority_field_id = self.query_manager.field_name_to_id(priority_field)
-        
+        priority_field = self.settings['debt_priority_field']
+        priority_field_id = priority_field_id = self.query_manager.field_name_to_id(priority_field) if priority_field else None
+
+        # Build data frame
         columns = ['key', 'priority', 'created', 'resolved', 'age']
         series = {
             'key': {'data': [], 'dtype': 'str'},
@@ -54,22 +52,14 @@ class DebtCalculator(Calculator):
         }
 
         for issue in self.query_manager.find_issues(query, expand=None):
-
-            priority = self.query_manager.resolve_field_value(issue, priority_field_id) if priority_field else None
             created_date = dateutil.parser.parse(issue.fields.created)
             resolved_date = dateutil.parser.parse(issue.fields.resolutiondate) if issue.fields.resolutiondate else None
-            age = (resolved_date.replace(tzinfo=None) if resolved_date is not None else now) - created_date.replace(tzinfo=None)
 
-            item = {
-                'key': issue.key,
-                'priority': priority,
-                'created': created_date,
-                'resolved': resolved_date,
-                'age': age,
-            }
-
-            for k, v in item.items():
-                series[k]['data'].append(v)
+            series['key']['data'].append(issue.key)
+            series['priority']['data'].append(self.query_manager.resolve_field_value(issue, priority_field_id) if priority_field else None)
+            series['created']['data'].append(created_date)
+            series['resolved']['data'].append(resolved_date)
+            series['age']['data'].append((resolved_date.replace(tzinfo=None) if resolved_date is not None else now) - created_date.replace(tzinfo=None))
 
         data = {}
         for k, v in series.items():
