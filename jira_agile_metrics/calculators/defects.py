@@ -98,6 +98,10 @@ class DefectsCalculator(Calculator):
         
         if window:
             breakdown = breakdown[-window:]
+        
+        if len(breakdown.index) == 0 or len(breakdown.columns) == 0:
+            logger.warning("Cannot draw defects by priority chart with zero items")
+            return
 
         fig, ax = plt.subplots()
         
@@ -128,6 +132,10 @@ class DefectsCalculator(Calculator):
         
         if window:
             breakdown = breakdown[-window:]
+        
+        if len(breakdown.index) == 0 or len(breakdown.columns) == 0:
+            logger.warning("Cannot draw defects by type chart with zero items")
+            return
 
         fig, ax = plt.subplots()
         
@@ -158,6 +166,10 @@ class DefectsCalculator(Calculator):
         
         if window:
             breakdown = breakdown[-window:]
+        
+        if len(breakdown.index) == 0 or len(breakdown.columns) == 0:
+            logger.warning("Cannot draw defects by environment chart with zero items")
+            return
 
         fig, ax = plt.subplots()
         
