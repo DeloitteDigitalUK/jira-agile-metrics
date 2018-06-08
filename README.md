@@ -460,6 +460,120 @@ To only show the 30 most recent days in the chart:
 
         Burnup forecast window: 30
 
+## Defect density
+
+Three charts for analysing the amount of defects that have been open
+historically, grouped in various ways into stacked bar graphs.
+
+These charts all rely on a separate JIRA query:
+
+    Defects query: issueType = Bug
+
+Again, you can use the `filter=123` JQL syntax to delegate the query specifics
+to a named filtered.
+
+The three available groupings are:
+
+- Show how many defects remained open each month, grouped by _priority_.
+- Show how many defects remained open each month, grouped by _type_.
+- Show how many defects remained open each month, grouped by _environment_.
+
+They each require you to specify the name of the relevant field, and a chart
+output. You can also optionally specify a list of allowed values for each field,
+which lets you control the order. Finally, you can specify a "window" of how
+many of the most recent months to show (the default is to show all months for
+which there is data). Here is an example that enables all charts, and limits to
+showing the six most recent months in each:
+
+    Defects query: issueType = Bug
+    Defects window: 6
+    Defects priority field: Priority
+    Defects priority values:
+        - Low
+        - Medium
+        - High
+    Defects type field: Root cause
+    Defects type values:
+        - Config
+        - Data
+        - Code
+    Defects environment field: Environment
+    Defects environment values:
+        - SIT
+        - UAT
+        - PROD
+
+    Defects by priority chart: defects-by-priority.png
+    Defects by priority chart title: Defects by priority
+    Defects by type chart: defects-by-type.png
+    Defects by type chart title: Defects by type
+    Defects by environment chart: defects-by-environment.png
+    Defects by environment chart title: Defects by environment
+
+If you omit any of the chart names, the relevant chart will not be produced. If
+you omit any of the field names, the relevant chart will not be stacked. If you
+omit the values list, all unique values will be shown.
+
+## Technical debt
+
+Two charts that show the nature and age of recorded (unresolved) technical debt.
+These require a separate JIRA query. You should also identify the field
+indicating priority:
+
+    Debt query: issueType = "Tech debt"
+    Debt priority field: Priority
+    Debt priority values:
+        - Low
+        - Medium
+        - High
+
+As ever, use `filter=123` to use a named filter instead. If you omit the
+`Debt priority values` option, all unique priority values will be used, in
+alphabetical order.
+
+The first chart shows the open technical debt items each month as a stacked bar
+chart grouped by priority. You can optionally specify a "window" to show only
+a limited number of the most recent months:
+
+    Debt window: 3
+    Debt chart: tech-debt.png
+    Debt chart title: Technical debt
+
+The second chart shows the number of open technical debt items by their current
+age in days, broken down by priority, and stacked into "bins":
+
+    Debt age chart: tech-debt-age.png
+    Debt age chart title: Technical debt age
+    Debt age chart bins:
+        - 30
+        - 60
+        - 90
+
+This will use the age brackets 0-30 days, 31-60 days, 61-90 days, and over 90
+days (which also happens to be the default).
+
+## Waste (withdrawn items)
+
+This chart shows how many work items are withdrawn or cancelled after work
+has started. It relies on a separate JIRA query, and assumes that withdrawn
+work items are all "resolved" in JIRA. Moreover, it assumes that these work
+items follow the same workflow as that used for the other charts and files,
+i.e. as mapped in the `Workflow` section of the configuration file.
+
+Here is an example:
+
+    Waste query: issueType = Story AND resolution IN (Withdrawn, Invalid)
+    Waste window: 10
+    Waste frequency: 2W-WED
+    Waste chart: waste.png
+    Waste chart title: Waste
+
+This will show withdrawn items broken down by the period in which they were
+withdrawn for the the 10 most recent periods. The default period length is
+monthly, but here we have set it to `2W-WED`, which means a two-week period
+starting on a Wednesday. `Waste window` and `Waste frequency` are both
+optional.
+
 ## More details about the configuration file format
 
 The configuration file is written in YAML format. If you are unfamiliar with
