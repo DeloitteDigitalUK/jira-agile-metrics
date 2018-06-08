@@ -57,15 +57,15 @@ class NetFlowChartCalculator(Calculator):
         ax.set_xlabel("Period starting")
         ax.set_ylabel("Net flow (departures - arrivals)")
 
-        net_flow_data = chart_data['net_flow']
+        net_flow_data = chart_data[['net_flow', 'positive']]
 
         window = self.settings['net_flow_window']
         if window:
             net_flow_data = net_flow_data[-window:]
 
-        net_flow_data.plot.bar(ax=ax, color=chart_data['positive'].map({True: 'r', False: 'b'}),)
+        net_flow_data['net_flow'].plot.bar(ax=ax, color=net_flow_data['positive'].map({True: 'r', False: 'b'}),)
 
-        labels = [d.strftime("%d/%m/%Y") for d in chart_data.index]
+        labels = [d.strftime("%d/%m/%Y") for d in net_flow_data.index]
         ax.set_xticklabels(labels, rotation=70, size='small')
 
         set_chart_style()
