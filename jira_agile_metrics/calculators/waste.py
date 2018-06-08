@@ -50,12 +50,12 @@ class WasteCalculator(Calculator):
             if not issue.fields.resolution:
                 continue
             
-            last_status = issue.fields.status.name
+            last_status = None
             status_changes = list(self.query_manager.iter_changes(issue, ['status']))
             if len(status_changes) > 0:
                 last_status = status_changes[-1].from_string
             
-            if last_status.lower() in cycle_lookup:
+            if last_status is not None and last_status.lower() in cycle_lookup:
                 last_status = cycle_lookup.get(last_status.lower())['name']
             else:
                 logger.warn("Issue %s transitioned from unknown JIRA status %s", issue.key, last_status)
