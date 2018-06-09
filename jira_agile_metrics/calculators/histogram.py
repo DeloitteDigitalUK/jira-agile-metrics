@@ -59,13 +59,21 @@ class HistogramCalculator(Calculator):
         cycle_data = self.get_result(CycleTimeCalculator)
         chart_data = cycle_data[['cycle_time', 'completed_timestamp']].dropna(subset=['cycle_time'])
 
+        # The `window` calculation and the chart output will fail if we don't
+        # have at least two valid data points.
+        ct_days = chart_data['cycle_time'].dt.days
+        if len(ct_days.index) < 2:
+            logger.warning("Need at least 2 completed items to draw histogram")
+            return
+
+        # Slice off items before the window
         window = self.settings['histogram_window']
         if window:
             start = chart_data['completed_timestamp'].max().normalize() - pd.Timedelta(window, 'D')
             chart_data = chart_data[chart_data.completed_timestamp >= start]
         
+        # Re-check that we have enough data
         ct_days = chart_data['cycle_time'].dt.days
-        
         if len(ct_days.index) < 2:
             logger.warning("Need at least 2 completed items to draw histogram")
             return
