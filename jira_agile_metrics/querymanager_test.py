@@ -25,6 +25,7 @@ def jira(custom_fields):
             customfield_003=Value(None, ["R2", "R3", "R4"]),
             changes=[
                 Change("2018-01-02 01:01:01", [("status", "Backlog", "Next",)]),
+                Change("2018-01-02 01:01:01", [("Team", "Team 2", "Team 1",)]),
                 Change("2018-01-03 01:01:01", [("resolution", None, "Closed",), ("status", "Next", "Done",)]),
                 Change("2018-01-04 01:01:01", [("resolution", "Closed", None,), ("status", "Done", "QA",)]),
             ],
@@ -65,11 +66,13 @@ def test_resolve_field_value(jira, settings):
 def test_iter_changes(jira, settings):
     qm = QueryManager(jira, settings)
     issues = qm.find_issues("(filter=123)")
-    changes = list(qm.iter_changes(issues[0], ['status']))
+    changes = list(qm.iter_changes(issues[0], ['status', 'Team']))
 
     assert changes == [
         IssueSnapshot(change="status", key="A-1", date=datetime.datetime(2018, 1, 1, 1, 1, 1), from_string=None,      to_string="Backlog"),
+        IssueSnapshot(change="Team",   key="A-1", date=datetime.datetime(2018, 1, 1, 1, 1, 1), from_string=None,      to_string="Team 2"),
         IssueSnapshot(change="status", key="A-1", date=datetime.datetime(2018, 1, 2, 1, 1, 1), from_string="Backlog", to_string="Next"),
+        IssueSnapshot(change="Team",   key="A-1", date=datetime.datetime(2018, 1, 2, 1, 1, 1), from_string="Team 2",  to_string="Team 1"),
         IssueSnapshot(change="status", key="A-1", date=datetime.datetime(2018, 1, 3, 1, 1, 1), from_string="Next",    to_string="Done"),
         IssueSnapshot(change="status", key="A-1", date=datetime.datetime(2018, 1, 4, 1, 1, 1), from_string="Done",    to_string="QA")
     ]
