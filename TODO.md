@@ -9,6 +9,4 @@
 
 ## Docs
 
-- blocked charts + options
-
 ## New reports

@@ -69,7 +69,7 @@ class CycleTimeCalculator(Calculator):
             'cycle_time': {'data': [], 'dtype': 'timedelta64[ns]'},
             'completed_timestamp': {'data': [], 'dtype': 'datetime64[ns]'},
             'blocked_days': {'data': [], 'dtype': 'int'},
-            'blocking_events': {'data': [], 'dtype': 'object'},  # list of {'start', 'end'} datetime pairs
+            'impediments': {'data': [], 'dtype': 'object'},  # list of {'start', 'end'} datetime pairs
         }
 
         for cycle_name in cycle_names:
@@ -94,7 +94,7 @@ class CycleTimeCalculator(Calculator):
                     'cycle_time': None,
                     'completed_timestamp': None,
                     'blocked_days': 0,
-                    'blocking_events': []
+                    'impediments': []
                 }
 
                 for name in self.settings['attributes'].keys():
@@ -146,7 +146,7 @@ class CycleTimeCalculator(Calculator):
                                 continue
                             
                             item['blocked_days'] += (snapshot.date.date() - impediment_start).days
-                            item['blocking_events'].append({'start': impediment_start, 'end': snapshot.date.date(), 'status': impediment_start_status})
+                            item['impediments'].append({'start': impediment_start, 'end': snapshot.date.date(), 'status': impediment_start_status})
 
                             # Reset for next time
                             impediment_start = None
@@ -158,10 +158,10 @@ class CycleTimeCalculator(Calculator):
                     if issue.fields.resolutiondate:
                         resolution_date = dateutil.parser.parse(issue.fields.resolutiondate).date()
                         item['blocked_days'] += (resolution_date - impediment_start).days
-                        item['blocking_events'].append({'start': impediment_start, 'end': resolution_date, 'status': impediment_start_status})
+                        item['impediments'].append({'start': impediment_start, 'end': resolution_date, 'status': impediment_start_status})
                     else:
                         item['blocked_days'] += (now.date() - impediment_start).days
-                        item['blocking_events'].append({'start': impediment_start, 'end': None, 'status': impediment_start_status})
+                        item['impediments'].append({'start': impediment_start, 'end': None, 'status': impediment_start_status})
                     impediment_start = None
                     impediment_start_status = None
                 
@@ -195,7 +195,7 @@ class CycleTimeCalculator(Calculator):
             columns=['key', 'url', 'issue_type', 'summary', 'status', 'resolution'] +
                     sorted(self.settings['attributes'].keys()) +
                     ([self.settings['query_attribute']] if self.settings['query_attribute'] else []) +
-                    ['cycle_time', 'completed_timestamp', 'blocked_days', 'blocking_events'] +
+                    ['cycle_time', 'completed_timestamp', 'blocked_days', 'impediments'] +
                     cycle_names
         )
 

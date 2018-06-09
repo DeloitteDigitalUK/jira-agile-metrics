@@ -112,7 +112,7 @@ def test_columns(jira, settings):
         'cycle_time',
         'completed_timestamp',
         'blocked_days',
-        'blocking_events',
+        'impediments',
         
         'Backlog',
         'Committed',
@@ -153,7 +153,7 @@ def test_movement(jira, settings):
         'completed_timestamp': NaT,
         'cycle_time': NaT,
         'blocked_days': 0,
-        'blocking_events': [],
+        'impediments': [],
 
         'Backlog': Timestamp('2018-01-01 01:01:01'),
         'Committed': NaT,
@@ -175,7 +175,7 @@ def test_movement(jira, settings):
         'completed_timestamp': NaT,
         'cycle_time': NaT,
         'blocked_days': 3,
-        'blocking_events': [
+        'impediments': [
             {'start': datetime.date(2018, 1, 4), 'end': datetime.date(2018, 1, 5), 'status': 'Committed'},
             {'start': datetime.date(2018, 1, 8), 'end': None, 'status': 'Committed'},
         ],
@@ -200,7 +200,7 @@ def test_movement(jira, settings):
         'completed_timestamp': Timestamp('2018-01-06 01:01:01'),
         'cycle_time': Timedelta('3 days 00:00:00'),
         'blocked_days': 2,
-        'blocking_events': [{'start': datetime.date(2018, 1, 4), 'end': datetime.date(2018, 1, 6), 'status': 'Build'}],
+        'impediments': [{'start': datetime.date(2018, 1, 4), 'end': datetime.date(2018, 1, 6), 'status': 'Build'}],
 
         'Backlog': Timestamp('2018-01-03 01:01:01'),
         'Committed': Timestamp('2018-01-03 01:01:01'),
@@ -222,7 +222,7 @@ def test_movement(jira, settings):
         'completed_timestamp': NaT,
         'cycle_time': NaT,
         'blocked_days': 3,
-        'blocking_events': [{'start': datetime.date(2018, 1, 7), 'end': datetime.date(2018, 1, 10), 'status': 'Committed'}],
+        'impediments': [{'start': datetime.date(2018, 1, 7), 'end': datetime.date(2018, 1, 10), 'status': 'Committed'}],
 
         'Backlog': Timestamp('2018-01-04 01:01:01'),
         'Committed': Timestamp('2018-01-04 01:01:01'),

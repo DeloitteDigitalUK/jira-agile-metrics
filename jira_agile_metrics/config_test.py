@@ -133,11 +133,12 @@ Output:
     Net flow chart: net-flow.png
     Net flow chart title: Net flow
 
-    Blocked window: 3
-    Blocked days chart: blocked-days.png
-    Blocked days chart title: Total blocked ticket days
-    Blocked count chart: blocked-count.png
-    Blocked count chart title: Blocked ticket count
+    Impediments data: impediments.csv
+    Impediments window: 3
+    Impediments chart: impediments.png
+    Impediments chart title: Impediments
+    Impediments days chart: impediments-days.png
+    Impediments days chart title: Total impeded days
 
     Defects query: issueType = Bug
     Defects window: 3
@@ -272,11 +273,12 @@ Output:
         'wip_chart': 'wip.png',
         'wip_chart_title': 'Work in Progress',
 
-        'blocked_window': 3,
-        'blocked_count_chart': 'blocked-count.png',
-        'blocked_count_chart_title': 'Blocked ticket count',
-        'blocked_days_chart': 'blocked-days.png',
-        'blocked_days_chart_title': 'Total blocked ticket days',
+        'impediments_data': 'impediments.csv',
+        'impediments_window': 3,
+        'impediments_chart': 'impediments.png',
+        'impediments_chart_title': 'Impediments',
+        'impediments_days_chart': 'impediments-days.png',
+        'impediments_days_chart_title': 'Total impeded days',
 
         'defects_query': 'issueType = Bug',
         'defects_window': 3,

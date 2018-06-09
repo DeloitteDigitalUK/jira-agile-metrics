@@ -347,7 +347,7 @@ To only show the 30 most recent days in the chart:
 
         Histogram window: 30
 
-### Throughput data
+### Throughput
 
 Weekly throughput, i.e. the number of items completed week by week. The chart
 also shows a trend line.
@@ -482,43 +482,45 @@ To only show the 30 most recent days in the chart:
 
         Burnup forecast window: 30
 
-## Blocked tickets
+## Impediments
 
 If you use the "Flagged" feature in JIRA to mark (and unmark) tickets as impeded
-when they are blocked, you can produce charts showing the amount of tickets and
-the cumulative amount of time tickets have spent being blocked, broken down by
-month and the workflow stage a ticket was in when it became blocked:
+when they are blocked, you can produce charts showing the number of impediments
+raised, and the cumulative amount of time tickets have spent being impeded,
+broken down by month and the workflow stage a ticket was in when the impeded
+flag was set. You can also write out the impediment events to a file.
 
-![](./docs/images/blocked-count.png)
+![](./docs/images/impediments.png)
 
-![](./docs/images/blocked-days.png)
+![](./docs/images/impediments-days.png)
 
-The two charts can be enabled with:
+The charts can be enabled with:
 
-    Blocked window: 6
-    Blocked count chart: blocked-count.png
-    Blocked count chart title: Blocked ticket count
-    Blocked days chart: blocked-days.png
-    Blocked days chart title: Total blocked ticket days
+    Impediments data: impediments.csv
+    Impediments window: 6
+    Impediments chart: impediments.png
+    Impediments chart title: Number of impediments
+    Impediments days chart: impediments-days.png
+    Impediments days chart title: Total impeded days
 
-The `Blocked window`, which is optional, can be used to limit the chart to
+The `Impediments window`, which is optional, can be used to limit the chart to
 showing only the most recent months' data: six in this case.
 
-The `Blocked count chart` will count the number of tickets that were blocked at
-any point during each month. This includes tickets that became blocked during a
-previous month, but have not been resolved.
+The `Impediments chart` will count the number of impediment events that were
+active each month, i.e. a ticket was flagged as impeded at some point during
+the month.
 
-The `Blocked days chart` uses the same underlying logic, but instead of counting
-tickets, it sums the number of days of blockage in each month for _all_ tickets
-that were blocked at some point during that month.
+The `Impediments days chart` uses the same underlying logic, but instead of
+counting impediments, it sums the number of days of all impediments in each
+month.
 
 Note that:
 
-- Tickets that are flagged whilst in the backlog or in the "done" column are
+- Impediments raised against tickets in the backlog or in the "done" column are
   not shown.
-- If a ticket is flagged and then resolved before being unflagged, the blocking
+- If a ticket is flagged and then resolved before being unflagged, the impeded
   time is calculated to the resolution date.
-- If a ticket is still flagged at the time the chart is generated, the blocking
+- If a ticket is still flagged at the time the chart is generated, the impeded
   day count will run to today's date.
 - Blocking time is always rounded up to the nearest whole day.
 
@@ -790,8 +792,8 @@ These options name data files to write. Use an extension of `.csv`, `.xlsx`, or
 `.json` according to the required file format.
 
 - `Cycle time data: <filename>.[csv,xlsx,json]` – Output file suitable for
-   processing Actionable Agile. Contains all issues described by the configuration
-   file, metadata, and dates of entry to each state in the cycle.
+   processing Actionable Agile. Contains all issues described by the
+   configuration file, metadata, and dates of entry to each state in the cycle.
 - `CFD data: <filename>.[csv,xlsx,json]` – Calculate data to draw a Cumulative
    Flow Diagram and write to file. Hint: Plot as a (non-stacked) area chart.
 - `Scatterplot data: <filename>.[csv,xlsx,json]` – Calculate data to draw a
@@ -803,6 +805,8 @@ These options name data files to write. Use an extension of `.csv`, `.xlsx`, or
    `Throughput frequency` setting (see below).
 - `Percentiles data: <filename>.[csv,xlsx,json]` – Calculate cycle time
    percentiles and write to file.
+- `Impediments data: <filename>.[csv,xlsx,json]` – Output impediment start and
+   end dates against tickets.
 
 ### Scatterplot chart
 
@@ -890,15 +894,18 @@ These options name data files to write. Use an extension of `.csv`, `.xlsx`, or
 - `Net flow chart: <filename>.png` – Draw weekly net flow bar chart.
 - `Net flow chart title: <title>` – Title for net flow bar chart.
 
-## Blocked ticket charts
+## Impediments chart
 
-- `Blocked window: <number>` – How many months to show.
-- `Blocked count chart: <filename>.png` – Draw a bar chart of the number of
-  tickets that were blocked at one point during each month.
-- `Blocked count chart title: <title>` – Title for the blocked count chart.
-- `Blocked days chart: <filename>.png` – Draw a bar chart of the total number
-   of days that tickets were blocked during each month.
-- `Blocked days chart title: <title>` – Title for the blocked days chart.
+- `Impediments window: <number>` – How many months to show.
+- `Impediments chart: <filename>.png` – Draw a bar chart of the number of
+  active impediments during each month, stacked by the ticket status at the
+  time the impediment was raised.
+- `Impediments chart title: <title>` – Title for the impediments chart.
+- `Impediments days chart: <filename>.png` – Draw a bar chart of the total
+   number of days of all the impediments active during each month, stacked by
+   the ticket status at the time each impediment was raised.
+- `Impediments days chart title: <title>` – Title for the impediments days
+   chart.
 
 ### Defect density charts
 

@@ -140,7 +140,7 @@ def minimal_cycle_time_columns():
     """
     return [
         'key', 'url', 'issue_type', 'summary', 'status', 'resolution',
-        'cycle_time', 'completed_timestamp', 'blocked_days', 'blocking_events',
+        'cycle_time', 'completed_timestamp', 'blocked_days', 'impediments',
         'Backlog', 'Committed', 'Build', 'Test', 'Done'
     ]
 
@@ -152,7 +152,7 @@ def custom_cycle_time_columns(minimal_fields):
     return [
         'key', 'url', 'issue_type', 'summary', 'status', 'resolution',
         'Estimate', 'Release', 'Team',
-        'cycle_time', 'completed_timestamp', 'blocked_days', 'blocking_events',
+        'cycle_time', 'completed_timestamp', 'blocked_days', 'impediments',
         'Backlog', 'Committed', 'Build', 'Test', 'Done'
     ]
 
@@ -204,7 +204,7 @@ def _issues(issues):
         'completed_timestamp': i['Done'] if i['Done'] is not NaT else None,
         'cycle_time': (i['Done'] - i['Committed']) if (i['Done'] is not NaT and i['Committed'] is not NaT) else None,
         'blocked_days': i.get('blocked_days', 0),
-        'blocking_events': i.get('blocking_events', []),
+        'impediments': i.get('impediments', []),
         'Backlog': i['Backlog'],
         'Committed': i['Committed'],
         'Build': i['Build'],

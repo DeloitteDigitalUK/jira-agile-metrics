@@ -24,7 +24,7 @@ class ScatterplotCalculator(Calculator):
         columns.remove('cycle_time')
         columns.remove('completed_timestamp')
         columns.remove('blocked_days')
-        columns.remove('blocking_events')
+        columns.remove('impediments')
         columns = ['completed_timestamp', 'cycle_time', 'blocked_days'] + columns
 
         data = (
