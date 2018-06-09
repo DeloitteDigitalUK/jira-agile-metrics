@@ -261,6 +261,10 @@ In the configuration file:
 
 You can also use `.json` or `.xlsx` formats.
 
+Note: the "Blocked Days" calculation relies on the "Flagged" feature in JIRA,
+showing the total number of days (rounded up to the nearest whole day) that each
+ticket was flagged as impeded.
+
 ### Cumulative Flow Diagram (CFD)
 
 Raw data for creating a valid Cumulative Flow Diagram, in spreadsheet format,

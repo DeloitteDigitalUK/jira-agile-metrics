@@ -1,5 +1,7 @@
 import json
 import logging
+import datetime
+import dateutil
 import pandas as pd
 
 from ..calculator import Calculator
@@ -47,7 +49,12 @@ class CycleTimeCalculator(Calculator):
                     type=cycle_step['type'],
                 )
 
-    def run(self):
+    def run(self, now=None):
+
+        # Allows unit testing to use a fixed date
+        if now is None:
+            now = datetime.datetime.utcnow()
+
         cycle_names = [s['name'] for s in self.settings['cycle']]
         accepted_steps = set(s['name'] for s in self.settings['cycle'] if s['type'] == StatusTypes.accepted)
         completed_steps = set(s['name'] for s in self.settings['cycle'] if s['type'] == StatusTypes.complete)
@@ -60,7 +67,9 @@ class CycleTimeCalculator(Calculator):
             'status': {'data': [], 'dtype': 'str'},
             'resolution': {'data': [], 'dtype': 'str'},
             'cycle_time': {'data': [], 'dtype': 'timedelta64[ns]'},
-            'completed_timestamp': {'data': [], 'dtype': 'datetime64[ns]'}
+            'completed_timestamp': {'data': [], 'dtype': 'datetime64[ns]'},
+            'blocked_days': {'data': [], 'dtype': 'int'},
+            'blocking_events': {'data': [], 'dtype': 'object'},  # list of {'start', 'end'} datetime pairs
         }
 
         for cycle_name in cycle_names:
@@ -83,7 +92,9 @@ class CycleTimeCalculator(Calculator):
                     'status': issue.fields.status.name,
                     'resolution': issue.fields.resolution.name if issue.fields.resolution else None,
                     'cycle_time': None,
-                    'completed_timestamp': None
+                    'completed_timestamp': None,
+                    'blocked_days': 0,
+                    'blocking_events': []
                 }
 
                 for name in self.settings['attributes'].keys():
@@ -95,29 +106,60 @@ class CycleTimeCalculator(Calculator):
                 for cycle_name in cycle_names:
                     item[cycle_name] = None
 
-                # Record date of status changes
-                for snapshot in self.query_manager.iter_changes(issue, ['status']):
-                    snapshot_cycle_step = self.cycle_lookup.get(snapshot.to_string.lower(), None)
-                    if snapshot_cycle_step is None:
-                        logger.warn("Issue %s transitioned to unknown JIRA status %s", issue.key, snapshot.to_string)
-                        continue
+                impediment_start = None
 
-                    snapshot_cycle_step_name = snapshot_cycle_step['name']
-
-                    # Keep the first time we entered a step
-                    if item[snapshot_cycle_step_name] is None:
-                        item[snapshot_cycle_step_name] = snapshot.date
-
-                    # Wipe any subsequent dates, in case this was a move backwards
-                    found_cycle_name = False
-                    for cycle_name in cycle_names:
-                        if not found_cycle_name and cycle_name == snapshot_cycle_step_name:
-                            found_cycle_name = True
+                # Record date of status and impediments flag changes
+                for snapshot in self.query_manager.iter_changes(issue, ['status', 'Flagged']):
+                    if snapshot.change == 'status':
+                        snapshot_cycle_step = self.cycle_lookup.get(snapshot.to_string.lower(), None)
+                        if snapshot_cycle_step is None:
+                            logger.warn("Issue %s transitioned to unknown JIRA status %s", issue.key, snapshot.to_string)
                             continue
-                        elif found_cycle_name and item[cycle_name] is not None:
-                            logger.info("Issue %s moved backwards to %s, wiping data for subsequent step %s", issue.key, snapshot_cycle_step_name, cycle_name)
-                            item[cycle_name] = None
 
+                        snapshot_cycle_step_name = snapshot_cycle_step['name']
+
+                        # Keep the first time we entered a step
+                        if item[snapshot_cycle_step_name] is None:
+                            item[snapshot_cycle_step_name] = snapshot.date
+
+                        # Wipe any subsequent dates, in case this was a move backwards
+                        found_cycle_name = False
+                        for cycle_name in cycle_names:
+                            if not found_cycle_name and cycle_name == snapshot_cycle_step_name:
+                                found_cycle_name = True
+                                continue
+                            elif found_cycle_name and item[cycle_name] is not None:
+                                logger.info("Issue %s moved backwards to %s, wiping data for subsequent step %s", issue.key, snapshot_cycle_step_name, cycle_name)
+                                item[cycle_name] = None
+                    elif snapshot.change == 'Flagged':
+                        if snapshot.from_string == snapshot.to_string is None:
+                            # Initial state from None -> None
+                            continue
+                        elif snapshot.to_string is not None and snapshot.to_string != "":
+                            impediment_start = snapshot.date.date()
+                        elif snapshot.to_string is None or snapshot.to_string == "":
+                            if impediment_start is None:
+                                logger.warning("Issue %s had impediment flag cleared before being set. This should not happen.", issue.key)
+                                continue
+                            
+                            item['blocked_days'] += (snapshot.date.date() - impediment_start).days
+                            item['blocking_events'].append({'start': impediment_start, 'end': snapshot.date.date()})
+
+                            # Reset for next time
+                            impediment_start = None
+                
+                # If an impediment flag was set but never cleared: treat as resolved on the ticket
+                # resolution date if the ticket was resolved, else as still open until today.
+                if impediment_start is not None:
+                    if issue.fields.resolutiondate:
+                        resolution_date = dateutil.parser.parse(issue.fields.resolutiondate).date()
+                        item['blocked_days'] += (resolution_date - impediment_start).days
+                        item['blocking_events'].append({'start': impediment_start, 'end': resolution_date})
+                    else:
+                        item['blocked_days'] += (now.date() - impediment_start).days
+                        item['blocking_events'].append({'start': impediment_start, 'end': None})
+                    impediment_start = None
+                
                 # Wipe timestamps if items have moved backwards; calculate cycle time
 
                 previous_timestamp = None
@@ -148,7 +190,7 @@ class CycleTimeCalculator(Calculator):
             columns=['key', 'url', 'issue_type', 'summary', 'status', 'resolution'] +
                     sorted(self.settings['attributes'].keys()) +
                     ([self.settings['query_attribute']] if self.settings['query_attribute'] else []) +
-                    ['cycle_time', 'completed_timestamp'] +
+                    ['cycle_time', 'completed_timestamp', 'blocked_days', 'blocking_events'] +
                     cycle_names
         )
 
@@ -166,8 +208,8 @@ class CycleTimeCalculator(Calculator):
         attribute_names = sorted(self.settings['attributes'].keys())
         query_attribute_names = [self.settings['query_attribute']] if self.settings['query_attribute'] else []
 
-        header = ['ID', 'Link', 'Name'] + cycle_names + ['Type', 'Status', 'Resolution'] + attribute_names + query_attribute_names
-        columns = ['key', 'url', 'summary'] + cycle_names + ['issue_type', 'status', 'resolution'] + attribute_names + query_attribute_names
+        header = ['ID', 'Link', 'Name'] + cycle_names + ['Type', 'Status', 'Resolution'] + attribute_names + query_attribute_names + ['Blocked Days']
+        columns = ['key', 'url', 'summary'] + cycle_names + ['issue_type', 'status', 'resolution'] + attribute_names + query_attribute_names + ['blocked_days']
 
         logger.info("Writing cycle time data to %s", output_file)
 

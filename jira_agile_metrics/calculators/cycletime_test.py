@@ -1,4 +1,5 @@
 import pytest
+import datetime
 from pandas import NaT, Timestamp, Timedelta
 
 from ..conftest import (
@@ -19,10 +20,12 @@ def jira(custom_fields):
             issuetype=Value("Story", "story"),
             status=Value("Backlog", "backlog"),
             resolution=None,
+            resolutiondate=None,
             created="2018-01-01 01:01:01",
             customfield_001="Team 1",
             customfield_002=Value(None, 10),
             customfield_003=Value(None, ["R2", "R3", "R4"]),
+            customfield_100=None,
             changes=[],
         ),
         Issue("A-2",
@@ -30,12 +33,17 @@ def jira(custom_fields):
             issuetype=Value("Story", "story"),
             status=Value("Next", "next"),
             resolution=None,
+            resolutiondate=None,
             created="2018-01-02 01:01:01",
             customfield_001="Team 1",
             customfield_002=Value(None, 20),
             customfield_003=Value(None, []),
+            customfield_100=None,
             changes=[
                 Change("2018-01-03 01:01:01", [("status", "Backlog", "Next",)]),
+                Change("2018-01-04 10:01:01", [("Flagged", None, "Impediment")]),
+                Change("2018-01-05 08:01:01", [("Flagged", "Impediment", "")]),  # was blocked 1 day
+                Change("2018-01-08 10:01:01", [("Flagged", "", "Impediment")]),  # stays blocked until today
             ],
         ),
         Issue("A-3",
@@ -43,14 +51,17 @@ def jira(custom_fields):
             issuetype=Value("Story", "story"),
             status=Value("Done", "done"),
             resolution=Value("Done", "Done"),
+            resolutiondate="2018-01-06 01:01:01",
             created="2018-01-03 01:01:01",
             customfield_001="Team 1",
             customfield_002=Value(None, 30),
             customfield_003=Value(None, []),
+            customfield_100=None,
             changes=[
                 Change("2018-01-03 01:01:01", [("status", "Backlog", "Next",)]),
                 Change("2018-01-04 01:01:01", [("status", "Next", "Build",)]),
                 Change("2018-01-05 01:01:01", [("status", "Build", "QA",)]),
+                Change("2018-01-04 10:01:01", [("Flagged", None, "Impediment")]),  # should clear two days later when issue resolved
                 Change("2018-01-06 01:01:01", [("status", "QA", "Done",)]),
             ],
         ),
@@ -59,14 +70,18 @@ def jira(custom_fields):
             issuetype=Value("Story", "story"),
             status=Value("Next", "next"),
             resolution=None,
+            resolutiondate=None,
             created="2018-01-04 01:01:01",
             customfield_001="Team 1",
             customfield_002=Value(None, 30),
             customfield_003=Value(None, []),
+            customfield_100=None,
             changes=[
                 Change("2018-01-04 01:01:01", [("status", "Backlog", "Next",)]),
                 Change("2018-01-05 01:01:01", [("status", "Next", "Build",)]),
                 Change("2018-01-06 01:01:01", [("status", "Build", "Next",)]),
+                Change("2018-01-07 01:01:01", [("Flagged", None, "Impediment")]),
+                Change("2018-01-10 10:01:01", [("Flagged", "Impediment", "")]),  # blocked 3 days
             ],
         ),
     ])
@@ -96,6 +111,8 @@ def test_columns(jira, settings):
         
         'cycle_time',
         'completed_timestamp',
+        'blocked_days',
+        'blocking_events',
         
         'Backlog',
         'Committed',
@@ -119,7 +136,7 @@ def test_movement(jira, settings):
     results = {}
     calculator = CycleTimeCalculator(query_manager, settings, results)
 
-    data = calculator.run()
+    data = calculator.run(now=datetime.datetime(2018, 1, 10, 15, 37, 0))
 
     assert data.to_dict('records') == [{
         'key': 'A-1',
@@ -135,6 +152,8 @@ def test_movement(jira, settings):
 
         'completed_timestamp': NaT,
         'cycle_time': NaT,
+        'blocked_days': 0,
+        'blocking_events': [],
 
         'Backlog': Timestamp('2018-01-01 01:01:01'),
         'Committed': NaT,
@@ -155,6 +174,11 @@ def test_movement(jira, settings):
 
         'completed_timestamp': NaT,
         'cycle_time': NaT,
+        'blocked_days': 3,
+        'blocking_events': [
+            {'start': datetime.date(2018, 1, 4), 'end': datetime.date(2018, 1, 5)},
+            {'start': datetime.date(2018, 1, 8), 'end': None},
+        ],
 
         'Backlog': Timestamp('2018-01-02 01:01:01'),
         'Committed': Timestamp('2018-01-03 01:01:01'),
@@ -175,6 +199,8 @@ def test_movement(jira, settings):
 
         'completed_timestamp': Timestamp('2018-01-06 01:01:01'),
         'cycle_time': Timedelta('3 days 00:00:00'),
+        'blocked_days': 2,
+        'blocking_events': [{'start': datetime.date(2018, 1, 4), 'end': datetime.date(2018, 1, 6)}],
 
         'Backlog': Timestamp('2018-01-03 01:01:01'),
         'Committed': Timestamp('2018-01-03 01:01:01'),
@@ -195,6 +221,8 @@ def test_movement(jira, settings):
         
         'completed_timestamp': NaT,
         'cycle_time': NaT,
+        'blocked_days': 3,
+        'blocking_events': [{'start': datetime.date(2018, 1, 7), 'end': datetime.date(2018, 1, 10)}],
 
         'Backlog': Timestamp('2018-01-04 01:01:01'),
         'Committed': Timestamp('2018-01-04 01:01:01'),

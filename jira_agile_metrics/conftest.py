@@ -115,11 +115,12 @@ def minimal_fields():
     """A `fields` list for all basic fields, but no custom fields.
     """
     return [
-        {'id': 'summary',    'name': 'Summary'},
-        {'id': 'issuetype',  'name': 'Issue type'},
-        {'id': 'status',     'name': 'Status'},
-        {'id': 'resolution', 'name': 'Resolution'},
-        {'id': 'created',    'name': 'Created date'},
+        {'id': 'summary',         'name': 'Summary'},
+        {'id': 'issuetype',       'name': 'Issue type'},
+        {'id': 'status',          'name': 'Status'},
+        {'id': 'resolution',      'name': 'Resolution'},
+        {'id': 'created',         'name': 'Created date'},
+        {'id': 'customfield_100', 'name': 'Flagged'},
     ]
 
 @pytest.fixture
@@ -139,7 +140,7 @@ def minimal_cycle_time_columns():
     """
     return [
         'key', 'url', 'issue_type', 'summary', 'status', 'resolution',
-        'cycle_time', 'completed_timestamp',
+        'cycle_time', 'completed_timestamp', 'blocked_days', 'blocking_events',
         'Backlog', 'Committed', 'Build', 'Test', 'Done'
     ]
 
@@ -151,7 +152,7 @@ def custom_cycle_time_columns(minimal_fields):
     return [
         'key', 'url', 'issue_type', 'summary', 'status', 'resolution',
         'Estimate', 'Release', 'Team',
-        'cycle_time', 'completed_timestamp',
+        'cycle_time', 'completed_timestamp', 'blocked_days', 'blocking_events',
         'Backlog', 'Committed', 'Build', 'Test', 'Done'
     ]
 
@@ -202,6 +203,8 @@ def _issues(issues):
         'resoluton': "Done" if i['Done'] is not NaT else None,
         'completed_timestamp': i['Done'] if i['Done'] is not NaT else None,
         'cycle_time': (i['Done'] - i['Committed']) if (i['Done'] is not NaT and i['Committed'] is not NaT) else None,
+        'blocked_days': i.get('blocked_days', 0),
+        'blocking_events': i.get('blocking_events', []),
         'Backlog': i['Backlog'],
         'Committed': i['Committed'],
         'Build': i['Build'],

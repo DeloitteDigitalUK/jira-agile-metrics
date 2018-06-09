@@ -29,6 +29,7 @@ def test_empty(query_manager, settings, minimal_cycle_time_columns):
     assert list(data.columns) == [
         'completed_date',
         'cycle_time',
+        'blocked_days',
         'key',
         'url',
         'issue_type',
@@ -52,6 +53,7 @@ def test_columns(query_manager, settings, results):
     assert list(data.columns) == [
         'completed_date',
         'cycle_time',
+        'blocked_days',
         'key',
         'url',
         'issue_type',
