@@ -121,7 +121,7 @@ class QueryManager(object):
         """
 
         for field in fields:
-            initial_value = self.resolve_field_value(issue, field)
+            initial_value = self.resolve_field_value(issue, self.field_name_to_id(field))
             try:
                 initial_value = next(filter(
                     lambda h: h.field == field,
