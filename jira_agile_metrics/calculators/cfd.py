@@ -80,15 +80,16 @@ class CFDCalculator(Calculator):
         if len(data.index) == 0:
             logger.warning("Cannot draw CFD with no data")
             return
-
+        
         window = self.settings['cfd_window']
         if window:
             start = data.index.max() - pd.Timedelta(window, 'D')
             data = data[start:]
         
-        if len(data.index) == 0:
-            logger.warning("Cannot draw CFD with no data")
-            return
+            # Re-check after slicing
+            if len(data.index) == 0:
+                logger.warning("Cannot draw CFD with no data")
+                return
 
         fig, ax = plt.subplots()
         

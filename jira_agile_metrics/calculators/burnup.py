@@ -45,6 +45,11 @@ class BurnupCalculator(Calculator):
             start = chart_data.index.max() - pd.Timedelta(window, 'D')
             chart_data = chart_data[start:]
 
+            # Re-check after slicing for window
+            if len(chart_data.index) == 0:
+                logger.warning("Unable to draw burnup chart with no data items")
+                return
+
         fig, ax = plt.subplots()
         
         if self.settings['burnup_chart_title']:

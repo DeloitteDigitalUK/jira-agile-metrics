@@ -56,6 +56,10 @@ class WIPChartCalculator(Calculator):
             start = wip_data.index.max().normalize() - (window * pd.tseries.frequencies.to_offset(frequency))
             wip_data = wip_data[start:]
 
+            if len(wip_data.index) < 2:
+                logger.warning("Need at least 2 completed items to draw scatterplot")
+                return
+
         groups = wip_data.groupby(pd.Grouper(freq=frequency, label='left', closed='left'))
         labels = [x[0].strftime("%d/%m/%Y") for x in groups]
 

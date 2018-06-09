@@ -72,11 +72,11 @@ class HistogramCalculator(Calculator):
             start = chart_data['completed_timestamp'].max().normalize() - pd.Timedelta(window, 'D')
             chart_data = chart_data[chart_data.completed_timestamp >= start]
         
-        # Re-check that we have enough data
-        ct_days = chart_data['cycle_time'].dt.days
-        if len(ct_days.index) < 2:
-            logger.warning("Need at least 2 completed items to draw histogram")
-            return
+            # Re-check that we have enough data
+            ct_days = chart_data['cycle_time'].dt.days
+            if len(ct_days.index) < 2:
+                logger.warning("Need at least 2 completed items to draw histogram")
+                return
         
         quantiles = self.settings['quantiles']
         logger.debug("Showing histogram at quantiles %s", ', '.join(['%.2f' % (q * 100.0) for q in quantiles]))

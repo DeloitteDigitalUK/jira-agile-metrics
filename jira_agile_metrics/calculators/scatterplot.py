@@ -78,6 +78,10 @@ class ScatterplotCalculator(Calculator):
         if window:
             start = chart_data['completed_date'].max().normalize() - pd.Timedelta(window, 'D')
             chart_data = chart_data[chart_data.completed_date >= start]
+
+            if len(data.index) < 2:
+                logger.warning("Need at least 2 completed items to draw scatterplot")
+                return
         
         quantiles = self.settings['quantiles']
         logger.debug("Showing forecast at quantiles %s", ', '.join(['%.2f' % (q * 100.0) for q in quantiles]))
