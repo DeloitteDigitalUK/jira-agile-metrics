@@ -133,6 +133,12 @@ Output:
     Net flow chart: net-flow.png
     Net flow chart title: Net flow
 
+    Blocked window: 3
+    Blocked days chart: blocked-days.png
+    Blocked days chart title: Total blocked ticket days
+    Blocked count chart: blocked-count.png
+    Blocked count chart title: Blocked ticket count
+
     Defects query: issueType = Bug
     Defects window: 3
     Defects priority field: Priority
@@ -265,6 +271,12 @@ Output:
         'wip_window': 3,
         'wip_chart': 'wip.png',
         'wip_chart_title': 'Work in Progress',
+
+        'blocked_window': 3,
+        'blocked_count_chart': 'blocked-count.png',
+        'blocked_count_chart_title': 'Blocked ticket count',
+        'blocked_days_chart': 'blocked-days.png',
+        'blocked_days_chart_title': 'Total blocked ticket days',
 
         'defects_query': 'issueType = Bug',
         'defects_window': 3,

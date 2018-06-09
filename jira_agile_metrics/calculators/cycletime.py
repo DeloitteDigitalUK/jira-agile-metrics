@@ -106,6 +106,8 @@ class CycleTimeCalculator(Calculator):
                 for cycle_name in cycle_names:
                     item[cycle_name] = None
 
+                last_status = None
+                impediment_start_status = None
                 impediment_start = None
 
                 # Record date of status and impediments flag changes
@@ -115,8 +117,8 @@ class CycleTimeCalculator(Calculator):
                         if snapshot_cycle_step is None:
                             logger.warn("Issue %s transitioned to unknown JIRA status %s", issue.key, snapshot.to_string)
                             continue
-
-                        snapshot_cycle_step_name = snapshot_cycle_step['name']
+                        
+                        last_status = snapshot_cycle_step_name = snapshot_cycle_step['name']
 
                         # Keep the first time we entered a step
                         if item[snapshot_cycle_step_name] is None:
@@ -137,16 +139,18 @@ class CycleTimeCalculator(Calculator):
                             continue
                         elif snapshot.to_string is not None and snapshot.to_string != "":
                             impediment_start = snapshot.date.date()
+                            impediment_start_status = last_status
                         elif snapshot.to_string is None or snapshot.to_string == "":
                             if impediment_start is None:
                                 logger.warning("Issue %s had impediment flag cleared before being set. This should not happen.", issue.key)
                                 continue
                             
                             item['blocked_days'] += (snapshot.date.date() - impediment_start).days
-                            item['blocking_events'].append({'start': impediment_start, 'end': snapshot.date.date()})
+                            item['blocking_events'].append({'start': impediment_start, 'end': snapshot.date.date(), 'status': impediment_start_status})
 
                             # Reset for next time
                             impediment_start = None
+                            impediment_start_status = None
                 
                 # If an impediment flag was set but never cleared: treat as resolved on the ticket
                 # resolution date if the ticket was resolved, else as still open until today.
@@ -154,11 +158,12 @@ class CycleTimeCalculator(Calculator):
                     if issue.fields.resolutiondate:
                         resolution_date = dateutil.parser.parse(issue.fields.resolutiondate).date()
                         item['blocked_days'] += (resolution_date - impediment_start).days
-                        item['blocking_events'].append({'start': impediment_start, 'end': resolution_date})
+                        item['blocking_events'].append({'start': impediment_start, 'end': resolution_date, 'status': impediment_start_status})
                     else:
                         item['blocked_days'] += (now.date() - impediment_start).days
-                        item['blocking_events'].append({'start': impediment_start, 'end': None})
+                        item['blocking_events'].append({'start': impediment_start, 'end': None, 'status': impediment_start_status})
                     impediment_start = None
+                    impediment_start_status = None
                 
                 # Wipe timestamps if items have moved backwards; calculate cycle time
 

@@ -17,6 +17,7 @@ from .calculators.wip import WIPChartCalculator
 from .calculators.netflow import NetFlowChartCalculator
 from .calculators.ageingwip import AgeingWIPChartCalculator
 from .calculators.forecast import BurnupForecastCalculator
+from .calculators.blocked import BlockedCalculator
 from .calculators.debt import DebtCalculator
 from .calculators.defects import DefectsCalculator
 from .calculators.waste import WasteCalculator
@@ -33,6 +34,7 @@ CALCULATORS = (
     NetFlowChartCalculator,
     AgeingWIPChartCalculator,
     BurnupForecastCalculator,
+    BlockedCalculator,
     DebtCalculator,
     DefectsCalculator,
     WasteCalculator,
@@ -142,6 +144,12 @@ def config_to_options(data):
             'net_flow_window': None,
             'net_flow_chart': None,
             'net_flow_chart_title': None,
+
+            'blocked_window': None,
+            'blocked_count_chart': None,
+            'blocked_count_chart_title': None,
+            'blocked_days_chart': None,
+            'blocked_days_chart_title': None,
             
             'defects_query': None,
             'defects_window': None,
@@ -213,6 +221,7 @@ def config_to_options(data):
             'burnup_forecast_chart_throughput_window',
             'burnup_forecast_chart_target',
             'burnup_forecast_chart_trials',
+            'blocked_window',
             'defects_window',
             'debt_window',
             'waste_window',
@@ -263,6 +272,8 @@ def config_to_options(data):
             'wip_chart',
             'ageing_wip_chart',
             'net_flow_chart',
+            'blocked_days_chart',
+            'blocked_count_chart',
             'defects_by_priority_chart',
             'defects_by_type_chart',
             'defects_by_environment_chart',
@@ -302,6 +313,8 @@ def config_to_options(data):
             'ageing_wip_chart_title',
             'net_flow_chart_title',
             'net_flow_frequency',
+            'blocked_days_chart_title',
+            'blocked_count_chart_title',
             'defects_query',
             'defects_by_priority_chart_title',
             'defects_priority_field',

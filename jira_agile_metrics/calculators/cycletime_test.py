@@ -60,8 +60,8 @@ def jira(custom_fields):
             changes=[
                 Change("2018-01-03 01:01:01", [("status", "Backlog", "Next",)]),
                 Change("2018-01-04 01:01:01", [("status", "Next", "Build",)]),
-                Change("2018-01-05 01:01:01", [("status", "Build", "QA",)]),
                 Change("2018-01-04 10:01:01", [("Flagged", None, "Impediment")]),  # should clear two days later when issue resolved
+                Change("2018-01-05 01:01:01", [("status", "Build", "QA",)]),
                 Change("2018-01-06 01:01:01", [("status", "QA", "Done",)]),
             ],
         ),
@@ -176,8 +176,8 @@ def test_movement(jira, settings):
         'cycle_time': NaT,
         'blocked_days': 3,
         'blocking_events': [
-            {'start': datetime.date(2018, 1, 4), 'end': datetime.date(2018, 1, 5)},
-            {'start': datetime.date(2018, 1, 8), 'end': None},
+            {'start': datetime.date(2018, 1, 4), 'end': datetime.date(2018, 1, 5), 'status': 'Committed'},
+            {'start': datetime.date(2018, 1, 8), 'end': None, 'status': 'Committed'},
         ],
 
         'Backlog': Timestamp('2018-01-02 01:01:01'),
@@ -200,7 +200,7 @@ def test_movement(jira, settings):
         'completed_timestamp': Timestamp('2018-01-06 01:01:01'),
         'cycle_time': Timedelta('3 days 00:00:00'),
         'blocked_days': 2,
-        'blocking_events': [{'start': datetime.date(2018, 1, 4), 'end': datetime.date(2018, 1, 6)}],
+        'blocking_events': [{'start': datetime.date(2018, 1, 4), 'end': datetime.date(2018, 1, 6), 'status': 'Build'}],
 
         'Backlog': Timestamp('2018-01-03 01:01:01'),
         'Committed': Timestamp('2018-01-03 01:01:01'),
@@ -222,7 +222,7 @@ def test_movement(jira, settings):
         'completed_timestamp': NaT,
         'cycle_time': NaT,
         'blocked_days': 3,
-        'blocking_events': [{'start': datetime.date(2018, 1, 7), 'end': datetime.date(2018, 1, 10)}],
+        'blocking_events': [{'start': datetime.date(2018, 1, 7), 'end': datetime.date(2018, 1, 10), 'status': 'Committed'}],
 
         'Backlog': Timestamp('2018-01-04 01:01:01'),
         'Committed': Timestamp('2018-01-04 01:01:01'),
