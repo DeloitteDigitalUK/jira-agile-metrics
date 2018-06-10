@@ -92,6 +92,10 @@ class ImpedimentsCalculator(Calculator):
         if window:
             breakdown = breakdown[-window:]
 
+            if len(breakdown.index) == 0:
+                logger.warning("Cannot draw impediments chart with zero items")
+                return
+
         fig, ax = plt.subplots()
         
         breakdown.plot.bar(ax=ax, stacked=True)
@@ -125,6 +129,10 @@ class ImpedimentsCalculator(Calculator):
         
         if window:
             breakdown = breakdown[-window:]
+
+            if len(breakdown.index) == 0:
+                logger.warning("Cannot draw impediments chart with zero items")
+                return
 
         fig, ax = plt.subplots()
         

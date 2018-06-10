@@ -69,7 +69,7 @@ class CycleTimeCalculator(Calculator):
             'cycle_time': {'data': [], 'dtype': 'timedelta64[ns]'},
             'completed_timestamp': {'data': [], 'dtype': 'datetime64[ns]'},
             'blocked_days': {'data': [], 'dtype': 'int'},
-            'impediments': {'data': [], 'dtype': 'object'},  # list of {'start', 'end'} datetime pairs
+            'impediments': {'data': [], 'dtype': 'object'},  # list of {'start', 'end', 'status'}
         }
 
         for cycle_name in cycle_names:

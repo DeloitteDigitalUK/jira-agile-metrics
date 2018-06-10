@@ -1,11 +1,12 @@
 # To-do
   
+- docker image for batch running output jobs
+
 ## Bugs
 
-## Tests
+- cycletime blocked_days should ignore backlog and done columns
 
-- blocked charts
-- breakdown_by_month_sum_days
+## Tests
 
 ## Docs
 
