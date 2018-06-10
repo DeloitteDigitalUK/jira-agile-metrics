@@ -16,8 +16,8 @@ class BurnupCalculator(Calculator):
     def run(self):
         cfd_data = self.get_result(CFDCalculator)
         
-        backlog_column = self.settings['backlog_column'] or cfd_data.columns[0]
-        done_column = self.settings['done_column'] or cfd_data.columns[-1]
+        backlog_column = self.settings['backlog_column']
+        done_column = self.settings['done_column']
 
         if backlog_column not in cfd_data.columns:
             logger.error("Backlog column %s does not exist", backlog_column)

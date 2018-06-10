@@ -10,9 +10,6 @@ from ..utils import extend_dict
 @pytest.fixture
 def settings(minimal_settings):
     return extend_dict(minimal_settings, {
-        'committed_column': None,
-        'final_column': None,
-        'done_column': None,
         'ageing_wip_chart': 'ageingwip.png'  # without a file to write the calculator will stop
     })
 

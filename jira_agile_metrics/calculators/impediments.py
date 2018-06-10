@@ -30,8 +30,8 @@ class ImpedimentsCalculator(Calculator):
             logger.debug("Not calculating impediments data as no output files specified")
             return None
         
-        backlog_column = self.settings['backlog_column'] or self.settings['cycle'][0]['name']
-        done_column = self.settings['done_column'] or self.settings['cycle'][-1]['name']
+        backlog_column = self.settings['backlog_column']
+        done_column = self.settings['done_column']
 
         cycle_data = self.get_result(CycleTimeCalculator)
         cycle_data = cycle_data[cycle_data.blocked_days > 0][['key', 'impediments']]

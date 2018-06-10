@@ -9,8 +9,6 @@ from ..utils import extend_dict
 @pytest.fixture
 def settings(minimal_settings):
     return extend_dict(minimal_settings, {
-        'backlog_column': None,
-        'done_column': None
     })
 
 @pytest.fixture

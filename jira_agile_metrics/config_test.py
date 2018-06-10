@@ -35,6 +35,12 @@ Workflow:
     assert options['connection']['domain'] == 'https://foo.com'
     assert options['settings']['queries'][0] == {'value': None, 'jql': '(filter=123)'}
 
+    assert options['settings']['backlog_column'] == 'Backlog'
+    assert options['settings']['committed_column'] == 'In progress'
+    assert options['settings']['final_column'] == 'In progress'
+    assert options['settings']['done_column'] == 'Done'
+    
+
 def test_config_to_options_maximal():
 
     options = config_to_options("""\

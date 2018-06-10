@@ -101,7 +101,7 @@ class CFDCalculator(Calculator):
         ax.set_xlabel("Date")
         ax.set_ylabel("Number of items")
 
-        backlog_column = self.settings['backlog_column'] or data.columns[0]
+        backlog_column = self.settings['backlog_column']
 
         if backlog_column not in data.columns:
             logger.error("Backlog column %s does not exist", backlog_column)

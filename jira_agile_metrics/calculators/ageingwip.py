@@ -24,9 +24,9 @@ class AgeingWIPChartCalculator(Calculator):
         cycle_data = self.get_result(CycleTimeCalculator)
         cycle_names = [s['name'] for s in self.settings['cycle']]
 
-        start_column = self.settings['committed_column'] or cycle_names[1]
-        end_column = self.settings['final_column'] or cycle_names[-2]
-        done_column = self.settings['done_column'] or cycle_names[-1]
+        start_column = self.settings['committed_column']
+        end_column = self.settings['final_column']
+        done_column = self.settings['done_column']
         
         if start_column not in cycle_names:
             logger.error("Committed column %s does not exist", start_column)

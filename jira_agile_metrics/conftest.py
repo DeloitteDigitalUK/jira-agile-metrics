@@ -90,8 +90,11 @@ def minimal_settings():
         ],
         'query_attribute': None,
         'queries': [{'jql': '(filter=123)', 'value': None}],
-        'backlog_column': None,
-        'done_column': None,
+        
+        'backlog_column': 'Backlog',
+        'committed_column': 'Committed',
+        'final_column': 'Test',
+        'done_column': 'Done',
     }
 
 

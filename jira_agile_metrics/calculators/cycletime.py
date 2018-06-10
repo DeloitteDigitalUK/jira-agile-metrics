@@ -59,8 +59,8 @@ class CycleTimeCalculator(Calculator):
         accepted_steps = set(s['name'] for s in self.settings['cycle'] if s['type'] == StatusTypes.accepted)
         completed_steps = set(s['name'] for s in self.settings['cycle'] if s['type'] == StatusTypes.complete)
 
-        backlog_column = self.settings['backlog_column'] or cycle_names[0]
-        done_column = self.settings['done_column'] or cycle_names[-1]
+        backlog_column = self.settings['backlog_column']
+        done_column = self.settings['done_column']
 
         series = {
             'key': {'data': [], 'dtype': 'str'},

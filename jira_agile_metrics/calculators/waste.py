@@ -24,8 +24,8 @@ class WasteCalculator(Calculator):
             logger.debug("Not calculating waste chart data as no query specified")
             return None
 
-        backlog_column = self.settings['backlog_column'] or self.settings['cycle'][0]['name']
-        done_column = self.settings['done_column'] or self.settings['cycle'][-1]['name']
+        backlog_column = self.settings['backlog_column']
+        done_column = self.settings['done_column']
 
         cycle_lookup = {}
         for idx, cycle_step in enumerate(self.settings['cycle']):
@@ -93,8 +93,8 @@ class WasteCalculator(Calculator):
         window = self.settings['waste_window']
         
         cycle_names = [s['name'] for s in self.settings['cycle']]
-        backlog_column = self.settings['backlog_column'] or self.settings['cycle'][0]['name']
-        done_column = self.settings['done_column'] or self.settings['cycle'][-1]['name']
+        backlog_column = self.settings['backlog_column']
+        done_column = self.settings['done_column']
 
         cycle_names.remove(backlog_column)
         cycle_names.remove(done_column)

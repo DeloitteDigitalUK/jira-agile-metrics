@@ -29,8 +29,8 @@ class BurnupForecastCalculator(Calculator):
             logger.debug("Not calculating burnup forecast chart data as no output file specified")
             return None
 
-        backlog_column = self.settings['backlog_column'] or burnup_data.columns[0]
-        done_column = self.settings['done_column'] or burnup_data.columns[-1]
+        backlog_column = self.settings['backlog_column']
+        done_column = self.settings['done_column']
 
         if backlog_column not in burnup_data.columns:
             logger.error("Backlog column %s does not exist", backlog_column)
@@ -109,7 +109,7 @@ class BurnupForecastCalculator(Calculator):
         quantiles = self.settings['quantiles']
         logger.debug("Showing forecast at quantiles %s", ', '.join(['%.2f' % (q * 100.0) for q in quantiles]))
         
-        backlog_column = self.settings['backlog_column'] or burnup_data.columns[0]
+        backlog_column = self.settings['backlog_column']
         target = self.settings['burnup_forecast_chart_target'] or burnup_data[backlog_column].max()
 
         fig, ax = plt.subplots()

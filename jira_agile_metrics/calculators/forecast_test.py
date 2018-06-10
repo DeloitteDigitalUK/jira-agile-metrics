@@ -13,8 +13,6 @@ from ..utils import extend_dict
 @pytest.fixture
 def settings(minimal_settings):
     return extend_dict(minimal_settings, {
-        'backlog_column': None,
-        'done_column': None,
         'burnup_forecast_chart_throughput_window_end': None,
         'burnup_forecast_chart_throughput_window': 8,
         'burnup_forecast_chart_target': 30,

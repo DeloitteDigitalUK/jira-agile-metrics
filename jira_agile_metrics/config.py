@@ -374,6 +374,15 @@ def config_to_options(data):
     options['settings']['cycle'][0]['type'] = StatusTypes.backlog
     options['settings']['cycle'][-1]['type'] = StatusTypes.complete
 
+    if options['settings']['backlog_column'] is None:
+        options['settings']['backlog_column'] = options['settings']['cycle'][0]['name']
+    if options['settings']['committed_column'] is None:
+        options['settings']['committed_column'] = options['settings']['cycle'][1]['name']
+    if options['settings']['final_column'] is None:
+        options['settings']['final_column'] = options['settings']['cycle'][-2]['name']
+    if options['settings']['done_column'] is None:
+        options['settings']['done_column'] = options['settings']['cycle'][-1]['name']
+
     # Parse attributes (fields)
 
     if 'attributes' in config:

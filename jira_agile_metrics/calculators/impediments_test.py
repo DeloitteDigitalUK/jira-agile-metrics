@@ -19,8 +19,6 @@ def query_manager(minimal_query_manager):
 @pytest.fixture
 def settings(minimal_settings):
     return extend_dict(minimal_settings, {
-        'backlog_column': None,
-        'done_column': None,
         'impediments_data': 'impediments.csv',
         'impediments_chart': 'impediments.png',
         'impediments_days_chart': 'impediments-days.png',

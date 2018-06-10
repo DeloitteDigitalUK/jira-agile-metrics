@@ -20,8 +20,6 @@ def fields(minimal_fields):
 @pytest.fixture
 def settings(minimal_settings):
     return extend_dict(minimal_settings, {
-        'backlog_column': None,
-        'done_column': None,
         'waste_query': 'issueType = Story AND resolution IN (Withdrawn, Invalid)',
         'waste_window': 3,
         'waste_frequency': '2W-WED',
