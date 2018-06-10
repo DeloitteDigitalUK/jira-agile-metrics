@@ -4,8 +4,6 @@
 
 ## Bugs
 
-- cycletime blocked_days should ignore backlog and done columns
-
 ## Tests
 
 ## Docs

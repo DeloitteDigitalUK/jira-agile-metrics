@@ -263,7 +263,8 @@ You can also use `.json` or `.xlsx` formats.
 
 Note: the "Blocked Days" calculation relies on the "Flagged" feature in JIRA,
 showing the total number of days (rounded up to the nearest whole day) that each
-ticket was flagged as impeded.
+ticket was flagged as impeded. Impediments raised whilst the ticket is in the
+backlog or done do not count.
 
 ### Cumulative Flow Diagram (CFD)
 

@@ -54,10 +54,13 @@ class CycleTimeCalculator(Calculator):
         # Allows unit testing to use a fixed date
         if now is None:
             now = datetime.datetime.utcnow()
-
+        
         cycle_names = [s['name'] for s in self.settings['cycle']]
         accepted_steps = set(s['name'] for s in self.settings['cycle'] if s['type'] == StatusTypes.accepted)
         completed_steps = set(s['name'] for s in self.settings['cycle'] if s['type'] == StatusTypes.complete)
+
+        backlog_column = self.settings['backlog_column'] or cycle_names[0]
+        done_column = self.settings['done_column'] or cycle_names[-1]
 
         series = {
             'key': {'data': [], 'dtype': 'str'},
@@ -145,7 +148,8 @@ class CycleTimeCalculator(Calculator):
                                 logger.warning("Issue %s had impediment flag cleared before being set. This should not happen.", issue.key)
                                 continue
                             
-                            item['blocked_days'] += (snapshot.date.date() - impediment_start).days
+                            if impediment_start_status not in (backlog_column, done_column):
+                                item['blocked_days'] += (snapshot.date.date() - impediment_start).days
                             item['impediments'].append({'start': impediment_start, 'end': snapshot.date.date(), 'status': impediment_start_status})
 
                             # Reset for next time
@@ -157,10 +161,12 @@ class CycleTimeCalculator(Calculator):
                 if impediment_start is not None:
                     if issue.fields.resolutiondate:
                         resolution_date = dateutil.parser.parse(issue.fields.resolutiondate).date()
-                        item['blocked_days'] += (resolution_date - impediment_start).days
+                        if impediment_start_status not in (backlog_column, done_column):
+                            item['blocked_days'] += (resolution_date - impediment_start).days
                         item['impediments'].append({'start': impediment_start, 'end': resolution_date, 'status': impediment_start_status})
                     else:
-                        item['blocked_days'] += (now.date() - impediment_start).days
+                        if impediment_start_status not in (backlog_column, done_column):
+                            item['blocked_days'] += (now.date() - impediment_start).days
                         item['impediments'].append({'start': impediment_start, 'end': None, 'status': impediment_start_status})
                     impediment_start = None
                     impediment_start_status = None

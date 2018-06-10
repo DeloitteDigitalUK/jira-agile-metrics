@@ -40,8 +40,10 @@ def jira(custom_fields):
             customfield_003=Value(None, []),
             customfield_100=None,
             changes=[
+                Change("2018-01-02 10:01:01", [("Flagged", None, "Impediment")]),
+                Change("2018-01-03 01:00:00", [("Flagged", "Impediment", "")]),  # blocked 1 day in the backlog (doesn't count towards blocked days)
                 Change("2018-01-03 01:01:01", [("status", "Backlog", "Next",)]),
-                Change("2018-01-04 10:01:01", [("Flagged", None, "Impediment")]),
+                Change("2018-01-04 10:01:01", [("Flagged", "", "Impediment")]),
                 Change("2018-01-05 08:01:01", [("Flagged", "Impediment", "")]),  # was blocked 1 day
                 Change("2018-01-08 10:01:01", [("Flagged", "", "Impediment")]),  # stays blocked until today
             ],
@@ -176,6 +178,7 @@ def test_movement(jira, settings):
         'cycle_time': NaT,
         'blocked_days': 3,
         'impediments': [
+            {'start': datetime.date(2018, 1, 2), 'end': datetime.date(2018, 1, 3), 'status': 'Backlog'},  # doesn't count towards blocked_days
             {'start': datetime.date(2018, 1, 4), 'end': datetime.date(2018, 1, 5), 'status': 'Committed'},
             {'start': datetime.date(2018, 1, 8), 'end': None, 'status': 'Committed'},
         ],

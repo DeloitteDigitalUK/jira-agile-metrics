@@ -89,7 +89,9 @@ def minimal_settings():
             {'name': 'Done',      'statuses': ['Done'],              'type': 'complete'}
         ],
         'query_attribute': None,
-        'queries': [{'jql': '(filter=123)', 'value': None}]
+        'queries': [{'jql': '(filter=123)', 'value': None}],
+        'backlog_column': None,
+        'done_column': None,
     }
 
 
