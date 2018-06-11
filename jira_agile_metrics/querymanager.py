@@ -98,11 +98,9 @@ class QueryManager(object):
                 attribute_name = self.fields_to_attributes.get(field_id, None)
                 if attribute_name not in self.settings['known_values']:
                     value = values[0]
-                    logger.debug("Resolving value for %s to %s as %s is not in known_values", field_id, value, attribute_name)
                 else:
                     try:
                         value = next(filter(lambda v: v in values, self.settings['known_values'][attribute_name]))
-                        logger.debug("Resolving value for %s to %s as %s from known_values", field_id, value, attribute_name)
                     except StopIteration:
                         value = None
 
