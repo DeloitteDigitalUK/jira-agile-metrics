@@ -998,6 +998,14 @@ These options name data files to write. Use an extension of `.csv`, `.xlsx`, or
 
 ## Changelog
 
+### 0.5
+
+* Added batch mode docker image
+
+### 0.4
+
+* Added impediments charts
+
 ### 0.3
 
 * Added debt, defects, and waste charts.
