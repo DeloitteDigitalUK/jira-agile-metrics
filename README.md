@@ -29,13 +29,37 @@ If you prefer, you can use [Docker](http://docker.com) to install and run
 `jira-agile-metrics` with all the relevant dependencies in place. After
 installing Docker, run:
 
-    $ docker run -it --rm -v $PWD:/data optilude/jira-agile-metrics config.yml
+    $ docker run -it --rm -v $PWD:/data optilude/jira-agile-metrics:latest config.yml
 
 This will run `jira-agile-metrics` with the configuration file `config.yml` from
 the current directory, writing outputs also to the current directory. The
 argument `-v $PWD:/data` mounts the `/data` volume, where output files will be
 written, to the current working directory. You can of course specify a
 different bind mount.
+
+### Using Docker in batch mode
+
+There is a second Docker image, which can be used to run multiple config files
+in batch mode, for example to generate metrics overnight.
+
+To use it, create a directory containing one or more configuration files, with
+the extension `.yml` or `.yaml`, and a _different_ directory for the outputs.
+Assuming these are `/path/to/config` and `/path/to/output`, you can run
+the following Docker command periodically, e.g. using `cron` or another
+scheduler:
+
+    $ docker run --rm -v /path/to/config:/config -v /path/to/output:/data optilude/jira-agile-metrics:batch-latest
+
+When this is finished, you should see a directory under the `output` directory
+for each of the config files in the `config` directory, containing the reports
+and charts. You will also find a file called `metrics.log` containing the log
+output during the run, which may be helpful in diagnosing any problems.
+
+Any command line arguments passed to `docker run` after the image name will be
+passed directly to `jira-agile-metrics`. So, for example, if you wanted to use
+the `-n` option to limit the number of results fetched from JIRA (for testing
+purposes), you can pass `-n 10` (or some different number) at the end of the
+command line above.
 
 ## Usage
 
@@ -86,7 +110,7 @@ There is a separate Docker image for running the web server, which uses `nginx`
 and `uwsgi` for improved performance and stability (but still not SSL, which
 would need to be configured with a domain-specific certificate):
 
-    $ docker run -d --rm -p 8080:80 --name jira_metrics optilude/jira-agile-metrics:server
+    $ docker run -d --rm -p 8080:80 --name jira_metrics optilude/jira-agile-metrics:server-latest
 
 This will run the server in daemon mode and bind it to port `8080` on the local
 host. To stop it, run:
