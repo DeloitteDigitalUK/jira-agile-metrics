@@ -998,6 +998,10 @@ These options name data files to write. Use an extension of `.csv`, `.xlsx`, or
 
 ## Changelog
 
+### 0.6
+
+* Don't log every list value resolution at debug
+
 ### 0.5
 
 * Added batch mode docker image

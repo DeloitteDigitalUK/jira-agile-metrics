@@ -1,6 +1,6 @@
 FROM tiangolo/uwsgi-nginx-flask:python3.6
 
-LABEL version="0.5"
+LABEL version="0.6"
 LABEL description="Web server version of jira-agile-metrics"
 
 # Install requirments first to make future rebuilds faster

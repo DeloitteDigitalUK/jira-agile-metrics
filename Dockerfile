@@ -1,6 +1,6 @@
 FROM python:3
 
-LABEL version="0.5"
+LABEL version="0.6"
 LABEL description="Produce charts and data files of Agile metrics extracted \
 from JIRA."
 
