@@ -998,6 +998,10 @@ These options name data files to write. Use an extension of `.csv`, `.xlsx`, or
 
 ## Changelog
 
+### 0.7
+
+* Turn throughput chart into a line chart
+
 ### 0.6
 
 * Don't log every list value resolution at debug
