@@ -76,6 +76,8 @@ def config_to_options(data):
             'domain': None,
             'username': None,
             'password': None,
+            'http_proxy': None,
+            'https_proxy': None,
             'jira_client_options': {}
         },
         'settings': {
@@ -196,9 +198,15 @@ def config_to_options(data):
 
     if 'password' in config['connection']:
         options['connection']['password'] = config['connection']['password']
+    
+    if 'http proxy' in config['connection']:
+        options['connection']['http_proxy'] = config['connection']['http proxy']
+    
+    if 'https proxy' in config['connection']:
+        options['connection']['https_proxy'] = config['connection']['https proxy']
 
-    if 'jira_client_options' in config['connection']:
-        options['connection']['jira_client_options'] = config['connection']['jira_client_options']
+    if 'jira client options' in config['connection']:
+        options['connection']['jira_client_options'] = config['connection']['jira client options']
 
     # Parse and validate output options
     if 'output' in config:

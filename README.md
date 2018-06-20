@@ -998,6 +998,11 @@ These options name data files to write. Use an extension of `.csv`, `.xlsx`, or
 
 ## Changelog
 
+### 0.8
+
+* Added `--http-proxy` and `--https-proxy` options to command line, and
+  corresponding `HTTP Proxy` and `HTTPS Proxy` in the `Connection` section.
+
 ### 0.7
 
 * Turn throughput chart into a line chart

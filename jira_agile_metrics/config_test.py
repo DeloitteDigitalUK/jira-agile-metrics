@@ -48,6 +48,8 @@ Connection:
     Domain: https://foo.com
     Username: user1
     Password: apassword
+    HTTP Proxy: https://proxy1.local
+    HTTPS Proxy: https://proxy2.local
 
 Queries:
     Attribute: Team
@@ -197,7 +199,9 @@ Output:
         'domain': 'https://foo.com',
         'jira_client_options': {},
         'password': 'apassword',
-        'username': 'user1'
+        'username': 'user1',
+        'http_proxy': 'https://proxy1.local',
+        'https_proxy': 'https://proxy2.local',
     }
    
     assert options['settings'] == {

@@ -34,6 +34,8 @@ def configure_argument_parser():
     parser.add_argument('--domain', metavar='https://my.jira.com', help='JIRA domain name')
     parser.add_argument('--username', metavar='user', help='JIRA user name')
     parser.add_argument('--password', metavar='password', help='JIRA password')
+    parser.add_argument('--http-proxy', metavar='https://proxy.local', help='URL to HTTP Proxy')
+    parser.add_argument('--https-proxy', metavar='https://proxy.local', help='URL to HTTPS Proxy')
 
     return parser
 
@@ -109,6 +111,9 @@ def get_jira_client(connection):
     url = connection['domain']
     username = connection['username']
     password = connection['password']
+    http_proxy = connection['http_proxy']
+    https_proxy = connection['https_proxy']
+
     jira_client_options = connection['jira_client_options']
 
     logger.info("Connecting to %s", url)
@@ -120,6 +125,15 @@ def get_jira_client(connection):
         password = getpass.getpass("Password: ")
 
     options = {'server': url}
+    proxies = None
+
+    if http_proxy or https_proxy:
+        proxies = {}
+        if http_proxy:
+            proxies['http'] = http_proxy
+        if https_proxy:
+            proxies['https'] = https_proxy
+
     options.update(jira_client_options)
 
-    return JIRA(options, basic_auth=(username, password))
+    return JIRA(options, basic_auth=(username, password), proxies=proxies)

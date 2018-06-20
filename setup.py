@@ -13,7 +13,7 @@ with open(path.join(here, 'requirements.txt')) as f:
 
 setup(
     name='jira-agile-metrics',
-    version='0.7',
+    version='0.8',
     description='Agile metrics and summary data extracted from JIRA',
     long_description=long_description,
     long_description_content_type="text/markdown",
