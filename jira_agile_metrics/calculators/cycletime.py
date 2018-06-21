@@ -72,7 +72,7 @@ class CycleTimeCalculator(Calculator):
             'cycle_time': {'data': [], 'dtype': 'timedelta64[ns]'},
             'completed_timestamp': {'data': [], 'dtype': 'datetime64[ns]'},
             'blocked_days': {'data': [], 'dtype': 'int'},
-            'impediments': {'data': [], 'dtype': 'object'},  # list of {'start', 'end', 'status'}
+            'impediments': {'data': [], 'dtype': 'object'},  # list of {'start', 'end', 'status', 'flag'}
         }
 
         for cycle_name in cycle_names:
@@ -110,6 +110,7 @@ class CycleTimeCalculator(Calculator):
                     item[cycle_name] = None
 
                 last_status = None
+                impediment_flag = None
                 impediment_start_status = None
                 impediment_start = None
 
@@ -141,6 +142,7 @@ class CycleTimeCalculator(Calculator):
                             # Initial state from None -> None
                             continue
                         elif snapshot.to_string is not None and snapshot.to_string != "":
+                            impediment_flag = snapshot.to_string
                             impediment_start = snapshot.date.date()
                             impediment_start_status = last_status
                         elif snapshot.to_string is None or snapshot.to_string == "":
@@ -150,9 +152,15 @@ class CycleTimeCalculator(Calculator):
                             
                             if impediment_start_status not in (backlog_column, done_column):
                                 item['blocked_days'] += (snapshot.date.date() - impediment_start).days
-                            item['impediments'].append({'start': impediment_start, 'end': snapshot.date.date(), 'status': impediment_start_status})
+                            item['impediments'].append({
+                                'start': impediment_start,
+                                'end': snapshot.date.date(),
+                                'status': impediment_start_status,
+                                'flag': impediment_flag,
+                            })
 
                             # Reset for next time
+                            impediment_flag = None
                             impediment_start = None
                             impediment_start_status = None
                 
@@ -163,11 +171,22 @@ class CycleTimeCalculator(Calculator):
                         resolution_date = dateutil.parser.parse(issue.fields.resolutiondate).date()
                         if impediment_start_status not in (backlog_column, done_column):
                             item['blocked_days'] += (resolution_date - impediment_start).days
-                        item['impediments'].append({'start': impediment_start, 'end': resolution_date, 'status': impediment_start_status})
+                        item['impediments'].append({
+                            'start': impediment_start,
+                            'end': resolution_date,
+                            'status': impediment_start_status,
+                            'flag': impediment_flag,
+                        })
                     else:
                         if impediment_start_status not in (backlog_column, done_column):
                             item['blocked_days'] += (now.date() - impediment_start).days
-                        item['impediments'].append({'start': impediment_start, 'end': None, 'status': impediment_start_status})
+                        item['impediments'].append({
+                            'start': impediment_start,
+                            'end': None,
+                            'status': impediment_start_status,
+                            'flag': impediment_flag,
+                        })
+                    impediment_flag = None
                     impediment_start = None
                     impediment_start_status = None
                 

@@ -147,6 +147,10 @@ Output:
     Impediments chart title: Impediments
     Impediments days chart: impediments-days.png
     Impediments days chart title: Total impeded days
+    Impediments status chart: impediments-status.png
+    Impediments status chart title: Impediments by status
+    Impediments status days chart: impediments-status-days.png
+    Impediments status days chart title: Total impeded days by status
 
     Defects query: issueType = Bug
     Defects window: 3
@@ -289,6 +293,10 @@ Output:
         'impediments_chart_title': 'Impediments',
         'impediments_days_chart': 'impediments-days.png',
         'impediments_days_chart_title': 'Total impeded days',
+        'impediments_status_chart': 'impediments-status.png',
+        'impediments_status_chart_title': 'Impediments by status',
+        'impediments_status_days_chart': 'impediments-status-days.png',
+        'impediments_status_days_chart_title': 'Total impeded days by status',
 
         'defects_query': 'issueType = Bug',
         'defects_window': 3,

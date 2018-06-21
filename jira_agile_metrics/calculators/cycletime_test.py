@@ -82,8 +82,8 @@ def jira(custom_fields):
                 Change("2018-01-04 01:01:01", [("status", "Backlog", "Next",)]),
                 Change("2018-01-05 01:01:01", [("status", "Next", "Build",)]),
                 Change("2018-01-06 01:01:01", [("status", "Build", "Next",)]),
-                Change("2018-01-07 01:01:01", [("Flagged", None, "Impediment")]),
-                Change("2018-01-10 10:01:01", [("Flagged", "Impediment", "")]),  # blocked 3 days
+                Change("2018-01-07 01:01:01", [("Flagged", None, "Awaiting input")]),
+                Change("2018-01-10 10:01:01", [("Flagged", "Awaiting input", "")]),  # blocked 3 days
             ],
         ),
     ])
@@ -178,9 +178,9 @@ def test_movement(jira, settings):
         'cycle_time': NaT,
         'blocked_days': 3,
         'impediments': [
-            {'start': datetime.date(2018, 1, 2), 'end': datetime.date(2018, 1, 3), 'status': 'Backlog'},  # doesn't count towards blocked_days
-            {'start': datetime.date(2018, 1, 4), 'end': datetime.date(2018, 1, 5), 'status': 'Committed'},
-            {'start': datetime.date(2018, 1, 8), 'end': None, 'status': 'Committed'},
+            {'start': datetime.date(2018, 1, 2), 'end': datetime.date(2018, 1, 3), 'status': 'Backlog', 'flag': 'Impediment'},  # doesn't count towards blocked_days
+            {'start': datetime.date(2018, 1, 4), 'end': datetime.date(2018, 1, 5), 'status': 'Committed', 'flag': 'Impediment'},
+            {'start': datetime.date(2018, 1, 8), 'end': None, 'status': 'Committed', 'flag': 'Impediment'},
         ],
 
         'Backlog': Timestamp('2018-01-02 01:01:01'),
@@ -203,7 +203,7 @@ def test_movement(jira, settings):
         'completed_timestamp': Timestamp('2018-01-06 01:01:01'),
         'cycle_time': Timedelta('3 days 00:00:00'),
         'blocked_days': 2,
-        'impediments': [{'start': datetime.date(2018, 1, 4), 'end': datetime.date(2018, 1, 6), 'status': 'Build'}],
+        'impediments': [{'start': datetime.date(2018, 1, 4), 'end': datetime.date(2018, 1, 6), 'status': 'Build', 'flag': 'Impediment'}],
 
         'Backlog': Timestamp('2018-01-03 01:01:01'),
         'Committed': Timestamp('2018-01-03 01:01:01'),
@@ -225,7 +225,7 @@ def test_movement(jira, settings):
         'completed_timestamp': NaT,
         'cycle_time': NaT,
         'blocked_days': 3,
-        'impediments': [{'start': datetime.date(2018, 1, 7), 'end': datetime.date(2018, 1, 10), 'status': 'Committed'}],
+        'impediments': [{'start': datetime.date(2018, 1, 7), 'end': datetime.date(2018, 1, 10), 'status': 'Committed', 'flag': 'Awaiting input'}],
 
         'Backlog': Timestamp('2018-01-04 01:01:01'),
         'Committed': Timestamp('2018-01-04 01:01:01'),

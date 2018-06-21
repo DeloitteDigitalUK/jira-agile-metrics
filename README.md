@@ -512,12 +512,17 @@ To only show the 30 most recent days in the chart:
 If you use the "Flagged" feature in JIRA to mark (and unmark) tickets as impeded
 when they are blocked, you can produce charts showing the number of impediments
 raised, and the cumulative amount of time tickets have spent being impeded,
-broken down by month and the workflow stage a ticket was in when the impeded
-flag was set. You can also write out the impediment events to a file.
+broken down by month and either the flag set or the the workflow stage a ticket
+was in when the flag was set. You can also write out the impediment events to a
+file.
 
 ![](./docs/images/impediments.png)
 
 ![](./docs/images/impediments-days.png)
+
+![](./docs/images/impediments-status.png)
+
+![](./docs/images/impediments-status-days.png)
 
 The charts can be enabled with:
 
@@ -527,17 +532,27 @@ The charts can be enabled with:
     Impediments chart title: Number of impediments
     Impediments days chart: impediments-days.png
     Impediments days chart title: Total impeded days
+    Impediments status chart: impediments-status.png
+    Impediments status chart title: Number of impediments by status
+    Impediments status days chart: impediments-status-days.png
+    Impediments status days chart title: Total impeded days by status
+
+Note that by default, only a single value (`"Impediment"`) is available for the
+`Flagged` field in JIRA, and indeed only one field can be set when using the
+`"Set flag"` option on a JIRA Agile board. However, you can enable additional
+values in the field configuration for the relevant field, and make that field
+available on the issue edit screen.
 
 The `Impediments window`, which is optional, can be used to limit the chart to
 showing only the most recent months' data: six in this case.
 
-The `Impediments chart` will count the number of impediment events that were
-active each month, i.e. a ticket was flagged as impeded at some point during
-the month.
+The `Impediments chart` and `Impediments status chart` will count the number of
+impediment events that were active each month, i.e. a ticket was flagged as
+impeded at some point during the month.
 
-The `Impediments days chart` uses the same underlying logic, but instead of
-counting impediments, it sums the number of days of all impediments in each
-month.
+The `Impediments days chart` and `Impediments status days chart` uses the same
+underlying logic, but instead of counting impediments, it sums the number of
+days of all impediments in each month.
 
 Note that:
 
@@ -923,14 +938,24 @@ These options name data files to write. Use an extension of `.csv`, `.xlsx`, or
 
 - `Impediments window: <number>` – How many months to show.
 - `Impediments chart: <filename>.png` – Draw a bar chart of the number of
-  active impediments during each month, stacked by the ticket status at the
-  time the impediment was raised.
+  active impediments during each month, stacked by the impediments flag set.
 - `Impediments chart title: <title>` – Title for the impediments chart.
 - `Impediments days chart: <filename>.png` – Draw a bar chart of the total
    number of days of all the impediments active during each month, stacked by
-   the ticket status at the time each impediment was raised.
+   the impediments flag set.
 - `Impediments days chart title: <title>` – Title for the impediments days
    chart.
+- `Impediments status chart: <filename>.png` – Draw a bar chart of the number of
+  active impediments during each month, stacked by the ticket status at the
+  time the impediment was raised.
+- `Impediments status chart title: <title>` – Title for the impediments status
+   chart.
+- `Impediments status days chart: <filename>.png` – Draw a bar chart of the
+   total number of days of all the impediments active during each month, stacked
+   by the ticket status at the time each impediment was raised.
+- `Impediments status days chart title: <title>` – Title for the impediments
+   status days chart.
+
 
 ### Defect density charts
 
@@ -997,6 +1022,11 @@ These options name data files to write. Use an extension of `.csv`, `.xlsx`, or
 - `Waste chart title: <title>` – Title for the waste chart.
 
 ## Changelog
+
+### 0.9
+
+* Made the default impediments charts use the impeded flag value as breakdown,
+  and added specific `Impediments status *` charts for breakdown by status.
 
 ### 0.8
 
