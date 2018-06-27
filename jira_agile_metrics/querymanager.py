@@ -53,6 +53,7 @@ class QueryManager(object):
         # Look up fields in JIRA and resolve attributes to fields
         logger.debug("Resolving JIRA fields")
         self.jira_fields = self.jira.fields()
+        self.jira_fields_to_names = {field['id']: field['name'] for field in self.jira.fields()}
         field_id = None
 
         for name, field in self.settings['attributes'].items():
@@ -81,7 +82,12 @@ class QueryManager(object):
         complex data types.
         """
 
-        field_value = getattr(issue.fields, field_id)
+        try:
+            field_value = getattr(issue.fields, field_id)
+        except AttributeError:
+            field_name = self.jira_fields_to_names.get(field_id, 'Unknown name')
+            logger.debug("Could not get field value for field {}. Probably this is a wrong workflow field mapping".format(field_name))
+            field_value = None
 
         if field_value is None:
             return None
