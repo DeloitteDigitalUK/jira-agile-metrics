@@ -189,7 +189,9 @@ above:
         # If you use .json or .xslx as the extension, you can get JSON data files or Excel
         # spreadsheets instead
 
-        Cycle time data: cycletime.csv
+        Cycle time data:
+            - cycletime.csv
+            - cycletime.json
         CFD data: cfd.csv
         Scatterplot data: scatterplot.csv
         Histogram data: histogram.csv
@@ -283,7 +285,14 @@ In the configuration file:
     Output:
         Cycle time data: cycletime.csv
 
-You can also use `.json` or `.xlsx` formats.
+You can also use `.json` or `.xlsx` formats. To output multiple files, use a
+list like:
+
+    Output:
+        Cycle time data:
+            - cycletime.json
+            - cycletime.xlsx
+            - cycletime.csv
 
 Note: the "Blocked Days" calculation relies on the "Flagged" feature in JIRA,
 showing the total number of days (rounded up to the nearest whole day) that each
@@ -306,7 +315,14 @@ In the configuration file:
         CFD chart: cfd.png
         CFD chart title: Cumulative Flow Diagram
 
-You can also use `.json` or `.xlsx` formats for the data file.
+You can also use `.json` or `.xlsx` formats for the data file.  To output
+multiple files, use a list like:
+
+    Output:
+        CFD data:
+            - cfd.json
+            - cfd.xlsx
+            - cfd.csv
 
 To only show the 30 most recent days in the chart:
 
@@ -328,7 +344,14 @@ In the configuration file:
         Scatterplot chart: scatterplot.png
         Scatterplot chart title: Cycle time scatter plot
 
-You can also use `.json` or `.xlsx` formats for the data file.
+You can also use `.json` or `.xlsx` formats for the data file. To output
+multiple files, use a list like:
+
+    Output:
+        Scatterplot data:
+            - scatterplot.json
+            - scatterplot.xlsx
+            - scatterplot.csv
 
 By default, the quantiles used are the 50th, 85th and 95th percentile, but you
 can specify a different list with the `Quantiles` option under `Output`:
@@ -364,7 +387,14 @@ In the configuration file:
         Histogram chart: histogram.png
         Histogram chart title: Cycle time histogram
 
-You can also use `.json` or `.xlsx` formats for the data file.
+You can also use `.json` or `.xlsx` formats for the data file. To output
+multiple files, use a list like:
+
+    Output:
+        Histogram data:
+            - histogram.json
+            - histogram.xlsx
+            - histogram.csv
 
 This also respects the `Quantiles` option (see above).
 
@@ -829,7 +859,8 @@ These options affect multiple charts and files.
 ### Data files
 
 These options name data files to write. Use an extension of `.csv`, `.xlsx`, or
-`.json` according to the required file format.
+`.json` according to the required file format. May be specified as either a list
+of filenames, or a single filename.
 
 - `Cycle time data: <filename>.[csv,xlsx,json]` – Output file suitable for
    processing Actionable Agile. Contains all issues described by the
@@ -1025,6 +1056,9 @@ These options name data files to write. Use an extension of `.csv`, `.xlsx`, or
 
 ### 0.10
 
+* Make it possible to optionally specify multiple output files (via YAML lists)
+  for `* data:` file names. The use case here is to output both a CSV/XLSX and
+  JSON version of the `cycletime` calculations, for example.
 * Stop swallowing exceptions in calculators (but keep on doing so when writing
   output files). It's too confusing to debug problems.
 

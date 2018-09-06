@@ -62,6 +62,8 @@ class CycleTimeCalculator(Calculator):
         backlog_column = self.settings['backlog_column']
         done_column = self.settings['done_column']
 
+        unmapped_statuses = set()
+
         series = {
             'key': {'data': [], 'dtype': 'str'},
             'url': {'data': [], 'dtype': 'str'},
@@ -119,7 +121,8 @@ class CycleTimeCalculator(Calculator):
                     if snapshot.change == 'status':
                         snapshot_cycle_step = self.cycle_lookup.get(snapshot.to_string.lower(), None)
                         if snapshot_cycle_step is None:
-                            logger.warn("Issue %s transitioned to unknown JIRA status %s", issue.key, snapshot.to_string)
+                            logger.info("Issue %s transitioned to unknown JIRA status %s", issue.key, snapshot.to_string)
+                            unmapped_statuses.add(snapshot.to_string)
                             continue
                         
                         last_status = snapshot_cycle_step_name = snapshot_cycle_step['name']
@@ -212,6 +215,9 @@ class CycleTimeCalculator(Calculator):
                 for k, v in item.items():
                     series[k]['data'].append(v)
 
+        if len(unmapped_statuses) > 0:
+            logger.warn("The following JIRA statuses were found, but not mapped to a workflow state, and have been ignored: %s", ', '.join(sorted(unmapped_statuses)))
+
         data = {}
         for k, v in series.items():
             data[k] = pd.Series(v['data'], dtype=v['dtype'])
@@ -225,13 +231,11 @@ class CycleTimeCalculator(Calculator):
         )
 
     def write(self):
-        output_file = self.settings['cycle_time_data']
+        output_files = self.settings['cycle_time_data']
         
-        if not output_file:
+        if not output_files:
             logger.debug("No output file specified for cycle time data")
             return
-
-        output_extension = get_extension(output_file)
 
         cycle_data = self.get_result()
         cycle_names = [s['name'] for s in self.settings['cycle']]
@@ -241,13 +245,16 @@ class CycleTimeCalculator(Calculator):
         header = ['ID', 'Link', 'Name'] + cycle_names + ['Type', 'Status', 'Resolution'] + attribute_names + query_attribute_names + ['Blocked Days']
         columns = ['key', 'url', 'summary'] + cycle_names + ['issue_type', 'status', 'resolution'] + attribute_names + query_attribute_names + ['blocked_days']
 
-        logger.info("Writing cycle time data to %s", output_file)
+        for output_file in output_files:
 
-        if output_extension == '.json':
-            values = [header] + [list(map(to_json_string, row)) for row in cycle_data[columns].values.tolist()]
-            with open(output_file, 'w') as out:
-                out.write(json.dumps(values))
-        elif output_extension == '.xlsx':
-            cycle_data.to_excel(output_file, 'Cycle data', columns=columns, header=header, index=False)
-        else:
-            cycle_data.to_csv(output_file, columns=columns, header=header, date_format='%Y-%m-%d', index=False)
+            logger.info("Writing cycle time data to %s", output_file)
+            output_extension = get_extension(output_file)
+
+            if output_extension == '.json':
+                values = [header] + [list(map(to_json_string, row)) for row in cycle_data[columns].values.tolist()]
+                with open(output_file, 'w') as out:
+                    out.write(json.dumps(values))
+            elif output_extension == '.xlsx':
+                cycle_data.to_excel(output_file, 'Cycle data', columns=columns, header=header, index=False)
+            else:
+                cycle_data.to_csv(output_file, columns=columns, header=header, date_format='%Y-%m-%d', index=False)

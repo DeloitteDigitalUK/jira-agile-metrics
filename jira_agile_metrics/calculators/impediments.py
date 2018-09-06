@@ -78,16 +78,17 @@ class ImpedimentsCalculator(Calculator):
         if self.settings['impediments_status_days_chart']:
             self.write_impediments_status_days_chart(data, self.settings['impediments_status_days_chart'])
     
-    def write_data(self, data, output_file):
-        output_extension = get_extension(output_file)
+    def write_data(self, data, output_files):
+        for output_file in output_files:
+            output_extension = get_extension(output_file)
 
-        logger.info("Writing impediments data to %s", output_file)
-        if output_extension == '.json':
-            data.to_json(output_file, date_format='iso')
-        elif output_extension == '.xlsx':
-            data.to_excel(output_file, 'Impediments', header=True)
-        else:
-            data.to_csv(output_file, header=True, date_format='%Y-%m-%d', index=False)
+            logger.info("Writing impediments data to %s", output_file)
+            if output_extension == '.json':
+                data.to_json(output_file, date_format='iso')
+            elif output_extension == '.xlsx':
+                data.to_excel(output_file, 'Impediments', header=True)
+            else:
+                data.to_csv(output_file, header=True, date_format='%Y-%m-%d', index=False)
 
     def write_impediments_chart(self, chart_data, output_file):
         if len(chart_data.index) == 0:

@@ -42,18 +42,19 @@ class HistogramCalculator(Calculator):
         else:
             logger.debug("No output file specified for histogram chart")
 
-    def write_file(self, data, output_file):
-        output_extension = get_extension(output_file)
-
+    def write_file(self, data, output_files):
         file_data = self.get_result()
 
-        logger.info("Writing histogram data to %s", output_file)
-        if output_extension == '.json':
-            file_data.to_json(output_file, date_format='iso')
-        elif output_extension == '.xlsx':
-            file_data.to_frame(name='histogram').to_excel(output_file, 'Histogram', header=True)
-        else:
-            file_data.to_csv(output_file, header=True)
+        for output_file in output_files:
+            output_extension = get_extension(output_file)
+
+            logger.info("Writing histogram data to %s", output_file)
+            if output_extension == '.json':
+                file_data.to_json(output_file, date_format='iso')
+            elif output_extension == '.xlsx':
+                file_data.to_frame(name='histogram').to_excel(output_file, 'Histogram', header=True)
+            else:
+                file_data.to_csv(output_file, header=True)
     
     def write_chart(self, data, output_file):
         cycle_data = self.get_result(CycleTimeCalculator)

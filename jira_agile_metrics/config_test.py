@@ -235,7 +235,7 @@ Output:
 
         'quantiles': [0.1, 0.2],
 
-        'cycle_time_data': 'cycletime.csv',
+        'cycle_time_data': ['cycletime.csv'],
         
         'ageing_wip_chart': 'ageing-wip.png',
         'ageing_wip_chart_title': 'Ageing WIP',
@@ -257,37 +257,37 @@ Output:
         'cfd_window': 30,
         'cfd_chart': 'cfd.png',
         'cfd_chart_title': 'Cumulative Flow Diagram',
-        'cfd_data': 'cfd.csv',
+        'cfd_data': ['cfd.csv'],
         
         'histogram_window': 30,
         'histogram_chart': 'histogram.png',
         'histogram_chart_title': 'Cycle time histogram',
-        'histogram_data': 'histogram.csv',
+        'histogram_data': ['histogram.csv'],
         
         'net_flow_frequency': '5D',
         'net_flow_window': 3,
         'net_flow_chart': 'net-flow.png',
         'net_flow_chart_title': 'Net flow',
         
-        'percentiles_data': 'percentiles.csv',
+        'percentiles_data': ['percentiles.csv'],
         
         'scatterplot_window': 30,
         'scatterplot_chart': 'scatterplot.png',
         'scatterplot_chart_title': 'Cycle time scatter plot',
-        'scatterplot_data': 'scatterplot.csv',
+        'scatterplot_data': ['scatterplot.csv'],
         
         'throughput_frequency': '1D',
         'throughput_window': 3,
         'throughput_chart': 'throughput.png',
         'throughput_chart_title': 'Throughput trend',
-        'throughput_data': 'throughput.csv',
+        'throughput_data': ['throughput.csv'],
         
         'wip_frequency': '3D',
         'wip_window': 3,
         'wip_chart': 'wip.png',
         'wip_chart_title': 'Work in Progress',
 
-        'impediments_data': 'impediments.csv',
+        'impediments_data': ['impediments.csv'],
         'impediments_window': 3,
         'impediments_chart': 'impediments.png',
         'impediments_chart_title': 'Impediments',
@@ -363,17 +363,17 @@ Output:
     Net flow chart: tmp/net-flow.png
 """)
 
-    assert options['settings']['cycle_time_data'] == 'cycletime.csv'
+    assert options['settings']['cycle_time_data'] == ['cycletime.csv']
     assert options['settings']['ageing_wip_chart'] == 'ageing-wip.png'
     assert options['settings']['burnup_chart'] == 'burnup.png'
     assert options['settings']['burnup_forecast_chart'] == 'burnup-forecast.png'
     assert options['settings']['cfd_chart'] == 'cfd.png'
     assert options['settings']['histogram_chart'] == 'histogram.png'
-    assert options['settings']['histogram_data'] == 'histogram.csv'
+    assert options['settings']['histogram_data'] == ['histogram.csv']
     assert options['settings']['net_flow_chart'] == 'net-flow.png'
-    assert options['settings']['percentiles_data'] == 'percentiles.csv'
+    assert options['settings']['percentiles_data'] == ['percentiles.csv']
     assert options['settings']['scatterplot_chart'] == 'scatterplot.png'
-    assert options['settings']['scatterplot_data'] == 'scatterplot.csv'
+    assert options['settings']['scatterplot_data'] == ['scatterplot.csv']
     assert options['settings']['throughput_chart'] == 'throughput.png'
-    assert options['settings']['throughput_data'] == 'throughput.csv'
+    assert options['settings']['throughput_data'] == ['throughput.csv']
     assert options['settings']['wip_chart'] == 'wip.png'

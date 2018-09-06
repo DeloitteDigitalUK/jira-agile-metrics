@@ -44,16 +44,18 @@ class ThroughputCalculator(Calculator):
         else:
             logger.debug("No output file specified for throughput chart")
 
-    def write_file(self, data, output_file):
-        output_extension = get_extension(output_file)
+    def write_file(self, data, output_files):
 
-        logger.info("Writing throughput data to %s", output_file)
-        if output_extension == '.json':
-            data.to_json(output_file, date_format='iso')
-        elif output_extension == '.xlsx':
-            data.to_excel(output_file, 'Throughput', header=True)
-        else:
-            data.to_csv(output_file, header=True)
+        for output_file in output_files:
+            output_extension = get_extension(output_file)
+
+            logger.info("Writing throughput data to %s", output_file)
+            if output_extension == '.json':
+                data.to_json(output_file, date_format='iso')
+            elif output_extension == '.xlsx':
+                data.to_excel(output_file, 'Throughput', header=True)
+            else:
+                data.to_csv(output_file, header=True)
     
     def write_chart(self, data, output_file):
         chart_data = data.copy()

@@ -270,12 +270,6 @@ def config_to_options(data):
         
         # file name values
         for key in [
-            'cycle_time_data',
-            'cfd_data',
-            'scatterplot_data',
-            'histogram_data',
-            'throughput_data',
-            'percentiles_data',
             'scatterplot_chart',
             'histogram_chart',
             'cfd_chart',
@@ -285,7 +279,6 @@ def config_to_options(data):
             'wip_chart',
             'ageing_wip_chart',
             'net_flow_chart',
-            'impediments_data',
             'impediments_chart',
             'impediments_days_chart',
             'impediments_status_chart',
@@ -299,6 +292,20 @@ def config_to_options(data):
         ]:
             if expand_key(key) in config['output']:
                 options['settings'][key] = os.path.basename(config['output'][expand_key(key)])
+        
+        # file name list values
+        for key in [
+            'cycle_time_data',
+            'cfd_data',
+            'scatterplot_data',
+            'histogram_data',
+            'throughput_data',
+            'percentiles_data',
+            
+            'impediments_data',
+        ]:
+            if expand_key(key) in config['output']:
+                options['settings'][key] = list(map(os.path.basename, force_list(config['output'][expand_key(key)])))
 
         # list values
         for key in [

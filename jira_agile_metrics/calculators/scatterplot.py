@@ -50,19 +50,19 @@ class ScatterplotCalculator(Calculator):
         else:
             logger.debug("No output file specified for scatterplot chart")
 
-    def write_file(self, data, output_file):
-        output_extension = get_extension(output_file)
-
+    def write_file(self, data, output_files):
         file_data = data.copy()
         file_data['completed_date'] = file_data['completed_date'].map(pd.Timestamp.date)
 
-        logger.info("Writing scatterplot data to %s", output_file)
-        if output_extension == '.json':
-            file_data.to_json(output_file, date_format='iso')
-        elif output_extension == '.xlsx':
-            file_data.to_excel(output_file, 'Scatter', index=False)
-        else:
-            file_data.to_csv(output_file, index=False)
+        for output_file in output_files:
+            output_extension = get_extension(output_file)
+            logger.info("Writing scatterplot data to %s", output_file)
+            if output_extension == '.json':
+                file_data.to_json(output_file, date_format='iso')
+            elif output_extension == '.xlsx':
+                file_data.to_excel(output_file, 'Scatter', index=False)
+            else:
+                file_data.to_csv(output_file, index=False)
         
     def write_chart(self, data, output_file):
         if len(data.index) < 2:

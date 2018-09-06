@@ -20,19 +20,19 @@ class PercentilesCalculator(Calculator):
         return cycle_data['cycle_time'].dropna().quantile(quantiles)
 
     def write(self):
-        output_file = self.settings['percentiles_data']
-        if not output_file:
+        output_files = self.settings['percentiles_data']
+        if not output_files:
             logger.debug("No output file specified for percentiles data")
             return
 
-        output_extension = get_extension(output_file)
-
         file_data = self.get_result()
 
-        logger.info("Writing percentiles data to %s", output_file)
-        if output_extension == '.json':
-            file_data.to_json(output_file, date_format='iso')
-        elif output_extension == '.xlsx':
-            file_data.to_frame(name='percentiles').to_excel(output_file, 'Percentiles', header=True)
-        else:
-            file_data.to_csv(output_file, header=True)
+        for output_file in output_files:
+            output_extension = get_extension(output_file)
+            logger.info("Writing percentiles data to %s", output_file)
+            if output_extension == '.json':
+                file_data.to_json(output_file, date_format='iso')
+            elif output_extension == '.xlsx':
+                file_data.to_frame(name='percentiles').to_excel(output_file, 'Percentiles', header=True)
+            else:
+                file_data.to_csv(output_file, header=True)

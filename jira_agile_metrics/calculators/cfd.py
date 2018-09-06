@@ -65,16 +65,17 @@ class CFDCalculator(Calculator):
         else:
             logger.debug("No output file specified for CFD chart")
 
-    def write_file(self, data, output_file):
-        output_extension = get_extension(output_file)
+    def write_file(self, data, output_files):
+        for output_file in output_files:
+            output_extension = get_extension(output_file)
 
-        logger.info("Writing CFD data to %s", output_file)
-        if output_extension == '.json':
-            data.to_json(output_file, date_format='iso')
-        elif output_extension == '.xlsx':
-            data.to_excel(output_file, 'CFD')
-        else:
-            data.to_csv(output_file)
+            logger.info("Writing CFD data to %s", output_file)
+            if output_extension == '.json':
+                data.to_json(output_file, date_format='iso')
+            elif output_extension == '.xlsx':
+                data.to_excel(output_file, 'CFD')
+            else:
+                data.to_csv(output_file)
     
     def write_chart(self, data, output_file):
         if len(data.index) == 0:
