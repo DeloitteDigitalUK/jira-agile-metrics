@@ -1023,6 +1023,11 @@ These options name data files to write. Use an extension of `.csv`, `.xlsx`, or
 
 ## Changelog
 
+### 0.10
+
+* Stop swallowing exceptions in calculators (but keep on doing so when writing
+  output files). It's too confusing to debug problems.
+
 ### 0.9
 
 * Made the default impediments charts use the impeded flag value as breakdown,
