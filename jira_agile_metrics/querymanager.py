@@ -14,7 +14,7 @@ class IssueSnapshot(object):
     def __init__(self, change, key, date, from_string, to_string):
         self.change = change
         self.key = key
-        self.date = date.astimezone(dateutil.tz.tzutc())
+        self.date = date
         self.from_string = from_string
         self.to_string = to_string
 
@@ -127,7 +127,7 @@ class QueryManager(object):
                 )).fromString
             except StopIteration:
                 pass
-            
+
             yield IssueSnapshot(
                 change=field,
                 key=issue.key,
