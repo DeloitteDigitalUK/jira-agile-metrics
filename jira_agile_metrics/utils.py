@@ -48,7 +48,7 @@ def breakdown_by_month(df, start_column, end_column, key_column, value_column, o
     each month broken down by each unique value in `value_column`. To restrict
     (and order) the value columns, pass a list of valid values as `output_columns`.
     """
-    
+
     def build_df(t):
         start_date = getattr(t, start_column)
         end_date = getattr(t, end_column)
@@ -62,18 +62,18 @@ def breakdown_by_month(df, start_column, end_column, key_column, value_column, o
         last_month = end_date.normalize().to_period('M').to_timestamp('D', 'S')
 
         index = pd.date_range(first_month, last_month, freq='MS')
-        
+
         return pd.DataFrame(
             index=index,
             data=[[key]],
             columns=[value]
         )
-    
-    breakdown = pd.concat([build_df(t) for t in df.itertuples()]).resample('MS').agg(aggfunc)
+
+    breakdown = pd.concat([build_df(t) for t in df.itertuples()], sort=True).resample('MS').agg(aggfunc)
 
     if output_columns:
         breakdown = breakdown[[s for s in output_columns if s in breakdown.columns]]
-    
+
     return breakdown
 
 def breakdown_by_month_sum_days(df, start_column, end_column, value_column, output_columns=None, aggfunc='sum'):
@@ -98,18 +98,18 @@ def breakdown_by_month_sum_days(df, start_column, end_column, value_column, outp
         last_month = end_date.normalize().to_period('M').to_timestamp('D', 'S')
 
         index = pd.date_range(first_month, last_month, freq='MS')
-        
+
         return pd.DataFrame(
             index=index,
             data=[[len(pd.date_range(month_start, month_start + pd.tseries.offsets.MonthEnd(1), freq='D').intersection(days_range))] for month_start in index],
             columns=[value]
         )
-    
-    breakdown = pd.concat([build_df(t) for t in df.itertuples()]).resample('MS').agg(aggfunc)
+
+    breakdown = pd.concat([build_df(t) for t in df.itertuples()], sort=True).resample('MS').agg(aggfunc)
 
     if output_columns:
         breakdown = breakdown[[s for s in output_columns if s in breakdown.columns]]
-    
+
     return breakdown
 
 def to_bin(value, edges):
