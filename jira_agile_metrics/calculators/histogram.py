@@ -18,8 +18,15 @@ class HistogramCalculator(Calculator):
 
     def run(self):
         cycle_data = self.get_result(CycleTimeCalculator)
-        
-        values, edges = np.histogram(cycle_data['cycle_time'].astype('timedelta64[D]').dropna(), bins=10)
+
+        cycle_times = cycle_data['cycle_time'].astype('timedelta64[D]').dropna().tolist()
+
+        if not cycle_times:
+            bins = range(11)
+        else:
+            bins = range(int(max(cycle_times))+2)
+
+        values, edges = np.histogram(cycle_times, bins=bins, density=False)
 
         index = []
         for i, _ in enumerate(edges):
@@ -28,7 +35,7 @@ class HistogramCalculator(Calculator):
             index.append("%.01f to %.01f" % (edges[i - 1], edges[i],))
 
         return pd.Series(values, name="Items", index=index)
-    
+
     def write(self):
         data = self.get_result()
 
@@ -36,7 +43,7 @@ class HistogramCalculator(Calculator):
             self.write_file(data, self.settings['histogram_data'])
         else:
             logger.debug("No output file specified for histogram data")
-        
+
         if self.settings['histogram_chart']:
             self.write_chart(data, self.settings['histogram_chart'])
         else:
@@ -55,7 +62,7 @@ class HistogramCalculator(Calculator):
                 file_data.to_frame(name='histogram').to_excel(output_file, 'Histogram', header=True)
             else:
                 file_data.to_csv(output_file, header=True)
-    
+
     def write_chart(self, data, output_file):
         cycle_data = self.get_result(CycleTimeCalculator)
         chart_data = cycle_data[['cycle_time', 'completed_timestamp']].dropna(subset=['cycle_time'])
@@ -72,20 +79,21 @@ class HistogramCalculator(Calculator):
         if window:
             start = chart_data['completed_timestamp'].max().normalize() - pd.Timedelta(window, 'D')
             chart_data = chart_data[chart_data.completed_timestamp >= start]
-        
+
             # Re-check that we have enough data
             ct_days = chart_data['cycle_time'].dt.days
             if len(ct_days.index) < 2:
                 logger.warning("Need at least 2 completed items to draw histogram")
                 return
-        
+
         quantiles = self.settings['quantiles']
         logger.debug("Showing histogram at quantiles %s", ', '.join(['%.2f' % (q * 100.0) for q in quantiles]))
 
         fig, ax = plt.subplots()
+        bins = range(int(ct_days.max())+2)
 
-        sns.distplot(ct_days, bins=30, ax=ax, axlabel="Cycle time (days)")
-        
+        sns.distplot(ct_days, bins=bins, ax=ax, kde=False, axlabel="Cycle time (days)")
+
         if self.settings['histogram_chart_title']:
             ax.set_title(self.settings['histogram_chart_title'])
 
@@ -104,8 +112,9 @@ class HistogramCalculator(Calculator):
                 ha="right"
             )
 
+        ax.set_ylabel("Frequency")
         set_chart_style()
-        
+
         # Write file
         logger.info("Writing histogram chart to %s", output_file)
         fig.savefig(output_file, bbox_inches='tight', dpi=300)
