@@ -49,16 +49,16 @@ class WasteCalculator(Calculator):
             # Assume all waste items are resolved somehow
             if not issue.fields.resolution:
                 continue
-            
+
             last_status = None
             status_changes = list(self.query_manager.iter_changes(issue, ['status']))
             if len(status_changes) > 0:
                 last_status = status_changes[-1].from_string
-            
+
             if last_status is not None and last_status.lower() in cycle_lookup:
                 last_status = cycle_lookup.get(last_status.lower())['name']
             else:
-                logger.warn("Issue %s transitioned from unknown JIRA status %s", issue.key, last_status)
+                logger.warning("Issue %s transitioned from unknown JIRA status %s", issue.key, last_status)
 
             # Skip if last_status was the backlog or done column (not really withdrawn)
             if last_status in (backlog_column, done_column):
@@ -79,19 +79,19 @@ class WasteCalculator(Calculator):
         chart_data = self.get_result()
         if chart_data is None:
             return
-        
+
         output_file = self.settings['waste_chart']
         if not output_file:
             logger.debug("No output file specified for waste chart")
             return
-        
+
         if len(chart_data.index) == 0:
             logger.warning("Cannot draw waste chart with zero items")
             return
 
         frequency = self.settings['waste_frequency']
         window = self.settings['waste_window']
-        
+
         cycle_names = [s['name'] for s in self.settings['cycle']]
         backlog_column = self.settings['backlog_column']
         done_column = self.settings['done_column']
@@ -107,15 +107,15 @@ class WasteCalculator(Calculator):
 
         if window:
             breakdown = breakdown[-window:]
-        
+
         if len(breakdown.index) == 0 or len(breakdown.columns) == 0:
             logger.warning("Cannot draw waste chart with zero items")
             return
 
         fig, ax = plt.subplots()
-        
+
         breakdown.plot.bar(ax=ax, stacked=True)
-        
+
         if self.settings['waste_chart_title']:
             ax.set_title(self.settings['waste_chart_title'])
 

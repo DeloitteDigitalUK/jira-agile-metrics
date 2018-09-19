@@ -4,6 +4,7 @@ import datetime
 import pandas as pd
 import matplotlib.pyplot as plt
 import matplotlib.transforms
+import pprint as pp
 
 from ..calculator import Calculator
 from ..utils import set_chart_style, to_days_since_epoch
@@ -42,7 +43,7 @@ class BurnupForecastCalculator(Calculator):
         if cycle_data[done_column].max() is pd.NaT:
             logger.warning("Unable to draw burnup forecast chart with zero completed items.")
             return None
-        
+
         throughput_window_end = self.settings['burnup_forecast_chart_throughput_window_end'] or cycle_data[done_column].max().date()
         throughput_window = self.settings['burnup_forecast_chart_throughput_window']
         throughput_window_start = throughput_window_end - datetime.timedelta(days=throughput_window)
@@ -50,21 +51,21 @@ class BurnupForecastCalculator(Calculator):
 
         target = self.settings['burnup_forecast_chart_target'] or burnup_data[backlog_column].max()
         logger.info("Running forecast to completion of %d items", target)
-        
+
         trials = self.settings['burnup_forecast_chart_trials']
         logger.debug("Running %d trials to calculate probable forecast outcomes", trials)
-        
+
         # calculate daily throughput
         throughput_data = cycle_data[
-            (cycle_data[done_column] >= throughput_window_start) &
-            (cycle_data[done_column] <= throughput_window_end)
+            (cycle_data[done_column] >= pd.Timestamp(throughput_window_start)) &
+            (cycle_data[done_column] <= pd.Timestamp(throughput_window_end))
         ][[done_column, 'key']] \
             .rename(columns={'key': 'count', done_column: 'completed_timestamp'}) \
             .groupby('completed_timestamp').count() \
             .resample("1D").sum() \
             .reindex(index=pd.DatetimeIndex(start=throughput_window_start, end=throughput_window_end, freq='D')) \
             .fillna(0)
-        
+
         return burnup_monte_carlo(
             start_value=burnup_data[done_column].max(),
             target_value=target,
@@ -72,18 +73,18 @@ class BurnupForecastCalculator(Calculator):
             throughput_data=throughput_data,
             trials=trials
         )
-    
+
     def write(self):
         output_file = self.settings['burnup_forecast_chart']
         if not output_file:
             logger.debug("No output file specified for burnup forecast chart")
             return
-        
+
         burnup_data = self.get_result(BurnupCalculator)
         if burnup_data is None or len(burnup_data.index) == 0:
             logger.warning("Cannot draw burnup forecast chart with zero items")
             return
-        
+
         window = self.settings['burnup_forecast_window']
         if window:
             start = burnup_data.index.max() - pd.Timedelta(window, 'D')
@@ -92,7 +93,7 @@ class BurnupForecastCalculator(Calculator):
             if len(burnup_data.index) == 0:
                 logger.warning("Cannot draw burnup forecast chart with zero items")
                 return
-        
+
         mc_trials = self.get_result()
         if mc_trials is None:
             logger.warning("Cannot draw burnup forecast chart with zero completed trials")
@@ -108,12 +109,12 @@ class BurnupForecastCalculator(Calculator):
 
         quantiles = self.settings['quantiles']
         logger.debug("Showing forecast at quantiles %s", ', '.join(['%.2f' % (q * 100.0) for q in quantiles]))
-        
+
         backlog_column = self.settings['backlog_column']
         target = self.settings['burnup_forecast_chart_target'] or burnup_data[backlog_column].max()
 
         fig, ax = plt.subplots()
-        
+
         if self.settings['burnup_forecast_chart_title']:
             ax.set_title(self.settings['burnup_forecast_chart_title'])
 
@@ -124,7 +125,7 @@ class BurnupForecastCalculator(Calculator):
 
         # plot backlog and burnup to date
         burnup_data.plot.line(ax=ax, legend=False)
-        
+
         deadline_confidence_date = None
 
         # plot each monte carlo simulation line
@@ -138,7 +139,7 @@ class BurnupForecastCalculator(Calculator):
             # draw quantiles at finish line
             finish_dates = mc_trials.apply(pd.Series.last_valid_index)
             finish_date_quantiles = finish_dates.quantile(quantiles).dt.normalize()
-            
+
             if deadline_confidence is not None:
                 deadline_confidence_quantiles = finish_dates.quantile([deadline_confidence]).dt.normalize()
                 if len(deadline_confidence_quantiles) > 0:
@@ -156,12 +157,12 @@ class BurnupForecastCalculator(Calculator):
                     fontsize="x-small",
                     backgroundcolor="#ffffff"
                 )
-        
+
         # draw deadline (pun not intended...)
         if deadline is not None:
             bottom, top = ax.get_ylim()
             left, right = ax.get_xlim()
-            
+
             deadline_dse = to_days_since_epoch(deadline)
 
             ax.vlines(deadline, bottom, target, color='r', linestyles='-', linewidths=0.5)
@@ -180,15 +181,15 @@ class BurnupForecastCalculator(Calculator):
                 color='red',
                 backgroundcolor="#ffffff"
             )
-            
+
             # Make sure we can see deadline line
             if right < deadline_dse:
                 ax.set_xlim(left, deadline_dse + 1)
-            
+
             # Draw deadline warning
             if deadline_confidence_date is not None:
                 deadline_delta = (deadline - deadline_confidence_date).days
-                
+
                 ax.text(0.02, 0.5,
                     "Deadline: %s\nForecast (%.0f%%): %s\nSlack: %d days" % (
                         deadline.strftime("%d/%m/%Y"),
@@ -213,7 +214,7 @@ class BurnupForecastCalculator(Calculator):
             va="center",
             backgroundcolor="#ffffff"
         )
-        
+
         # Give some headroom above the target line so we can see it
         bottom, top = ax.get_ylim()
         ax.set_ylim(bottom, int(top * 1.05))
@@ -224,7 +225,7 @@ class BurnupForecastCalculator(Calculator):
         ax.set_position([box.x0, box.y0 + box.height * 0.1, box.width, box.height * 0.9])
 
         ax.legend(handles[:2], labels[:2], loc='upper center', bbox_to_anchor=(0.5, -0.2), ncol=2)
-        
+
         set_chart_style()
 
         # Write file

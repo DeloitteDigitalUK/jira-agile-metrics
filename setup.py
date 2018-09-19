@@ -24,9 +24,8 @@ setup(
     keywords='agile jira analytics metrics',
     packages=find_packages(exclude=['contrib', 'docs', 'tests*']),
     install_requires=install_requires,
-    tests_require=[
-        'pytest'
-    ],
+    setup_requires=['pytest-runner'],
+    tests_require=['pytest'],
     entry_points={
         'console_scripts': [
             'jira-agile-metrics=jira_agile_metrics.cli:main',
