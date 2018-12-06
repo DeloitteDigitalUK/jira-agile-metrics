@@ -62,8 +62,52 @@ def ordered_load(stream, Loader=yaml.Loader, object_pairs_hook=odicti):
 def force_list(val):
     return list(val) if isinstance(val, (list, tuple,)) else [val]
 
+def force_int(key, value):
+    try:
+        return int(value)
+    except ValueError:
+        raise ConfigError("Could not convert value `%s` for key `%s` to integer" % (value, expand_key(key),)) from None
+
+def force_float(key, value):
+    try:
+        return float(value)
+    except ValueError:
+        raise ConfigError("Could not convert value `%s` for key `%s` to decimal" % (value, expand_key(key),)) from None
+
+def force_date(key, value):
+    if not isinstance(value, datetime.date):
+        raise ConfigError("Value `%s` for key `%s` is not a date" % (value, expand_key(key),))
+    return value
+
 def expand_key(key):
     return str(key).replace('_', ' ').lower()
+
+def to_progress_report_teams_list(value):
+    def build_record(val):
+        record = {}
+        if expand_key('name') in val:
+            record['name'] = val[expand_key('name')]
+        if expand_key('min_throughput') in val:
+            record['min_throughput'] = force_int('min_throughput', val[expand_key('min_throughput')])
+        if expand_key('max_throughput') in val:
+            record['max_throughput'] = force_int('max_throughput', val[expand_key('max_throughput')])
+        if expand_key('throughput_window') in val:
+            record['throughput_window'] = force_int('throughput_window', val[expand_key('throughput_window')])
+        if expand_key('throughput_window_end') in val:
+            record['throughput_window_end'] = force_date('throughput_window_end', val[expand_key('throughput_window_end')])
+        return record
+    return list(map(build_record, value))
+
+def to_progress_report_outcomes_list(value):
+    def build_record(val):
+        record = {}
+        if expand_key('name') in val:
+            record['name'] = val[expand_key('name')]
+        if expand_key('key') in val:
+            record['key'] = val[expand_key('key')]
+        return record
+    return list(map(build_record, value))
+
 
 def config_to_options(data):
     try:
@@ -189,6 +233,18 @@ def config_to_options(data):
             'waste_frequency': 'MS',
             'waste_chart': None,
             'waste_chart_title': None,
+
+            'progress_report': None,
+            'progress_report_epic_query_template': None,
+            'progress_report_story_query_template': None,
+            'progress_report_epic_started': None,
+            'progress_report_epic_done': None,
+            'progress_report_epic_deadline_field': None,
+            'progress_report_epic_min_stories_field': None,
+            'progress_report_epic_max_stories_field': None,
+            'progress_report_epic_team_field': None,
+            'progress_report_teams': None,
+            'progress_report_outcomes': None,
         }
     }
 
@@ -240,22 +296,14 @@ def config_to_options(data):
             'waste_window',
         ]:
             if expand_key(key) in config['output']:
-                value = config['output'][expand_key(key)]
-                try:
-                    options['settings'][key] = int(value)
-                except ValueError:
-                    raise ConfigError("Could not convert value `%s` for key `%s` to integer" % (value, expand_key(key),)) from None
+                options['settings'][key] = force_int(key, config['output'][expand_key(key)])
         
         # float values
         for key in [
             'burnup_forecast_chart_deadline_confidence',
         ]:
             if expand_key(key) in config['output']:
-                value = config['output'][expand_key(key)]
-                try:
-                    options['settings'][key] = float(value)
-                except ValueError:
-                    raise ConfigError("Could not convert value `%s` for key `%s` to decimal" % (value, expand_key(key),)) from None
+                options['settings'][key] = force_float(key, config['output'][expand_key(key)])
 
         # date values
         for key in [
@@ -263,10 +311,7 @@ def config_to_options(data):
             'burnup_forecast_chart_deadline',
         ]:
             if expand_key(key) in config['output']:
-                value = config['output'][expand_key(key)]
-                if not isinstance(value, datetime.date):
-                    raise ConfigError("Value `%s` for key `%s` is not a date" % (value, expand_key(key),))
-                options['settings'][key] = value
+                options['settings'][key] = force_date(key, config['output'][expand_key(key)])
         
         # file name values
         for key in [
@@ -289,6 +334,7 @@ def config_to_options(data):
             'debt_chart',
             'debt_age_chart',
             'waste_chart',
+            'progress_report',
         ]:
             if expand_key(key) in config['output']:
                 options['settings'][key] = os.path.basename(config['output'][expand_key(key)])
@@ -354,9 +400,23 @@ def config_to_options(data):
             'waste_query',
             'waste_frequency',
             'waste_chart_title',
+            'progress_report_epic_query_template',
+            'progress_report_story_query_template',
+            'progress_report_epic_started',
+            'progress_report_epic_done',
+            'progress_report_epic_deadline_field',
+            'progress_report_epic_min_stories_field',
+            'progress_report_epic_max_stories_field',
+            'progress_report_epic_team_field',
         ]:
             if expand_key(key) in config['output']:
                 options['settings'][key] = config['output'][expand_key(key)]
+
+        # Special objects for progress reports
+        if expand_key('progress_report_teams') in config['output']:
+            options['settings']['progress_report_teams'] = to_progress_report_teams_list(config['output'][expand_key('progress_report_teams')])
+        if expand_key('progress_report_outcomes') in config['output']:
+            options['settings']['progress_report_outcomes'] = to_progress_report_outcomes_list(config['output'][expand_key('progress_report_outcomes')])
 
     # Parse Queries and/or a single Query
 
