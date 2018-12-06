@@ -1,6 +1,6 @@
 jira
 PyYAML
-pandas
+pandas>=0.23.0
 numpy
 seaborn
 matplotlib
