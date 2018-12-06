@@ -4,7 +4,6 @@ import datetime
 import pandas as pd
 import matplotlib.pyplot as plt
 import matplotlib.transforms
-import pprint as pp
 
 from ..calculator import Calculator
 from ..utils import set_chart_style, to_days_since_epoch
