@@ -48,28 +48,29 @@ class BurnupForecastCalculator(Calculator):
         throughput_window_start = throughput_window_end - datetime.timedelta(days=throughput_window)
         logger.info("Sampling throughput between %s and %s", throughput_window_start.isoformat(), throughput_window_end.isoformat())
 
+        start_value = burnup_data[done_column].max()
         target = self.settings['burnup_forecast_chart_target'] or burnup_data[backlog_column].max()
         logger.info("Running forecast to completion of %d items", target)
 
         trials = self.settings['burnup_forecast_chart_trials']
         logger.debug("Running %d trials to calculate probable forecast outcomes", trials)
 
-        # calculate daily throughput
-        throughput_data = cycle_data[
+        throughput_data = calculate_daily_throughput(cycle_data[
             (cycle_data[done_column] >= pd.Timestamp(throughput_window_start)) &
             (cycle_data[done_column] <= pd.Timestamp(throughput_window_end))
-        ][[done_column, 'key']] \
-            .rename(columns={'key': 'count', done_column: 'completed_timestamp'}) \
-            .groupby('completed_timestamp').count() \
-            .resample("1D").sum() \
-            .reindex(index=pd.DatetimeIndex(start=throughput_window_start, end=throughput_window_end, freq='D')) \
-            .fillna(0)
+        ], done_column, throughput_window_start, throughput_window_end)
 
+        # degenerate case - no steps, abort
+        if throughput_data['count'].sum() <= 0:
+            logger.warning("No throughput samples available, aborting forecast simulations")
+            return None
+        
         return burnup_monte_carlo(
-            start_value=burnup_data[done_column].max(),
+            start_value=start_value,
             target_value=target,
             start_date=burnup_data.index.max(),
-            throughput_data=throughput_data,
+            frequency=throughput_data.index.freq,
+            draw_sample=throughput_sampler(throughput_data, start_value, target),
             trials=trials
         )
 
@@ -232,17 +233,18 @@ class BurnupForecastCalculator(Calculator):
         fig.savefig(output_file, bbox_inches='tight', dpi=300)
         plt.close(fig)
 
-def burnup_monte_carlo(start_value, target_value, start_date, throughput_data, trials=100):
+def calculate_daily_throughput(cycle_data, done_column, window_start, window_end):
+    return cycle_data[[done_column, 'key']] \
+        .rename(columns={'key': 'count', done_column: 'completed_timestamp'}) \
+        .groupby('completed_timestamp').count() \
+        .resample("1D").sum() \
+        .reindex(index=pd.DatetimeIndex(start=window_start, end=window_end, freq='D')) \
+        .fillna(0)
 
-    frequency = throughput_data.index.freq
-
-    # degenerate case - no steps, abort
-    if throughput_data['count'].sum() <= 0:
-        logger.warning("No throughput samples available, aborting forecast simulations")
-        return None
-
-    # guess how far away we are; drawing samples one at a time is slow
-    sample_buffer_size = int(2 * (target_value - start_value) / throughput_data['count'].mean())
+def throughput_sampler(throughput_data, start_value, target):
+    """Return a function that can efficiently draw samples from `throughput_data`
+    """
+    sample_buffer_size = int(2 * (target - start_value) / throughput_data['count'].mean())
 
     sample_buffer = dict(idx=0, buffer=None)
 
@@ -253,6 +255,17 @@ def burnup_monte_carlo(start_value, target_value, start_date, throughput_data, t
 
         sample_buffer['idx'] += 1
         return sample_buffer['buffer'].iloc[sample_buffer['idx'] - 1]
+    
+    return get_sample
+
+def burnup_monte_carlo(
+    start_value,
+    target_value,
+    start_date,
+    frequency,
+    draw_sample,
+    trials=100
+):
 
     series = {}
     for t in range(trials):
@@ -264,7 +277,7 @@ def burnup_monte_carlo(start_value, target_value, start_date, throughput_data, t
 
         while current_value < target_value:
             current_date += frequency
-            current_value += get_sample()
+            current_value += draw_sample()
 
             dates.append(current_date)
             steps.append(min(current_value, target_value))  # don't overshoot the target

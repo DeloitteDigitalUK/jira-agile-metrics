@@ -22,14 +22,7 @@ class ThroughputCalculator(Calculator):
         
         logger.debug("Calculating throughput at frequency %s", frequency)
 
-        if len(cycle_data.index) == 0:
-            return pd.DataFrame([], columns=['count'], index=[])
-
-        return cycle_data[['completed_timestamp', 'key']] \
-            .rename(columns={'key': 'count'}) \
-            .groupby('completed_timestamp').count() \
-            .resample(frequency).sum() \
-            .fillna(0)
+        return calculate_throughput(cycle_data, frequency)
     
     def write(self):
         data = self.get_result()
@@ -111,3 +104,13 @@ class ThroughputCalculator(Calculator):
         logger.info("Writing throughput chart to %s", output_file)
         fig.savefig(output_file, bbox_inches='tight', dpi=300)
         plt.close(fig)
+
+def calculate_throughput(cycle_data, frequency):
+    if len(cycle_data.index) == 0:
+        return pd.DataFrame([], columns=['count'], index=[])
+
+    return cycle_data[['completed_timestamp', 'key']] \
+        .rename(columns={'key': 'count'}) \
+        .groupby('completed_timestamp').count() \
+        .resample(frequency).sum() \
+        .fillna(0)

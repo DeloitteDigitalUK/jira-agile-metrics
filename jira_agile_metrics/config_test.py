@@ -199,21 +199,19 @@ Output:
     Waste chart title: Waste
 
     Progress report: progress.html
-    Progress report epic started: In progress
-    Progress report epic done: Done
+    Progress report title: Test progress report
     Progress report epic deadline field: Due date
     Progress report epic team field: Team
     Progress report epic min stories field: Min stories
     Progress report epic max stories field: Min stories
-    Progress report epic query template: project = ABC and type = Epic AND Outcome = {outcome}
-    Progress report story query template: project = ABC and type = Story AND "Epic link" = {epic}
+    Progress report epic query template: project = ABC AND type = Epic AND Outcome = {outcome}
+    Progress report story query template: project = ABC AND type = Story AND "Epic link" = {epic}
     Progress report teams:
         - Name: Team one
           Min throughput: 5
           Max throughput: 10
         - Name: Team two
-          Throughput window: 60
-          Throughput window end: 2018-12-28
+          Throughput samples: project = ABC AND type = Story AND team = "Team two"
     Progress report outcomes:
         - Name: Outcome one
           Key: O1
@@ -352,17 +350,16 @@ Output:
         'waste_chart_title': 'Waste',
 
         'progress_report': 'progress.html',
-        'progress_report_epic_query_template': 'project = ABC and type = Epic AND Outcome = {outcome}',
-        'progress_report_story_query_template': 'project = ABC and type = Story AND "Epic link" = {epic}',
-        'progress_report_epic_started': 'In progress',
-        'progress_report_epic_done': 'Done',
+        'progress_report_title': 'Test progress report',
+        'progress_report_epic_query_template': 'project = ABC AND type = Epic AND Outcome = {outcome}',
+        'progress_report_story_query_template': 'project = ABC AND type = Story AND "Epic link" = {epic}',
         'progress_report_epic_deadline_field': 'Due date',
         'progress_report_epic_min_stories_field': 'Min stories',
         'progress_report_epic_max_stories_field': 'Min stories',
         'progress_report_epic_team_field': 'Team',
         'progress_report_teams': [
             {'name': 'Team one', 'max_throughput': 10, 'min_throughput': 5},
-            {'name': 'Team two', 'throughput_window': 60, 'throughput_window_end': datetime.date(2018, 12, 28)}
+            {'name': 'Team two', 'throughput_samples': 'project = ABC AND type = Story AND team = "Team two"'}
         ],
         'progress_report_outcomes': [{'key': 'O1', 'name': 'Outcome one'}, {'name': 'Outcome two'}],
         
