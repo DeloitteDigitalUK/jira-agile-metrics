@@ -21,6 +21,7 @@ from .calculators.impediments import ImpedimentsCalculator
 from .calculators.debt import DebtCalculator
 from .calculators.defects import DefectsCalculator
 from .calculators.waste import WasteCalculator
+from .calculators.progressreport import ProgressReport
 
 CALCULATORS = (
     CycleTimeCalculator,  # should come first -- others depend on results from this one
@@ -38,6 +39,7 @@ CALCULATORS = (
     DebtCalculator,
     DefectsCalculator,
     WasteCalculator,
+    ProgressReport,
 )
 
 class ConfigError(Exception):
@@ -84,28 +86,21 @@ def expand_key(key):
 
 def to_progress_report_teams_list(value):
     def build_record(val):
-        record = {}
-        if expand_key('name') in val:
-            record['name'] = val[expand_key('name')]
-        if expand_key('min_throughput') in val:
-            record['min_throughput'] = force_int('min_throughput', val[expand_key('min_throughput')])
-        if expand_key('max_throughput') in val:
-            record['max_throughput'] = force_int('max_throughput', val[expand_key('max_throughput')])
-        if expand_key('throughput_window') in val:
-            record['throughput_window'] = force_int('throughput_window', val[expand_key('throughput_window')])
-        if expand_key('throughput_window_end') in val:
-            record['throughput_window_end'] = force_date('throughput_window_end', val[expand_key('throughput_window_end')])
-        return record
+        return {
+            'name': val[expand_key('name')] if expand_key('name') in val else None,
+            'wip': force_int('wip', val[expand_key('wip')]) if expand_key('wip') in val else None,
+            'min_throughput': force_int('min_throughput', val[expand_key('min_throughput')]) if expand_key('min_throughput') in val else None,
+            'max_throughput': force_int('max_throughput', val[expand_key('max_throughput')]) if expand_key('max_throughput') in val else None,
+            'throughput_samples': val[expand_key('throughput_samples')] if expand_key('throughput_samples') in val else None,
+        }
     return list(map(build_record, value))
 
 def to_progress_report_outcomes_list(value):
     def build_record(val):
-        record = {}
-        if expand_key('name') in val:
-            record['name'] = val[expand_key('name')]
-        if expand_key('key') in val:
-            record['key'] = val[expand_key('key')]
-        return record
+        return {
+            'name': val[expand_key('name')] if expand_key('name') in val else None,
+            'key': val[expand_key('key')] if expand_key('key') in val else None,
+        }
     return list(map(build_record, value))
 
 
@@ -235,10 +230,9 @@ def config_to_options(data):
             'waste_chart_title': None,
 
             'progress_report': None,
+            'progress_report_title': None,
             'progress_report_epic_query_template': None,
             'progress_report_story_query_template': None,
-            'progress_report_epic_started': None,
-            'progress_report_epic_done': None,
             'progress_report_epic_deadline_field': None,
             'progress_report_epic_min_stories_field': None,
             'progress_report_epic_max_stories_field': None,
@@ -400,10 +394,9 @@ def config_to_options(data):
             'waste_query',
             'waste_frequency',
             'waste_chart_title',
+            'progress_report_title',
             'progress_report_epic_query_template',
             'progress_report_story_query_template',
-            'progress_report_epic_started',
-            'progress_report_epic_done',
             'progress_report_epic_deadline_field',
             'progress_report_epic_min_stories_field',
             'progress_report_epic_max_stories_field',
