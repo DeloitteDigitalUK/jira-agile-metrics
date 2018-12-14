@@ -264,7 +264,8 @@ def burnup_monte_carlo(
     start_date,
     frequency,
     draw_sample,
-    trials=100
+    trials=100,
+    max_iterations=9999,
 ):
 
     series = {}
@@ -275,7 +276,7 @@ def burnup_monte_carlo(
         dates = [current_date]
         steps = [current_value]
 
-        while current_value < target_value:
+        while current_value < target_value and len(steps) <= max_iterations:
             current_date += frequency
             current_value += draw_sample()
 
