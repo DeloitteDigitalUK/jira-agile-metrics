@@ -203,7 +203,7 @@ Output:
     Progress report epic deadline field: Due date
     Progress report epic team field: Team
     Progress report epic min stories field: Min stories
-    Progress report epic max stories field: Min stories
+    Progress report epic max stories field: Max stories
     Progress report epic query template: project = ABC AND type = Epic AND Outcome = {outcome}
     Progress report story query template: project = ABC AND type = Story AND "Epic link" = {epic}
     Progress report teams:
@@ -213,6 +213,7 @@ Output:
         - Name: Team two
           WIP: 2
           Throughput samples: project = ABC AND type = Story AND team = "Team two"
+          Throughput samples window: 30
     Progress report outcomes:
         - Name: Outcome one
           Key: O1
@@ -356,11 +357,11 @@ Output:
         'progress_report_story_query_template': 'project = ABC AND type = Story AND "Epic link" = {epic}',
         'progress_report_epic_deadline_field': 'Due date',
         'progress_report_epic_min_stories_field': 'Min stories',
-        'progress_report_epic_max_stories_field': 'Min stories',
+        'progress_report_epic_max_stories_field': 'Max stories',
         'progress_report_epic_team_field': 'Team',
         'progress_report_teams': [
-            {'name': 'Team one', 'max_throughput': 10, 'min_throughput': 5, 'throughput_samples': None, 'wip': None},
-            {'name': 'Team two', 'max_throughput': None, 'min_throughput': None, 'throughput_samples': 'project = ABC AND type = Story AND team = "Team two"', 'wip': 2}
+            {'name': 'Team one', 'max_throughput': 10, 'min_throughput': 5, 'throughput_samples': None, 'throughput_samples_window': None, 'wip': None},
+            {'name': 'Team two', 'max_throughput': None, 'min_throughput': None, 'throughput_samples': 'project = ABC AND type = Story AND team = "Team two"', 'wip': 2, 'throughput_samples_window': 30}
         ],
         'progress_report_outcomes': [{'key': 'O1', 'name': 'Outcome one'}, {'key': None, 'name': 'Outcome two'}],
         

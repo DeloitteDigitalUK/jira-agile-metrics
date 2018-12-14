@@ -92,6 +92,7 @@ def to_progress_report_teams_list(value):
             'min_throughput': force_int('min_throughput', val[expand_key('min_throughput')]) if expand_key('min_throughput') in val else None,
             'max_throughput': force_int('max_throughput', val[expand_key('max_throughput')]) if expand_key('max_throughput') in val else None,
             'throughput_samples': val[expand_key('throughput_samples')] if expand_key('throughput_samples') in val else None,
+            'throughput_samples_window': force_int('throughput_samples_window', val[expand_key('throughput_samples_window')]) if expand_key('throughput_samples_window') in val else None,
         }
     return list(map(build_record, value))
 
