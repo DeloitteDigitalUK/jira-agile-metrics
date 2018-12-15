@@ -212,12 +212,13 @@ Output:
           Max throughput: 10
         - Name: Team two
           WIP: 2
-          Throughput samples: project = ABC AND type = Story AND team = "Team two"
-          Throughput samples window: 30
+          Throughput samples: project = ABC AND type = Story AND team = "Team two" AND resolution = "Done"
+          Throughput samples window: 6
     Progress report outcomes:
         - Name: Outcome one
           Key: O1
         - Name: Outcome two
+          Epic query: project = ABS and type = Feature
 """)
 
     assert options['connection'] == {
@@ -360,10 +361,10 @@ Output:
         'progress_report_epic_max_stories_field': 'Max stories',
         'progress_report_epic_team_field': 'Team',
         'progress_report_teams': [
-            {'name': 'Team one', 'max_throughput': 10, 'min_throughput': 5, 'throughput_samples': None, 'throughput_samples_window': None, 'wip': None},
-            {'name': 'Team two', 'max_throughput': None, 'min_throughput': None, 'throughput_samples': 'project = ABC AND type = Story AND team = "Team two"', 'wip': 2, 'throughput_samples_window': 30}
+            {'name': 'Team one', 'max_throughput': 10, 'min_throughput': 5, 'throughput_samples': None, 'throughput_samples_window': None, 'wip': 1},
+            {'name': 'Team two', 'max_throughput': None, 'min_throughput': None, 'throughput_samples': 'project = ABC AND type = Story AND team = "Team two" AND resolution = "Done"', 'wip': 2, 'throughput_samples_window': 6}
         ],
-        'progress_report_outcomes': [{'key': 'O1', 'name': 'Outcome one'}, {'key': None, 'name': 'Outcome two'}],
+        'progress_report_outcomes': [{'key': 'O1', 'name': 'Outcome one', 'epic_query': None}, {'key': None, 'name': 'Outcome two', 'epic_query': "project = ABS and type = Feature"}],
         
     }
 
