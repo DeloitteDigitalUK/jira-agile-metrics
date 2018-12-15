@@ -18,11 +18,13 @@ class ThroughputCalculator(Calculator):
 
     def run(self):
         cycle_data = self.get_result(CycleTimeCalculator)
+        
         frequency = self.settings['throughput_frequency']
+        window = self.settings['throughput_window']
         
         logger.debug("Calculating throughput at frequency %s", frequency)
 
-        return calculate_throughput(cycle_data, frequency)
+        return calculate_throughput(cycle_data, frequency, window)
     
     def write(self):
         data = self.get_result()
@@ -61,10 +63,6 @@ class ThroughputCalculator(Calculator):
 
         if self.settings['throughput_chart_title']:
             ax.set_title(self.settings['throughput_chart_title'])
-
-        window = self.settings['throughput_window']
-        if window:
-            chart_data = chart_data[-window:]
 
         # Calculate zero-indexed days to allow linear regression calculation
         day_zero = chart_data.index[0]
@@ -105,12 +103,20 @@ class ThroughputCalculator(Calculator):
         fig.savefig(output_file, bbox_inches='tight', dpi=300)
         plt.close(fig)
 
-def calculate_throughput(cycle_data, frequency):
+def calculate_throughput(cycle_data, frequency, window=None):
     if len(cycle_data.index) == 0:
         return pd.DataFrame([], columns=['count'], index=[])
 
-    return cycle_data[['completed_timestamp', 'key']] \
+    throughput = cycle_data[['completed_timestamp', 'key']] \
         .rename(columns={'key': 'count'}) \
         .groupby('completed_timestamp').count() \
-        .resample(frequency).sum() \
-        .fillna(0)
+        .resample(frequency).sum()
+    
+    # make sure we have 0 for periods with no throughput, and force to window if set
+    window_start = throughput.index.min()
+    window_end = throughput.index.max()
+
+    if window:
+        window_start = window_end - (pd.tseries.frequencies.to_offset(frequency) * (window - 1))
+    
+    return throughput.reindex(index=pd.DatetimeIndex(start=window_start, end=window_end, freq=frequency)).fillna(0)

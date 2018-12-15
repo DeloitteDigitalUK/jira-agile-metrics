@@ -9,7 +9,8 @@ from ..utils import extend_dict
 @pytest.fixture
 def settings(minimal_settings):
     return extend_dict(minimal_settings, {
-        'throughput_frequency': 'D'
+        'throughput_frequency': 'D',
+        'throughput_window': None,
     })
 
 @pytest.fixture
@@ -45,3 +46,29 @@ def test_calculate_throughput(query_manager, settings, results):
     data = calculator.run()
 
     assert data.to_dict('records') == [{'count': 2}, {'count': 2}, {'count': 2}]
+
+def test_calculate_throughput_with_wider_window(query_manager, settings, results):
+
+    settings = extend_dict(settings, {
+        'throughput_frequency': 'D',
+        'throughput_window': 5,
+    })
+
+    calculator = ThroughputCalculator(query_manager, settings, results)
+
+    data = calculator.run()
+
+    assert data.to_dict('records') == [{'count': 0.0}, {'count': 0.0}, {'count': 2}, {'count': 2}, {'count': 2}]
+
+def test_calculate_throughput_with_narrower_window(query_manager, settings, results):
+
+    settings = extend_dict(settings, {
+        'throughput_frequency': 'D',
+        'throughput_window': 2,
+    })
+
+    calculator = ThroughputCalculator(query_manager, settings, results)
+
+    data = calculator.run()
+
+    assert data.to_dict('records') == [{'count': 2}, {'count': 2}]
