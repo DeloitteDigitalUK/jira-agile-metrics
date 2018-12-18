@@ -21,7 +21,7 @@ from .calculators.impediments import ImpedimentsCalculator
 from .calculators.debt import DebtCalculator
 from .calculators.defects import DefectsCalculator
 from .calculators.waste import WasteCalculator
-from .calculators.progressreport import ProgressReport
+from .calculators.progressreport import ProgressReportCalculator
 
 CALCULATORS = (
     CycleTimeCalculator,  # should come first -- others depend on results from this one
@@ -39,7 +39,7 @@ CALCULATORS = (
     DebtCalculator,
     DefectsCalculator,
     WasteCalculator,
-    ProgressReport,
+    ProgressReportCalculator,
 )
 
 class ConfigError(Exception):
