@@ -56,16 +56,17 @@ class FauxJIRA(object):
     by `search_issues()`.
     """
 
-    def __init__(self, fields, issues, options={'server': 'https://example.org'}):
+    def __init__(self, fields, issues, options={'server': 'https://example.org'}, filter=None):
         self._options = options
         self._fields = fields  # [{ id, name }]
         self._issues = issues
+        self._filter = filter
 
     def fields(self):
         return self._fields
 
     def search_issues(self, jql, *args, **kwargs):
-        return self._issues
+        return self._issues if self._filter is None else [i for i in self._issues if self._filter(i, jql)]
 
 # Fixtures
 
