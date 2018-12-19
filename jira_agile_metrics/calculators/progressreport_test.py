@@ -363,38 +363,12 @@ def test_calculate_epic_target():
         status='in-progress',
         resolution=None,
         resolution_date=None,
-        min_stories=5,
-        max_stories=5,
+        min_stories=0,
+        max_stories=3,
         team_name='Team 1',
         deadline=None,
         stories_raised=6
-    )) == 6
-    
-    assert calculate_epic_target(Epic(
-        key='E-1',
-        summary='Epic 1',
-        status='in-progress',
-        resolution=None,
-        resolution_date=None,
-        min_stories=9,
-        max_stories=9,
-        team_name='Team 1',
-        deadline=None,
-        stories_raised=6
-    )) == 9
-    
-    assert calculate_epic_target(Epic(
-        key='E-1',
-        summary='Epic 1',
-        status='in-progress',
-        resolution=None,
-        resolution_date=None,
-        min_stories=None,
-        max_stories=None,
-        team_name='Team 1',
-        deadline=None,
-        stories_raised=3
-    )) == 3
+    )) <= 3
 
 def test_find_epics(query_manager):
 
@@ -429,6 +403,7 @@ def test_find_epics(query_manager):
         'outcome': outcome,
         'team': None,
         'forecast': None,
+        'story_query': None,
     }
     assert epics[1].key == 'E-2'
     assert epics[2].key == 'E-3'
@@ -466,6 +441,7 @@ def test_find_epics_minimal_fields(query_manager):
         'outcome': outcome,
         'team': None,
         'forecast': None,
+        'story_query': None,
     }
     assert epics[1].key == 'E-2'
     assert epics[2].key == 'E-3'
@@ -478,10 +454,11 @@ def test_update_story_counts(query_manager, settings):
         status="in-progress",
         resolution=None,
         resolution_date=None,
-        min_stories=None,
-        max_stories=None,
+        min_stories=2,
+        max_stories=5,
         team_name=None,
         deadline=None,
+        story_query="issuetype=story AND epic=E-1"
     )
 
     update_story_counts(
@@ -489,8 +466,7 @@ def test_update_story_counts(query_manager, settings):
         query_manager=query_manager,
         cycle=settings['cycle'],
         backlog_column=settings['backlog_column'],
-        done_column=settings['done_column'],
-        story_query_template="issuetype=story AND epic={epic}"
+        done_column=settings['done_column']
     )
 
     assert e1.stories_raised == 4
@@ -499,6 +475,8 @@ def test_update_story_counts(query_manager, settings):
     assert e1.stories_done == 1
     assert e1.first_story_started == date(2018, 1, 3)
     assert e1.last_story_finished == date(2018, 1, 6)
+    assert e1.min_stories == 4
+    assert e1.max_stories == 5
 
     e2 = Epic(
         key="E-2",
@@ -510,6 +488,7 @@ def test_update_story_counts(query_manager, settings):
         max_stories=None,
         team_name=None,
         deadline=None,
+        story_query="issuetype=story AND epic=E-2"
     )
 
     update_story_counts(
@@ -517,8 +496,7 @@ def test_update_story_counts(query_manager, settings):
         query_manager=query_manager,
         cycle=settings['cycle'],
         backlog_column=settings['backlog_column'],
-        done_column=settings['done_column'],
-        story_query_template="issuetype=story AND epic={epic}"
+        done_column=settings['done_column']
     )
 
     assert e2.stories_raised == 1
@@ -527,6 +505,8 @@ def test_update_story_counts(query_manager, settings):
     assert e2.stories_done == 0
     assert e2.first_story_started is None
     assert e2.last_story_finished is None
+    assert e2.min_stories == 1
+    assert e2.max_stories == 1
 
     e3 = Epic(
         key="E-3",
@@ -534,10 +514,11 @@ def test_update_story_counts(query_manager, settings):
         status="in-progress",
         resolution=None,
         resolution_date=None,
-        min_stories=None,
-        max_stories=None,
+        min_stories=0,
+        max_stories=0,
         team_name=None,
         deadline=None,
+        story_query="issuetype=story AND epic=E-3"
     )
 
     update_story_counts(
@@ -545,8 +526,7 @@ def test_update_story_counts(query_manager, settings):
         query_manager=query_manager,
         cycle=settings['cycle'],
         backlog_column=settings['backlog_column'],
-        done_column=settings['done_column'],
-        story_query_template="issuetype=story AND epic={epic}"
+        done_column=settings['done_column']
     )
 
     assert e3.stories_raised == 0
@@ -555,6 +535,8 @@ def test_update_story_counts(query_manager, settings):
     assert e3.stories_done == 0
     assert e3.first_story_started is None
     assert e3.last_story_finished is None
+    assert e3.min_stories == 0
+    assert e3.max_stories == 1
 
 def test_calculate_team_throughput_from_samples(query_manager, settings):
     throughput = calculate_team_throughput_from_samples(
@@ -642,7 +624,7 @@ def test_forecast_to_complete_wip_1():
             team_name='Team 1',
             deadline=None,
             team=team,
-            stories_raised=8,  # should use min/max instead of stories raised
+            stories_raised=8,
             stories_in_backlog=5,
             stories_in_progress=0,
             stories_done=5,  # 10-5  = 5 left; 2/wk from sampler => 3 weeks
@@ -653,12 +635,12 @@ def test_forecast_to_complete_wip_1():
             status="in-progress",
             resolution=None,
             resolution_date=None,
-            min_stories=5,
-            max_stories=5,
+            min_stories=10,
+            max_stories=10,
             team_name='Team 1',
             deadline=datetime(2018, 1, 20),  # <5 weeks away
             team=team,
-            stories_raised=10,  # should use stories raised instead of min/max
+            stories_raised=10,
             stories_in_backlog=5,
             stories_in_progress=0,
             stories_done=6,  # 10 - 6 = 4 left; 2/wk from sampler => 2 weeks
@@ -669,12 +651,12 @@ def test_forecast_to_complete_wip_1():
             status="in-progress",
             resolution=None,
             resolution_date=None,
-            min_stories=5,
-            max_stories=5,
+            min_stories=10,
+            max_stories=10,
             team_name='Team 1',
             deadline=datetime(2018, 3, 1),  # >7 weeks away
             team=team,
-            stories_raised=10,  # should use stories raised instead of min/max
+            stories_raised=10,
             stories_in_backlog=5,
             stories_in_progress=0,
             stories_done=6,  # 10 - 6 = 4 left; 2/wk from sampler => 2 weeks
@@ -717,7 +699,7 @@ def test_forecast_to_complete_wip_2():
             team_name='Team 1',
             deadline=None,
             team=team,
-            stories_raised=8,  # should use min/max instead of stories raised
+            stories_raised=8,
             stories_in_backlog=5,
             stories_in_progress=0,
             stories_done=5,  # 10-5  = 5 left; 2/wk from sampler => 3 weeks
@@ -728,12 +710,12 @@ def test_forecast_to_complete_wip_2():
             status="in-progress",
             resolution=None,
             resolution_date=None,
-            min_stories=5,
-            max_stories=5,
+            min_stories=10,
+            max_stories=10,
             team_name='Team 1',
             deadline=datetime(2018, 1, 20),  # <2 weeks away
             team=team,
-            stories_raised=10,  # should use stories raised instead of min/max
+            stories_raised=10,
             stories_in_backlog=5,
             stories_in_progress=0,
             stories_done=6,  # 10 - 6 = 4 left; 2/wk from sampler => 2 weeks
@@ -744,12 +726,12 @@ def test_forecast_to_complete_wip_2():
             status="in-progress",
             resolution=None,
             resolution_date=None,
-            min_stories=5,
-            max_stories=5,
+            min_stories=10,
+            max_stories=10,
             team_name='Team 1',
             deadline=datetime(2018, 3, 1),  # >4 weeks away
             team=team,
-            stories_raised=10,  # should use stories raised instead of min/max
+            stories_raised=10,
             stories_in_backlog=5,
             stories_in_progress=0,
             stories_done=6,  # 10 - 6 = 4 left; 2/wk from sampler => 2 weeks, starting after E-2
@@ -815,7 +797,7 @@ def test_forecast_to_complete_with_randomness():
             status="in-progress",
             resolution=None,
             resolution_date=None,
-            min_stories=2,
+            min_stories=10,
             max_stories=20,
             team_name='Team 1',
             deadline=datetime(2018, 1, 20),
@@ -831,8 +813,8 @@ def test_forecast_to_complete_with_randomness():
             status="in-progress",
             resolution=None,
             resolution_date=None,
-            min_stories=5,
-            max_stories=5,
+            min_stories=10,
+            max_stories=10,
             team_name='Team 1',
             deadline=datetime(2018, 3, 1),
             team=team,
@@ -865,32 +847,50 @@ def test_calculator(query_manager, settings, results):
     data = calculator.run(trials=10, now=datetime(2018, 1, 10))
 
     # confirm it has set up the two outcomes
-    assert len(data) == 2
-    assert data[0].name == 'Outcome one'
-    assert data[0].key == 'O1'
-    assert data[1].name == 'Outcome two'
-    assert data[1].key == 'Outcome two'
+    assert len(data['outcomes']) == 2
+    assert data['outcomes'][0].name == 'Outcome one'
+    assert data['outcomes'][0].key == 'O1'
+    assert data['outcomes'][1].name == 'Outcome two'
+    assert data['outcomes'][1].key == 'Outcome two'
 
     # confirm it has found the right epics for each outcome
-    assert [e.key for e in data[0].epics] == ['E-1', 'E-2', 'E-3']
-    assert [e.key for e in data[1].epics] == ['E-4']
+    assert [e.key for e in data['outcomes'][0].epics] == ['E-1', 'E-2', 'E-3']
+    assert [e.key for e in data['outcomes'][1].epics] == ['E-4']
 
     # confirm it has mapped the right teams to the right epics
-    assert [e.team.name for e in data[0].epics] == ['Team 1', 'Team 1', 'Team 2']
-    assert [e.team.name for e in data[1].epics] == ['Team 1']
+    assert [e.team.name for e in data['outcomes'][0].epics] == ['Team 1', 'Team 1', 'Team 2']
+    assert [e.team.name for e in data['outcomes'][1].epics] == ['Team 1']
 
     # confirm it has updated stories count as per `update_story_counts()`
-    assert data[0].epics[0].stories_raised == 4
-    assert data[0].epics[0].stories_in_backlog == 1
-    assert data[0].epics[0].stories_in_progress == 2
-    assert data[0].epics[0].stories_done == 1
-    assert data[0].epics[0].first_story_started == date(2018, 1, 3)
-    assert data[0].epics[0].last_story_finished == date(2018, 1, 6)
+    assert data['outcomes'][0].epics[0].stories_raised == 4
+    assert data['outcomes'][0].epics[0].stories_in_backlog == 1
+    assert data['outcomes'][0].epics[0].stories_in_progress == 2
+    assert data['outcomes'][0].epics[0].stories_done == 1
+    assert data['outcomes'][0].epics[0].first_story_started == date(2018, 1, 3)
+    assert data['outcomes'][0].epics[0].last_story_finished == date(2018, 1, 6)
 
     # confirm it has attempted a forecast
-    assert data[0].epics[0].forecast is not None
-    assert data[0].epics[0].forecast.deadline_quantile is not None
-    assert [q[0] for q in data[0].epics[0].forecast.quantiles] == [0.1, 0.3, 0.5]
+    assert data['outcomes'][0].epics[0].forecast is not None
+    assert data['outcomes'][0].epics[0].forecast.deadline_quantile is not None
+    assert [q[0] for q in data['outcomes'][0].epics[0].forecast.quantiles] == [0.1, 0.3, 0.5]
+
+    # confirm teams
+    assert len(data['teams']) == 2
+    
+    assert data['teams'][0].name == 'Team 1'
+    assert data['teams'][0].min_throughput == 5
+    assert data['teams'][0].max_throughput == 10
+    assert data['teams'][0].throughput_samples is None
+    assert data['teams'][0].throughput_samples_window is None
+
+    assert data['teams'][1].name == 'Team 2'
+    assert data['teams'][1].min_throughput is None
+    assert data['teams'][1].max_throughput is None
+    assert data['teams'][1].throughput_samples == 'issuetype=feature AND resolution=Done'
+    assert data['teams'][1].throughput_samples_window == 6
+
+    # results[ProgressReportCalculator] = data
+    # calculator.write()
 
 def test_calculator_no_outcomes(query_manager, settings, results):
     settings = extend_dict(settings, {
@@ -903,28 +903,43 @@ def test_calculator_no_outcomes(query_manager, settings, results):
     data = calculator.run(trials=10, now=datetime(2018, 1, 10))
 
     # confirm it has set up the two outcomes
-    assert len(data) == 1
-    assert data[0].name is None
-    assert data[0].key is None
+    assert len(data['outcomes']) == 1
+    assert data['outcomes'][0].name is None
+    assert data['outcomes'][0].key is None
 
     # confirm it has found the right epics for each outcome
-    assert [e.key for e in data[0].epics] == ['E-1', 'E-2', 'E-3']
+    assert [e.key for e in data['outcomes'][0].epics] == ['E-1', 'E-2', 'E-3']
 
     # confirm it has mapped the right teams to the right epics
-    assert [e.team.name for e in data[0].epics] == ['Team 1', 'Team 1', 'Team 2']
+    assert [e.team.name for e in data['outcomes'][0].epics] == ['Team 1', 'Team 1', 'Team 2']
 
     # confirm it has updated stories count as per `update_story_counts()`
-    assert data[0].epics[0].stories_raised == 4
-    assert data[0].epics[0].stories_in_backlog == 1
-    assert data[0].epics[0].stories_in_progress == 2
-    assert data[0].epics[0].stories_done == 1
-    assert data[0].epics[0].first_story_started == date(2018, 1, 3)
-    assert data[0].epics[0].last_story_finished == date(2018, 1, 6)
+    assert data['outcomes'][0].epics[0].stories_raised == 4
+    assert data['outcomes'][0].epics[0].stories_in_backlog == 1
+    assert data['outcomes'][0].epics[0].stories_in_progress == 2
+    assert data['outcomes'][0].epics[0].stories_done == 1
+    assert data['outcomes'][0].epics[0].first_story_started == date(2018, 1, 3)
+    assert data['outcomes'][0].epics[0].last_story_finished == date(2018, 1, 6)
 
     # confirm it has attempted a forecast
-    assert data[0].epics[0].forecast is not None
-    assert data[0].epics[0].forecast.deadline_quantile is not None
-    assert [q[0] for q in data[0].epics[0].forecast.quantiles] == [0.1, 0.3, 0.5]
+    assert data['outcomes'][0].epics[0].forecast is not None
+    assert data['outcomes'][0].epics[0].forecast.deadline_quantile is not None
+    assert [q[0] for q in data['outcomes'][0].epics[0].forecast.quantiles] == [0.1, 0.3, 0.5]
+
+    # confirm teams
+    assert len(data['teams']) == 2
+    
+    assert data['teams'][0].name == 'Team 1'
+    assert data['teams'][0].min_throughput == 5
+    assert data['teams'][0].max_throughput == 10
+    assert data['teams'][0].throughput_samples is None
+    assert data['teams'][0].throughput_samples_window is None
+
+    assert data['teams'][1].name == 'Team 2'
+    assert data['teams'][1].min_throughput is None
+    assert data['teams'][1].max_throughput is None
+    assert data['teams'][1].throughput_samples == 'issuetype=feature AND resolution=Done'
+    assert data['teams'][1].throughput_samples_window == 6
 
 def test_calculator_no_fields(query_manager, settings, results):
     settings = extend_dict(settings, {
@@ -949,29 +964,38 @@ def test_calculator_no_fields(query_manager, settings, results):
     data = calculator.run(trials=10, now=datetime(2018, 1, 10))
 
     # confirm it has set up the two outcomes
-    assert len(data) == 2
-    assert data[0].name == 'Outcome one'
-    assert data[0].key == 'O1'
-    assert data[1].name == 'Outcome two'
-    assert data[1].key == 'Outcome two'
+    assert len(data['outcomes']) == 2
+    assert data['outcomes'][0].name == 'Outcome one'
+    assert data['outcomes'][0].key == 'O1'
+    assert data['outcomes'][1].name == 'Outcome two'
+    assert data['outcomes'][1].key == 'Outcome two'
 
     # confirm it has found the right epics for each outcome
-    assert [e.key for e in data[0].epics] == ['E-1', 'E-2', 'E-3']
-    assert [e.key for e in data[1].epics] == ['E-4']
+    assert [e.key for e in data['outcomes'][0].epics] == ['E-1', 'E-2', 'E-3']
+    assert [e.key for e in data['outcomes'][1].epics] == ['E-4']
 
     # all epics use the default team
-    assert [e.team.name for e in data[0].epics] == ['Team 1', 'Team 1', 'Team 1']
-    assert [e.team.name for e in data[1].epics] == ['Team 1']
+    assert [e.team.name for e in data['outcomes'][0].epics] == ['Team 1', 'Team 1', 'Team 1']
+    assert [e.team.name for e in data['outcomes'][1].epics] == ['Team 1']
 
     # confirm it has updated stories count as per `update_story_counts()`
-    assert data[0].epics[0].stories_raised == 4
-    assert data[0].epics[0].stories_in_backlog == 1
-    assert data[0].epics[0].stories_in_progress == 2
-    assert data[0].epics[0].stories_done == 1
-    assert data[0].epics[0].first_story_started == date(2018, 1, 3)
-    assert data[0].epics[0].last_story_finished == date(2018, 1, 6)
+    assert data['outcomes'][0].epics[0].stories_raised == 4
+    assert data['outcomes'][0].epics[0].stories_in_backlog == 1
+    assert data['outcomes'][0].epics[0].stories_in_progress == 2
+    assert data['outcomes'][0].epics[0].stories_done == 1
+    assert data['outcomes'][0].epics[0].first_story_started == date(2018, 1, 3)
+    assert data['outcomes'][0].epics[0].last_story_finished == date(2018, 1, 6)
 
     # confirm it has attempted a forecast
-    assert data[0].epics[0].forecast is not None
-    assert data[0].epics[0].forecast.deadline_quantile is None
-    assert [q[0] for q in data[0].epics[0].forecast.quantiles] == [0.1, 0.3, 0.5]
+    assert data['outcomes'][0].epics[0].forecast is not None
+    assert data['outcomes'][0].epics[0].forecast.deadline_quantile is None
+    assert [q[0] for q in data['outcomes'][0].epics[0].forecast.quantiles] == [0.1, 0.3, 0.5]
+
+    # confirm teams
+    assert len(data['teams']) == 1
+    
+    assert data['teams'][0].name == 'Team 1'
+    assert data['teams'][0].min_throughput == 5
+    assert data['teams'][0].max_throughput == 10
+    assert data['teams'][0].throughput_samples is None
+    assert data['teams'][0].throughput_samples_window is None

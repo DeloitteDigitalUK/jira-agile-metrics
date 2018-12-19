@@ -7,6 +7,8 @@ import numpy as np
 import pandas as pd
 import scipy.stats
 
+import jinja2
+
 from ..calculator import Calculator
 
 from .cycletime import calculate_cycle_times
@@ -14,6 +16,11 @@ from .throughput import calculate_throughput
 from .forecast import throughput_sampler
 
 logger = logging.getLogger(__name__)
+
+jinja_env = jinja2.Environment(
+    loader=jinja2.PackageLoader('jira_agile_metrics', 'calculators'),
+    autoescape=jinja2.select_autoescape(['html', 'xml'])
+)
 
 class ProgressReportCalculator(Calculator):
     """Output a progress report based on Monte Carlo forecast to completion
@@ -127,10 +134,15 @@ class ProgressReportCalculator(Calculator):
 
         # Calculate a throughput sampler function for each team.
 
-        team_lookup = {
-            team['name']: Team(
+        teams = [
+            Team(
                 name=team['name'],
                 wip=team['wip'],
+                min_throughput=team['min_throughput'],
+                max_throughput=team['max_throughput'],
+                throughput_samples=team['throughput_samples'],
+                throughput_samples_window=team['throughput_samples_window'],
+
                 sampler=throughput_range_sampler(
                     min=team['min_throughput'],
                     max=team['max_throughput']
@@ -143,15 +155,17 @@ class ProgressReportCalculator(Calculator):
                     query=team['throughput_samples'],
                     window=team['throughput_samples_window']
                 ), 0, 10)
-            ) for team in teams}
-        
-        team_epics = {team.name: [] for team in team_lookup.values()}
+            ) for team in teams
+        ]
+
+        team_lookup = {team.name: team for team in teams}
+        team_epics = {team.name: [] for team in teams}
 
         default_team = None
 
         # Degenerate case: single team and no epic team field
         if not epic_team_field:
-            default_team = list(team_lookup.values())[0]
+            default_team = teams[0]
 
         # Calculate epic progress for each outcome
         #  - Run `epic_query_template` to find relevant epics
@@ -178,21 +192,29 @@ class ProgressReportCalculator(Calculator):
                 outcome.epics.append(epic)
                 team_epics[epic.team.name].append(epic)
                 
+                epic.story_query = story_query_template.format(
+                    epic='"%s"' % epic.key,
+                    team='"%s"' % epic.team_name if epic.team_name else None,
+                    outcome='"%s"' % outcome.key,
+                )
+
                 update_story_counts(
                     epic=epic,
                     query_manager=self.query_manager,
                     cycle=cycle,
                     backlog_column=backlog_column,
-                    done_column=done_column,
-                    story_query_template=story_query_template
+                    done_column=done_column
                 )
 
         # Run Monte Carlo simulation to complete
         
-        for team in team_lookup.values():
+        for team in teams:
             forecast_to_complete(team, team_epics[team.name], quantiles, trials=trials, now=now)
 
-        return outcomes
+        return {
+            'outcomes': outcomes,
+            'teams': teams
+        }
     
     def write(self):
         output_file = self.settings['progress_report']
@@ -205,7 +227,32 @@ class ProgressReportCalculator(Calculator):
             logger.warning("No data found for progress report")
             return
 
-        # title = self.settings['progress_report_title']
+        template = jinja_env.get_template('progressreport_template.html')
+        today = datetime.date.today()
+
+        with open(output_file, 'w') as of:
+            of.write(template.render(
+                jira_url=self.query_manager.jira._options['server'],
+                title=self.settings['progress_report_title'],
+                story_query_template=self.settings['progress_report_story_query_template'],
+                epic_deadline_field=self.settings['progress_report_epic_deadline_field'],
+                epic_min_stories_field=self.settings['progress_report_epic_min_stories_field'],
+                epic_max_stories_field=self.settings['progress_report_epic_max_stories_field'],
+                epic_team_field=self.settings['progress_report_epic_team_field'],
+                outcomes=data['outcomes'],
+                teams=data['teams'],
+                enumerate=enumerate,
+                future_date=lambda weeks: today + datetime.timedelta(weeks=weeks),
+                color_code=lambda q: (
+                    'info' if q is None else
+                    'danger' if q <= 0.75 else
+                    'warning' if q <= 0.85 else
+                    'success'
+                ),
+                percent_complete=lambda epic: (
+                    (epic.stories_done or 0) / epic.max_stories
+                ),
+            ))
 
 class Outcome(object):
 
@@ -217,15 +264,28 @@ class Outcome(object):
 
 class Team(object):
 
-    def __init__(self, name, wip, sampler=None):
+    def __init__(self, name, wip,
+        min_throughput=None,
+        max_throughput=None,
+        throughput_samples=None,
+        throughput_samples_window=None,
+        sampler=None
+    ):
         self.name = name
         self.wip = wip
+
+        self.min_throughput = min_throughput
+        self.max_throughput = max_throughput
+        self.throughput_samples = throughput_samples
+        self.throughput_samples_window = throughput_samples_window
+        
         self.sampler = sampler
 
 class Epic(object):
 
     def __init__(self, key, summary, status, resolution, resolution_date,
         min_stories, max_stories, team_name, deadline,
+        story_query=None,
         stories_raised=None,
         stories_in_backlog=None,
         stories_in_progress=None,
@@ -246,6 +306,7 @@ class Epic(object):
         self.team_name = team_name
         self.deadline = deadline
 
+        self.story_query = story_query
         self.stories_raised = stories_raised
         self.stories_in_backlog = stories_in_backlog
         self.stories_in_progress = stories_in_progress
@@ -327,25 +388,18 @@ def update_story_counts(
     query_manager,
     cycle,
     backlog_column,
-    done_column,
-    story_query_template
+    done_column
 ):
     backlog_column_index = [s['name'] for s in cycle].index(backlog_column)
     started_column = cycle[backlog_column_index + 1]['name']  # config parser ensures there is at least one column after backlog
     
-    stories_query = story_query_template.format(
-        epic='"%s"' % epic.key,
-        team='"%s"' % epic.team_name if epic.team_name else None,
-        outcome='"%s"' % epic.outcome.key if epic.outcome else None,
-    )
-
     story_cycle_times = calculate_cycle_times(
         query_manager=query_manager,
         cycle=cycle,
         attributes={},
         backlog_column=backlog_column,
         done_column=done_column,
-        queries=[{'jql': stories_query, 'value': None}],
+        queries=[{'jql': epic.story_query, 'value': None}],
         query_attribute=None,
     )
 
@@ -362,6 +416,14 @@ def update_story_counts(
 
         epic.first_story_started = story_cycle_times[started_column].min().date() if epic.stories_in_progress > 0 else None
         epic.last_story_finished = story_cycle_times[done_column].max().date() if epic.stories_done > 0 else None
+    
+    # if the actual number of stories exceeds min and/or max, adjust accordingly
+
+    if not epic.min_stories or epic.min_stories < epic.stories_raised:
+        epic.min_stories = epic.stories_raised
+    
+    if not epic.max_stories or epic.max_stories < epic.stories_raised:
+        epic.max_stories = max(epic.min_stories, epic.stories_raised, 1)
 
 def forecast_to_complete(team, epics, quantiles, trials=1000, max_iterations=9999, now=None):
     
@@ -444,9 +506,7 @@ def forecast_to_complete(team, epics, quantiles, trials=1000, max_iterations=999
         )
 
 def calculate_epic_target(epic):
-    stories_raised = epic.stories_raised if epic.stories_raised else 0
-
-    min_target = epic.min_stories if (epic.min_stories and epic.min_stories > stories_raised) else stories_raised
-    max_target = epic.max_stories if (epic.max_stories and epic.max_stories > stories_raised) else stories_raised
-
-    return random.randint(min_target, max(min_target, max_target))
+    return random.randint(
+        max(epic.min_stories, 0),
+        max(epic.min_stories, epic.max_stories, 1)
+    )

@@ -1,0 +1,194 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <meta name="description" content="">
+        <meta name="author" content="">
+
+        <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css" integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO" crossorigin="anonymous">
+        
+        <title>{{title}}</title>
+    </head>
+
+    <body>
+
+        <div class="container mt-4">
+
+            <h1>{{title}}</h1>
+
+            <p>
+                This report shows outcomes and their associated epics.
+                For each epic, we forecast a completion date based on the expected number
+                of stories in the epic, the historical or predicted throughput of that team
+                delivering the epic, and the number of stories completed to date.
+            </p>
+
+            <p>
+                <a data-toggle="collapse" href="#configuration">
+                    <small>Configuration &raquo;</small>
+                </a>
+                <div class="collapse" id="configuration">
+                    <table class="table table-sm">
+                        <tbody>
+                            {% if story_query_template %}
+                            <tr>
+                                <th>Story query template:</th>
+                                <td><code>{{story_query_template}}</code></td>
+                            </tr>
+                            {% endif %}
+                            {% if epic_deadline_field %}
+                            <tr>
+                                <th>Epic deadline field:</th>
+                                <td><code>{{epic_deadline_field}}</code></td>
+                            </tr>
+                            {% endif %}
+                            {% if epic_team_field %}
+                            <tr>
+                                <th>Epic team field:</th>
+                                <td><code>{{epic_team_field}}</code></td>
+                            </tr>
+                            {% endif %}
+                            {% if epic_min_stories_field %}
+                            <tr>
+                                <th>Epic min stories field:</th>
+                                <td><code>{{epic_min_stories_field}}</code></td>
+                            </tr>
+                            {% endif %}
+                            {% if epic_max_stories_field %}
+                            <tr>
+                                <th>Epic max stories field:</th>
+                                <td><code>{{epic_max_stories_field}}</code></td>
+                            </tr>
+                            {% endif %}
+                            <tr>
+                                <th>Teams</th>
+                                <td>
+                                    <table class="table table-sm table-borderless">
+                                        <thead>
+                                            <tr>
+                                                <th scope="col">Name</th>
+                                                <th scope="col">Throughput</th>
+                                                <th scope="col">Epic WIP</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {% for team in teams %}
+                                            <tr>
+                                                <td>{{ team.name }}</td>
+                                                {% if team.min_throughput %}
+                                                    <td>{{ team.min_throughput }} &ndash; {{ team.max_throughput }} stories/week</td>
+                                                {% else %}
+                                                    <td>
+                                                        <a href="{{ jira_url }}/issues/?jql={{ team.throughput_samples|urlencode }}">
+                                                            Historical data
+                                                            {%- if team.throughput_samples_window %}
+                                                                over {{ team.throughput_samples_window }} weeks
+                                                            {% endif -%}
+                                                        </a>
+                                                    </td>
+                                                {% endif %}
+                                                <td>{{ team.wip }}</td>
+                                            </tr>
+                                            {% endfor %}
+                                        </tbody>
+                                    </table>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                </div>
+            </p>
+
+            {% for idx, outcome in enumerate(outcomes) %}
+                
+            {% if outcome.name %}
+            <h2>
+                {{ outcome.name }}
+                <a data-toggle="collapse" href="#outcome-configuration-{{idx}}"><small class="text-muted">&raquo;</small></a>
+            </h2>
+            {% endif %}
+
+            <p>
+                <div class="collapse" id="outcome-configuration-{{idx}}">
+                    <table class="table table-sm table-hover">
+                        <tbody>
+                            <tr>
+                                <th>Epics query:</th>
+                                <td><a href="{{ jira_url }}/issues/?jql={{ outcome.epic_query | urlencode }}"><code>{{ outcome.epic_query }}</code></a></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </p>
+
+            <table class="table table-sm">
+                <thead>
+                    <tr>
+                        <th scope="col" style="width: 20%">Epic</th>
+                        <th scope="col" style="width: 15%">Team</th>
+                        <th scope="col" style="width: 30%">Stories</th>
+                        <th scope="col" style="width: 10%">Deadline</th>
+                        <th scope="col" style="width: 5%"></th>
+                        <th scope="col" style="width: 20%">Forecast</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for epic in outcome.epics %}
+                    <tr>
+                        <td>{{ epic.key }}: {{ epic.summary }}</td>
+                        <td>{{ epic.team.name }}</td>
+                        <td>
+                            <div class="progress" style="height: 30px">
+                                <div class="progress-bar bg-{{ color_code(epic.forecast.deadline_quantile) }}"
+                                    role="progressbar"
+                                    style="width: {{ percent_complete(epic) * 100 | round | int }}%"
+                                    aria-valuenow="{{ epic.stories_done }}"
+                                    aria-valuemin="0"
+                                    aria-valuemax="{{ epic.max_stories }}">
+                                    <a href="{{ jira_url }}/issues/?jql={{ epic.story_query | urlencode }}" style="color: #333; padding: 0 5px">
+                                        {{ epic.stories_done }}
+                                        of
+                                        {{ epic.min_stories }}
+                                        {% if epic.max_stories and epic.max_stories != epic.min_stories %} &ndash; {{ epic.max_stories }} {% endif %}
+                                        stories completed
+                                    </a>
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            {% if epic.deadline %}
+                            {{ epic.deadline.strftime("%d %b %Y") }}
+                            {% else %}
+                            <em>N/A</em>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if epic.forecast.deadline_quantile %}
+                            <span class="badge badge-pill badge-{{ color_code(epic.forecast.deadline_quantile) }}">
+                                {{ (epic.forecast.deadline_quantile * 100) | round | int }}%
+                            </span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% for quantile, weeks in epic.forecast.quantiles %}
+                            <div><small>{{ future_date(weeks).strftime("%d %b %Y") }} <em>@ {{ (quantile * 100) | round | int }}%</em></small></div>
+                            {% endfor %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+
+            {% endfor %}
+
+        </div>
+
+
+        <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js" integrity="sha384-ZMP7rVo3mIykV+2+9J3UJ46jBk0WLaUAdn689aCwoqbBJiSnjAK/l8WvCWPIPm49" crossorigin="anonymous"></script>
+        <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js" integrity="sha384-ChfqqxuZUCnJSK3+MXmPNIyE6ZbWh2IMqE241rYiqJxyMiZ6OW/JmZQ5stwEULTy" crossorigin="anonymous"></script>
+        
+    </body>
+</html>
