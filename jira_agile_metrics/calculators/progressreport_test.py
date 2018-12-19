@@ -941,6 +941,9 @@ def test_calculator_no_outcomes(query_manager, settings, results):
     assert data['teams'][1].throughput_samples == 'issuetype=feature AND resolution=Done'
     assert data['teams'][1].throughput_samples_window == 6
 
+    # results[ProgressReportCalculator] = data
+    # calculator.write()
+
 def test_calculator_no_fields(query_manager, settings, results):
     settings = extend_dict(settings, {
         'progress_report_epic_deadline_field': None,
@@ -999,3 +1002,6 @@ def test_calculator_no_fields(query_manager, settings, results):
     assert data['teams'][0].max_throughput == 10
     assert data['teams'][0].throughput_samples is None
     assert data['teams'][0].throughput_samples_window is None
+
+    # results[ProgressReportCalculator] = data
+    # calculator.write()

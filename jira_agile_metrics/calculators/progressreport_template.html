@@ -129,8 +129,10 @@
                         <th scope="col" style="width: 20%">Epic</th>
                         <th scope="col" style="width: 15%">Team</th>
                         <th scope="col" style="width: 30%">Stories</th>
+                        {% if epic_deadline_field %}
                         <th scope="col" style="width: 10%">Deadline</th>
                         <th scope="col" style="width: 5%"></th>
+                        {% endif %}
                         <th scope="col" style="width: 20%">Forecast</th>
                     </tr>
                 </thead>
@@ -157,6 +159,7 @@
                                 </div>
                             </div>
                         </td>
+                        {% if epic_deadline_field %}
                         <td>
                             {% if epic.deadline %}
                             {{ epic.deadline.strftime("%d %b %Y") }}
@@ -171,6 +174,7 @@
                             </span>
                             {% endif %}
                         </td>
+                        {% endif %}
                         <td>
                             {% for quantile, weeks in epic.forecast.quantiles %}
                             <div><small>{{ future_date(weeks).strftime("%d %b %Y") }} <em>@ {{ (quantile * 100) | round | int }}%</em></small></div>
