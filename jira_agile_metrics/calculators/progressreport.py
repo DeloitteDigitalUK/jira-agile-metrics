@@ -104,7 +104,7 @@ class ProgressReportCalculator(Calculator):
             logger.error("`Progress report epic team field` is required if there is more than one team under `Progress report teams`.")
             return None
 
-        # if not set, we don't use a single epic query and don't group by outcomes
+        # if not set, we use a single epic query and don't group by outcomes
         
         outcomes = [
             Outcome(

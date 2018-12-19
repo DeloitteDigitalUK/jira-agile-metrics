@@ -622,11 +622,11 @@ def test_calculate_team_throughput_from_samples(query_manager, settings):
         {'count': 1},
     ]
 
-def test_forecast_to_complete():
+def test_forecast_to_complete_wip_1():
     
     team = Team(
         name='Team 1',
-        wip=2,
+        wip=1,
         sampler=throughput_range_sampler(2, 2)  # makes tests predictable
     )
 
@@ -637,21 +637,226 @@ def test_forecast_to_complete():
             status="in-progress",
             resolution=None,
             resolution_date=None,
-            min_stories=None,
-            max_stories=None,
+            min_stories=10,
+            max_stories=10,
             team_name='Team 1',
             deadline=None,
             team=team,
-            stories_raised=0,
-            stories_in_backlog=0,
+            stories_raised=8,  # should use min/max instead of stories raised
+            stories_in_backlog=5,
             stories_in_progress=0,
-            stories_done=0,
+            stories_done=5,  # 10-5  = 5 left; 2/wk from sampler => 3 weeks
+        ),
+        Epic(
+            key="E-2",
+            summary="Epic 2",
+            status="in-progress",
+            resolution=None,
+            resolution_date=None,
+            min_stories=5,
+            max_stories=5,
+            team_name='Team 1',
+            deadline=datetime(2018, 1, 20),  # <5 weeks away
+            team=team,
+            stories_raised=10,  # should use stories raised instead of min/max
+            stories_in_backlog=5,
+            stories_in_progress=0,
+            stories_done=6,  # 10 - 6 = 4 left; 2/wk from sampler => 2 weeks
+        ),
+        Epic(
+            key="E-3",
+            summary="Epic 3",
+            status="in-progress",
+            resolution=None,
+            resolution_date=None,
+            min_stories=5,
+            max_stories=5,
+            team_name='Team 1',
+            deadline=datetime(2018, 3, 1),  # >7 weeks away
+            team=team,
+            stories_raised=10,  # should use stories raised instead of min/max
+            stories_in_backlog=5,
+            stories_in_progress=0,
+            stories_done=6,  # 10 - 6 = 4 left; 2/wk from sampler => 2 weeks
         )
     ]
 
     forecast_to_complete(team, epics, [0.5, 0.9], trials=10, now=datetime(2018, 1, 10))
 
-    # TODO: Proper assertions
+    assert epics[0].forecast is not None
+    assert epics[1].forecast is not None
+    assert epics[2].forecast is not None
+
+    assert epics[0].forecast.quantiles == [(0.5, 3.0), (0.9, 3.0)]  # no randomness in test, so +3 weeks
+    assert epics[0].forecast.deadline_quantile is None  # no deadline set
+
+    assert epics[1].forecast.quantiles == [(0.5, 5.0), (0.9, 5.0)]  # +2 weeks after E-1 since wip=1
+    assert epics[1].forecast.deadline_quantile == 0  # deadline is before best case scenario
+
+    assert epics[2].forecast.quantiles == [(0.5, 7.0), (0.9, 7.0)]  # +2 weeks after E-2 since wip=1
+    assert epics[2].forecast.deadline_quantile == 1  # deadline is after worst case scenario
+
+def test_forecast_to_complete_wip_2():
+
+    # double the wip, but also double the throughput of wip=1 test
+    team = Team(
+        name='Team 1',
+        wip=2,
+        sampler=throughput_range_sampler(4, 4)  # makes tests predictable
+    )
+
+    epics = [
+        Epic(
+            key="E-1",
+            summary="Epic 1",
+            status="in-progress",
+            resolution=None,
+            resolution_date=None,
+            min_stories=10,
+            max_stories=10,
+            team_name='Team 1',
+            deadline=None,
+            team=team,
+            stories_raised=8,  # should use min/max instead of stories raised
+            stories_in_backlog=5,
+            stories_in_progress=0,
+            stories_done=5,  # 10-5  = 5 left; 2/wk from sampler => 3 weeks
+        ),
+        Epic(
+            key="E-2",
+            summary="Epic 2",
+            status="in-progress",
+            resolution=None,
+            resolution_date=None,
+            min_stories=5,
+            max_stories=5,
+            team_name='Team 1',
+            deadline=datetime(2018, 1, 20),  # <2 weeks away
+            team=team,
+            stories_raised=10,  # should use stories raised instead of min/max
+            stories_in_backlog=5,
+            stories_in_progress=0,
+            stories_done=6,  # 10 - 6 = 4 left; 2/wk from sampler => 2 weeks
+        ),
+        Epic(
+            key="E-3",
+            summary="Epic 3",
+            status="in-progress",
+            resolution=None,
+            resolution_date=None,
+            min_stories=5,
+            max_stories=5,
+            team_name='Team 1',
+            deadline=datetime(2018, 3, 1),  # >4 weeks away
+            team=team,
+            stories_raised=10,  # should use stories raised instead of min/max
+            stories_in_backlog=5,
+            stories_in_progress=0,
+            stories_done=6,  # 10 - 6 = 4 left; 2/wk from sampler => 2 weeks, starting after E-2
+        )
+    ]
+
+    forecast_to_complete(team, epics, [0.5, 0.9], trials=10, now=datetime(2018, 1, 10))
+
+    assert epics[0].forecast is not None
+    assert epics[1].forecast is not None
+    assert epics[2].forecast is not None
+
+    assert epics[0].forecast.quantiles == [(0.5, 3.0), (0.9, 3.0)]  # no randomness in test, so +3 weeks
+    assert epics[0].forecast.deadline_quantile is None  # no deadline set
+
+    assert epics[1].forecast.quantiles == [(0.5, 2.0), (0.9, 2.0)]  # +2 weeks in parallel with E-1 since wip=2
+    assert epics[1].forecast.deadline_quantile == 0.55  # deadline is same week as best case scenario
+
+    assert epics[2].forecast.quantiles == [(0.5, 4.0), (0.9, 4.0)]  # +2 weeks after E-2 since wip=2 and it finishes first
+    assert epics[2].forecast.deadline_quantile == 1  # deadline is after worst case scenario
+
+def test_forecast_to_complete_no_epics():
+    team = Team(
+        name='Team 1',
+        wip=1,
+        sampler=throughput_range_sampler(2, 2)  # makes tests predictable
+    )
+
+    epics = []
+
+    forecast_to_complete(team, epics, [0.5, 0.9], trials=10, now=datetime(2018, 1, 10))
+
+    assert len(epics) == 0
+
+def test_forecast_to_complete_with_randomness():
+    
+    team = Team(
+        name='Team 1',
+        wip=2,
+        sampler=throughput_range_sampler(4, 9)  # makes tests predictable
+    )
+
+    epics = [
+        Epic(
+            key="E-1",
+            summary="Epic 1",
+            status="in-progress",
+            resolution=None,
+            resolution_date=None,
+            min_stories=10,
+            max_stories=15,
+            team_name='Team 1',
+            deadline=None,
+            team=team,
+            stories_raised=8,
+            stories_in_backlog=5,
+            stories_in_progress=0,
+            stories_done=5,
+        ),
+        Epic(
+            key="E-2",
+            summary="Epic 2",
+            status="in-progress",
+            resolution=None,
+            resolution_date=None,
+            min_stories=2,
+            max_stories=20,
+            team_name='Team 1',
+            deadline=datetime(2018, 1, 20),
+            team=team,
+            stories_raised=10,
+            stories_in_backlog=5,
+            stories_in_progress=0,
+            stories_done=6,
+        ),
+        Epic(
+            key="E-3",
+            summary="Epic 3",
+            status="in-progress",
+            resolution=None,
+            resolution_date=None,
+            min_stories=5,
+            max_stories=5,
+            team_name='Team 1',
+            deadline=datetime(2018, 3, 1),
+            team=team,
+            stories_raised=10,
+            stories_in_backlog=5,
+            stories_in_progress=0,
+            stories_done=6,
+        )
+    ]
+
+    forecast_to_complete(team, epics, [0.5, 0.9], trials=100, now=datetime(2018, 1, 10))
+
+    assert epics[0].forecast is not None
+    assert epics[1].forecast is not None
+    assert epics[2].forecast is not None
+
+    assert [q[0] for q in epics[0].forecast.quantiles] == [0.5, 0.9]
+    assert epics[0].forecast.deadline_quantile is None
+
+    assert [q[0] for q in epics[1].forecast.quantiles] == [0.5, 0.9]
+    assert epics[1].forecast.deadline_quantile > 0 and epics[1].forecast.deadline_quantile < 1
+
+    assert [q[0] for q in epics[2].forecast.quantiles] == [0.5, 0.9]
+    assert epics[2].forecast.deadline_quantile == 1  # deadline is after worst case scenario
 
 def test_calculator(query_manager, settings, results):
     
