@@ -13,7 +13,8 @@ from ..utils import extend_dict
 
 from .progressreport import (
     throughput_range_sampler,
-    calculate_team_throughput_from_samples,
+    update_team_sampler,
+    calculate_team_throughput,
     calculate_epic_target,
     find_epics,
     update_story_counts,
@@ -394,6 +395,7 @@ def test_find_epics(query_manager):
         'deadline': datetime(2018, 3, 1, 0, 0),
         'min_stories': 10,
         'max_stories': 15,
+        'story_cycle_times': None,
         'stories_raised': None,
         'stories_in_backlog': None,
         'stories_in_progress': None,
@@ -432,6 +434,7 @@ def test_find_epics_minimal_fields(query_manager):
         'deadline': None,
         'min_stories': None,
         'max_stories': None,
+        'story_cycle_times': None,
         'stories_raised': None,
         'stories_in_backlog': None,
         'stories_in_progress': None,
@@ -477,6 +480,7 @@ def test_update_story_counts(query_manager, settings):
     assert e1.last_story_finished == date(2018, 1, 6)
     assert e1.min_stories == 4
     assert e1.max_stories == 5
+    assert isinstance(e1.story_cycle_times, pd.DataFrame)
 
     e2 = Epic(
         key="E-2",
@@ -507,6 +511,7 @@ def test_update_story_counts(query_manager, settings):
     assert e2.last_story_finished is None
     assert e2.min_stories == 1
     assert e2.max_stories == 1
+    assert isinstance(e2.story_cycle_times, pd.DataFrame)
 
     e3 = Epic(
         key="E-3",
@@ -537,15 +542,25 @@ def test_update_story_counts(query_manager, settings):
     assert e3.last_story_finished is None
     assert e3.min_stories == 0
     assert e3.max_stories == 1
+    assert isinstance(e3.story_cycle_times, pd.DataFrame)
 
-def test_calculate_team_throughput_from_samples(query_manager, settings):
-    throughput = calculate_team_throughput_from_samples(
-        query_manager,
+def test_calculate_team_throughput(query_manager, settings):
+
+    t = Team(
+        name="Team 1",
+        wip=1,
+        min_throughput=None,
+        max_throughput=None,
+        throughput_samples='issuetype=feature',
+        throughput_samples_window=None,
+    )
+
+    throughput = calculate_team_throughput(
+        team=t,
+        query_manager=query_manager,
         cycle=settings['cycle'],
         backlog_column=settings['backlog_column'],
         done_column=settings['done_column'],
-        query='issuetype=feature',
-        window=None,
         frequency='1D'
     )
 
@@ -559,14 +574,23 @@ def test_calculate_team_throughput_from_samples(query_manager, settings):
         {'count': 0},
         {'count': 1},
     ]
+    assert isinstance(t.throughput_samples_cycle_times, pd.DataFrame)
 
-    throughput = calculate_team_throughput_from_samples(
-        query_manager,
+    t = Team(
+        name="Team 1",
+        wip=1,
+        min_throughput=None,
+        max_throughput=None,
+        throughput_samples='issuetype=feature',
+        throughput_samples_window=2,
+    )
+
+    throughput = calculate_team_throughput(
+        team=t,
+        query_manager=query_manager,
         cycle=settings['cycle'],
         backlog_column=settings['backlog_column'],
         done_column=settings['done_column'],
-        query='issuetype=feature',
-        window=2,
         frequency='1D'
     )
 
@@ -578,14 +602,23 @@ def test_calculate_team_throughput_from_samples(query_manager, settings):
         {'count': 0},
         {'count': 1},
     ]
+    assert isinstance(t.throughput_samples_cycle_times, pd.DataFrame)
 
-    throughput = calculate_team_throughput_from_samples(
-        query_manager,
+    t = Team(
+        name="Team 1",
+        wip=1,
+        min_throughput=None,
+        max_throughput=None,
+        throughput_samples='issuetype=feature',
+        throughput_samples_window=5,
+    )
+
+    throughput = calculate_team_throughput(
+        team=t,
+        query_manager=query_manager,
         cycle=settings['cycle'],
         backlog_column=settings['backlog_column'],
         done_column=settings['done_column'],
-        query='issuetype=feature',
-        window=5,
         frequency='1D'
     )
 
@@ -603,6 +636,124 @@ def test_calculate_team_throughput_from_samples(query_manager, settings):
         {'count': 0},
         {'count': 1},
     ]
+    assert isinstance(t.throughput_samples_cycle_times, pd.DataFrame)
+
+def test_update_team_sampler(query_manager, settings):
+    
+    # min/max only
+
+    t = Team(
+        name="Team 1",
+        wip=1,
+        min_throughput=5,
+        max_throughput=10,
+        throughput_samples=None,
+        throughput_samples_window=None,
+    )
+
+    update_team_sampler(
+        team=t,
+        query_manager=query_manager,
+        cycle=settings['cycle'],
+        backlog_column=settings['backlog_column'],
+        done_column=settings['done_column'],
+        frequency='1D'
+    )
+
+    assert t.sampler.__name__ == 'get_throughput_range_sample'
+    assert t.throughput_samples_cycle_times is None
+
+    # query only - with completed stories
+
+    t = Team(
+        name="Team 1",
+        wip=1,
+        min_throughput=None,
+        max_throughput=None,
+        throughput_samples='issuetype=feature',
+        throughput_samples_window=None,
+    )
+
+    update_team_sampler(
+        team=t,
+        query_manager=query_manager,
+        cycle=settings['cycle'],
+        backlog_column=settings['backlog_column'],
+        done_column=settings['done_column'],
+        frequency='1D'
+    )
+
+    assert t.sampler.__name__ == 'get_throughput_sample'
+    assert isinstance(t.throughput_samples_cycle_times, pd.DataFrame)
+
+    # query only - no completed stories
+
+    t = Team(
+        name="Team 1",
+        wip=1,
+        min_throughput=None,
+        max_throughput=None,
+        throughput_samples='issuetype=notfound',
+        throughput_samples_window=None,
+    )
+
+    update_team_sampler(
+        team=t,
+        query_manager=query_manager,
+        cycle=settings['cycle'],
+        backlog_column=settings['backlog_column'],
+        done_column=settings['done_column'],
+        frequency='1D'
+    )
+
+    assert t.sampler is None
+    assert isinstance(t.throughput_samples_cycle_times, pd.DataFrame)
+
+    # query with no completed stories + min/max
+
+    t = Team(
+        name="Team 1",
+        wip=1,
+        min_throughput=5,
+        max_throughput=10,
+        throughput_samples='issuetype=notfound',
+        throughput_samples_window=None,
+    )
+
+    update_team_sampler(
+        team=t,
+        query_manager=query_manager,
+        cycle=settings['cycle'],
+        backlog_column=settings['backlog_column'],
+        done_column=settings['done_column'],
+        frequency='1D'
+    )
+
+    assert t.sampler.__name__ == 'get_throughput_range_sample'
+    assert isinstance(t.throughput_samples_cycle_times, pd.DataFrame)
+
+    # query with completed stories + min/max
+
+    t = Team(
+        name="Team 1",
+        wip=1,
+        min_throughput=5,
+        max_throughput=10,
+        throughput_samples='issuetype=feature',
+        throughput_samples_window=None,
+    )
+
+    update_team_sampler(
+        team=t,
+        query_manager=query_manager,
+        cycle=settings['cycle'],
+        backlog_column=settings['backlog_column'],
+        done_column=settings['done_column'],
+        frequency='1D'
+    )
+
+    assert t.sampler.__name__ == 'get_throughput_sample'
+    assert isinstance(t.throughput_samples_cycle_times, pd.DataFrame)
 
 def test_forecast_to_complete_wip_1():
     

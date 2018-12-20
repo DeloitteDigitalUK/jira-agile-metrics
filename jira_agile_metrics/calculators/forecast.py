@@ -248,7 +248,7 @@ def throughput_sampler(throughput_data, start_value, target):
 
     sample_buffer = dict(idx=0, buffer=None)
 
-    def get_sample():
+    def get_throughput_sample():
         if sample_buffer['buffer'] is None or sample_buffer['idx'] >= len(sample_buffer['buffer'].index):
             sample_buffer['buffer'] = throughput_data['count'].sample(sample_buffer_size, replace=True)
             sample_buffer['idx'] = 0
@@ -256,7 +256,7 @@ def throughput_sampler(throughput_data, start_value, target):
         sample_buffer['idx'] += 1
         return sample_buffer['buffer'].iloc[sample_buffer['idx'] - 1]
     
-    return get_sample
+    return get_throughput_sample
 
 def burnup_monte_carlo(
     start_value,

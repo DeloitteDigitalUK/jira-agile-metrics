@@ -99,9 +99,6 @@ class ProgressReportCalculator(Calculator):
                 if team['min_throughput'] > team['max_throughput']:
                     logger.error("`Min throughput` must be less than or equal to `Max throughput`.")
                     return None
-                if team['throughput_samples']:
-                    logger.error("A team cannot have both `Throughput samples` and `Min/max throughput` specified.")
-                    return None
             elif not team['throughput_samples']:
                 logger.error("`Throughput samples` is required if `Min/max throughput` is not specified.")
                 return None
@@ -142,21 +139,17 @@ class ProgressReportCalculator(Calculator):
                 max_throughput=team['max_throughput'],
                 throughput_samples=team['throughput_samples'],
                 throughput_samples_window=team['throughput_samples_window'],
-
-                sampler=throughput_range_sampler(
-                    min=team['min_throughput'],
-                    max=team['max_throughput']
-                ) if team['min_throughput'] else
-                throughput_sampler(calculate_team_throughput_from_samples(
-                    query_manager=self.query_manager,
-                    cycle=cycle,
-                    backlog_column=backlog_column,
-                    done_column=done_column,
-                    query=team['throughput_samples'],
-                    window=team['throughput_samples_window']
-                ), 0, 10)
             ) for team in teams
         ]
+
+        for team in teams:
+            update_team_sampler(
+                team=team,
+                query_manager=self.query_manager,
+                cycle=cycle,
+                backlog_column=backlog_column,
+                done_column=done_column,
+            )
 
         team_lookup = {team.name: team for team in teams}
         team_epics = {team.name: [] for team in teams}
@@ -269,6 +262,7 @@ class Team(object):
         max_throughput=None,
         throughput_samples=None,
         throughput_samples_window=None,
+        throughput_samples_cycle_times=None,
         sampler=None
     ):
         self.name = name
@@ -278,6 +272,7 @@ class Team(object):
         self.max_throughput = max_throughput
         self.throughput_samples = throughput_samples
         self.throughput_samples_window = throughput_samples_window
+        self.throughput_samples_cycle_times = throughput_samples_cycle_times
         
         self.sampler = sampler
 
@@ -286,6 +281,7 @@ class Epic(object):
     def __init__(self, key, summary, status, resolution, resolution_date,
         min_stories, max_stories, team_name, deadline,
         story_query=None,
+        story_cycle_times=None,
         stories_raised=None,
         stories_in_backlog=None,
         stories_in_progress=None,
@@ -307,6 +303,7 @@ class Epic(object):
         self.deadline = deadline
 
         self.story_query = story_query
+        self.story_cycle_times = story_cycle_times
         self.stories_raised = stories_raised
         self.stories_in_backlog = stories_in_backlog
         self.stories_in_progress = stories_in_progress
@@ -325,16 +322,50 @@ class Forecast(object):
         self.deadline_quantile = deadline_quantile
 
 def throughput_range_sampler(min, max):
-    return lambda: random.randint(min, max)
+    def get_throughput_range_sample():
+        return random.randint(min, max)
+    return get_throughput_range_sample
 
-def calculate_team_throughput_from_samples(
+def update_team_sampler(
+    team,
     query_manager,
     cycle,
     backlog_column,
     done_column,
-    query,
-    window=None,
     frequency='1W'
+):
+
+    # Use query if set
+    if team.throughput_samples:
+
+        throughput = calculate_team_throughput(
+            team=team,
+            query_manager=query_manager,
+            cycle=cycle,
+            backlog_column=backlog_column,
+            done_column=done_column,
+            frequency=frequency,
+        )
+
+        if throughput is None:
+            logger.error("No completed issues found by query `%s`. Unable to calculate throughput. Will use min/max throughput if set." % team.throughput_samples)
+        else:
+            team.sampler = throughput_sampler(throughput, 0, 10)  # we have to hardcode the buffer size
+    
+    # Use min/max if set and query either wasn't set, or returned nothing
+    if team.sampler is None and team.min_throughput and team.max_throughput:
+        team.sampler = throughput_range_sampler(team.min_throughput, max(team.min_throughput, team.max_throughput))
+    
+    if team.sampler is None:
+        logger.error("Unable to calculate throughput for team %s." % team.name)
+
+def calculate_team_throughput(
+    team,
+    query_manager,
+    cycle,
+    backlog_column,
+    done_column,
+    frequency
 ):
 
     cycle_times = calculate_cycle_times(
@@ -343,15 +374,17 @@ def calculate_team_throughput_from_samples(
         attributes={},
         backlog_column=backlog_column,
         done_column=done_column,
-        queries=[{'jql': query, 'value': None}],
+        queries=[{'jql': team.throughput_samples, 'value': None}],
         query_attribute=None,
     )
 
-    if cycle_times['completed_timestamp'].count() == 0:
-        logger.error("No completed issues found by query `%s`. Unable to calculate throughput. Use min/max throughput instead." % query)
-        return None
+    team.throughput_samples_cycle_times = cycle_times
 
-    return calculate_throughput(cycle_times, frequency=frequency, window=window)
+    if cycle_times['completed_timestamp'].count() == 0:
+        return None
+    
+    return calculate_throughput(cycle_times, frequency=frequency, window=team.throughput_samples_window)
+
 
 def find_epics(
     query_manager,
@@ -403,6 +436,7 @@ def update_story_counts(
         query_attribute=None,
     )
 
+    epic.story_cycle_times = story_cycle_times
     epic.stories_raised = len(story_cycle_times)
 
     if epic.stories_raised == 0:
