@@ -1040,8 +1040,8 @@ def test_calculator(query_manager, settings, results):
     assert data['teams'][1].throughput_samples == 'issuetype=feature AND resolution=Done'
     assert data['teams'][1].throughput_samples_window == 6
 
-    results[ProgressReportCalculator] = data
-    calculator.write()
+    # results[ProgressReportCalculator] = data
+    # calculator.write()
 
 def test_calculator_no_outcomes(query_manager, settings, results):
     settings = extend_dict(settings, {
