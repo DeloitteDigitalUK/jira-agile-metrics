@@ -20,22 +20,7 @@ class ScatterplotCalculator(Calculator):
 
     def run(self):
         cycle_data = self.get_result(CycleTimeCalculator)
-        columns = list(cycle_data.columns)
-        columns.remove('cycle_time')
-        columns.remove('completed_timestamp')
-        columns.remove('blocked_days')
-        columns.remove('impediments')
-        columns = ['completed_timestamp', 'cycle_time', 'blocked_days'] + columns
-
-        data = (
-            cycle_data[columns]
-            .dropna(subset=['cycle_time', 'completed_timestamp'])
-            .rename(columns={'completed_timestamp': 'completed_date'})
-        )
-
-        data['cycle_time'] = data['cycle_time'].astype('timedelta64[D]')
-
-        return data
+        return calculate_scatterplot_data(cycle_data)
     
     def write(self):
         data = self.get_result()
@@ -115,3 +100,22 @@ class ScatterplotCalculator(Calculator):
         logger.info("Writing scatterplot chart to %s", output_file)
         fig.savefig(output_file, bbox_inches='tight', dpi=300)
         plt.close(fig)
+
+def calculate_scatterplot_data(cycle_data):
+
+    columns = list(cycle_data.columns)
+    columns.remove('cycle_time')
+    columns.remove('completed_timestamp')
+    columns.remove('blocked_days')
+    columns.remove('impediments')
+    columns = ['completed_timestamp', 'cycle_time', 'blocked_days'] + columns
+
+    data = (
+        cycle_data[columns]
+        .dropna(subset=['cycle_time', 'completed_timestamp'])
+        .rename(columns={'completed_timestamp': 'completed_date'})
+    )
+
+    data['cycle_time'] = data['cycle_time'].astype('timedelta64[D]')
+
+    return data

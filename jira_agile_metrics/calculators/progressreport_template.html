@@ -7,7 +7,30 @@
         <meta name="author" content="">
 
         <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css" integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO" crossorigin="anonymous">
-        
+        <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.6.3/css/solid.css" integrity="sha384-+0VIRx+yz1WBcCTXBkVQYIBVNEFH1eP6Zknm16roZCyeNg2maWEpk/l/KsyFKs7G" crossorigin="anonymous">
+        <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.6.3/css/fontawesome.css" integrity="sha384-jLuaxTTBR42U2qJ/pm4JRouHkEDHkVqH0T1nyQXn1mZ7Snycpf6Rl25VBNthU4z0" crossorigin="anonymous">
+
+        <!-- Lightbox: https://github.com/maoberlehner/perfundo -->
+        <style type="text/css">
+            .perfundo__overlay{display:-webkit-box;display:-ms-flexbox;display:flex;visibility:hidden;position:fixed;top:0;right:0;bottom:0;left:0;z-index:999;-webkit-box-pack:center;-ms-flex-pack:center;justify-content:center;-webkit-box-align:center;-ms-flex-align:center;align-items:center;background-color:rgba(0,0,0,.9)}.perfundo__overlay.is-active,.perfundo__overlay:target{visibility:visible}.perfundo__content{max-height:100%;overflow:auto}.is-active>.perfundo__content,:target>.perfundo__content{-webkit-animation:.4s ease-out .2s both;animation:.4s ease-out .2s both;-webkit-animation-name:inherit;animation-name:inherit}.perfundo__html{padding:2em;max-width:42em;background-color:#fff}.perfundo__figure{display:none;margin:1.5em}.is-active>.perfundo__figure,:target>.perfundo__figure{display:block}.perfundo__figure img{display:block;height:0}.perfundo__figcaption{color:#fff}.perfundo__image{max-width:100%;background-size:100%}.perfundo__control{position:absolute}.perfundo__control,.perfundo__control:visited{color:#fff}.perfundo__close{top:1em;right:1em}.perfundo__prev{left:2em}.perfundo__next{right:2em}.perfundo__untarget{position:fixed;top:0}.perfundo__next,.perfundo__prev{top:50%;margin-top:-1.5em;opacity:.2;-webkit-transition:opacity .2s;transition:opacity .2s}.perfundo__next:focus,.perfundo__next:hover,.perfundo__prev:focus,.perfundo__prev:hover{opacity:1}
+        </style>
+
+        <style type="text/css">
+            .icon-link {
+                color: inherit;
+            }
+
+            .perfundo__image {
+                background-repeat: no-repeat;
+            }
+
+            .progress-bar {
+                color: #333;
+                padding: 0 5px
+            }
+
+        </style>
+
         <title>{{title}}</title>
     </head>
 
@@ -67,9 +90,10 @@
                                     <table class="table table-sm table-borderless">
                                         <thead>
                                             <tr>
-                                                <th scope="col">Name</th>
-                                                <th scope="col">Throughput</th>
-                                                <th scope="col">Epic WIP</th>
+                                                <th scope="col" style="width: 30%">Name</th>
+                                                <th scope="col" style="width: 35%">Throughput</th>
+                                                <th scope="col" style="width: 15%"></th>
+                                                <th scope="col" style="width: 20%">Epic WIP</th>
                                             </tr>
                                         </thead>
                                         <tbody>
@@ -78,14 +102,33 @@
                                                 <td>{{ team.name }}</td>
                                                 {% if team.min_throughput %}
                                                     <td>{{ team.min_throughput }} &ndash; {{ team.max_throughput }} stories/week</td>
+                                                    <td></td>
                                                 {% else %}
                                                     <td>
-                                                        <a href="{{ jira_url }}/issues/?jql={{ team.throughput_samples|urlencode }}">
-                                                            Historical data
-                                                            {%- if team.throughput_samples_window %}
-                                                                over {{ team.throughput_samples_window }} weeks
-                                                            {% endif -%}
+                                                        Historical data
+                                                        {%- if team.throughput_samples_window %}
+                                                            over {{ team.throughput_samples_window }} weeks
+                                                        {% endif -%}
+                                                    </td>
+                                                    <td>
+                                                        <a class="icon-link" href="{{ jira_url }}/issues/?jql={{ team.throughput_samples|urlencode }}" target="_blank">
+                                                            <i class="fas fa-search"></i>
                                                         </a>
+                                                        {% if team_charts[team.name]['scatterplot'] %}
+                                                        <a class="icon-link perfundo__link" href="#team-scatterplot-{{ team.name | urlencode }}">
+                                                            <i class="fas fa-chart-bar"></i>
+                                                        </a>
+                                                        {% endif %}
+                                                        {% if team_charts[team.name]['cfd'] %}
+                                                        <a class="icon-link perfundo__link" href="#team-cfd-{{ team.name | urlencode }}">
+                                                            <i class="fas fa-chart-area"></i>
+                                                        </a>
+                                                        {% endif %}
+                                                        {% if team_charts[team.name]['throughput'] %}
+                                                        <a class="icon-link perfundo__link" href="#team-throughput-{{ team.name | urlencode }}">
+                                                            <i class="fas fa-chart-line"></i>
+                                                        </a>
+                                                        {% endif %}
                                                     </td>
                                                 {% endif %}
                                                 <td>{{ team.wip }}</td>
@@ -142,6 +185,7 @@
                         <td>{{ epic.key }}: {{ epic.summary }}</td>
                         <td>{{ epic.team.name }}</td>
                         <td>
+                            {% if epic.forecast %}
                             <div class="progress" style="height: 30px">
                                 <div class="progress-bar bg-{{ color_code(epic.forecast.deadline_quantile) }}"
                                     role="progressbar"
@@ -149,15 +193,32 @@
                                     aria-valuenow="{{ epic.stories_done }}"
                                     aria-valuemin="0"
                                     aria-valuemax="{{ epic.max_stories }}">
-                                    <a href="{{ jira_url }}/issues/?jql={{ epic.story_query | urlencode }}" style="color: #333; padding: 0 5px">
                                         {{ epic.stories_done }}
                                         of
                                         {{ epic.min_stories }}
                                         {% if epic.max_stories and epic.max_stories != epic.min_stories %} &ndash; {{ epic.max_stories }} {% endif %}
                                         stories completed
-                                    </a>
                                 </div>
                             </div>
+
+                            <a class="icon-link" href="{{ jira_url }}/issues/?jql={{ epic.story_query | urlencode }}" target="_blank">
+                                <i class="fas fa-search"></i>
+                            </a>
+
+                            {% if epic_charts[epic.key]['scatterplot'] %}
+                            <a class="icon-link perfundo__link" href="#epic-scatterplot-{{ epic.key | urlencode }}">
+                                <i class="fas fa-chart-bar"></i>
+                            </a>
+                            {% endif %}
+                            {% if epic_charts[epic.key]['cfd'] %}
+                            <a class="icon-link perfundo__link" href="#epic-cfd-{{ epic.key | urlencode }}">
+                                <i class="fas fa-chart-area"></i>
+                            </a>
+                            {% endif %}
+
+                            {% else %}
+                            Forecast not available
+                            {% endif %}
                         </td>
                         {% if epic_deadline_field %}
                         <td>
@@ -168,17 +229,21 @@
                             {% endif %}
                         </td>
                         <td>
-                            {% if epic.forecast.deadline_quantile %}
-                            <span class="badge badge-pill badge-{{ color_code(epic.forecast.deadline_quantile) }}">
-                                {{ (epic.forecast.deadline_quantile * 100) | round | int }}%
-                            </span>
+                            {% if epic.forecast %}
+                                {% if epic.forecast.deadline_quantile %}
+                                <span class="badge badge-pill badge-{{ color_code(epic.forecast.deadline_quantile) }}">
+                                    {{ (epic.forecast.deadline_quantile * 100) | round | int }}%
+                                </span>
+                                {% endif %}
                             {% endif %}
                         </td>
                         {% endif %}
                         <td>
-                            {% for quantile, weeks in epic.forecast.quantiles %}
-                            <div><small>{{ future_date(weeks).strftime("%d %b %Y") }} <em>@ {{ (quantile * 100) | round | int }}%</em></small></div>
-                            {% endfor %}
+                            {% if epic.forecast %}
+                                {% for quantile, weeks in epic.forecast.quantiles %}
+                                <div><small>{{ future_date(weeks).strftime("%d %b %Y") }} <em>@ {{ (quantile * 100) | round | int }}%</em></small></div>
+                                {% endfor %}
+                            {% endif %}
                         </td>
                     </tr>
                     {% endfor %}
@@ -188,6 +253,71 @@
             {% endfor %}
 
         </div>
+
+        <!-- chart overlays -->
+
+        {% for team in teams %}
+
+            {% if team_charts[team.name]['cfd'] %}
+            <div id="team-cfd-{{ team.name | urlencode }}" class="perfundo__overlay fadeInLeft">
+                <figure class="perfundo__content perfundo__figure">
+                    <figcaption class="perfundo__figcaption">Cumulative Flow Diagram of historical samples for {{ team.name }}</figcaption>
+                    <div class="perfundo__image" style="width: 800px; height: 500px; padding-top: 56.25%; background-image: url('data:image/png;base64, {{ team_charts[team.name]['cfd'] }}');"></div>
+                </figure>
+                <a href="#perfundo-untarget" class="perfundo__close perfundo__control">Close</a>
+            </div>
+            {% endif %}
+
+            {% if team_charts[team.name]['throughput'] %}
+            <div id="team-throughput-{{ team.name | urlencode }}" class="perfundo__overlay fadeInLeft">
+                <figure class="perfundo__content perfundo__figure">
+                    <figcaption class="perfundo__figcaption">Historical weekly throughput for {{ team.name }}</figcaption>
+                    <div class="perfundo__image" style="width: 800px; height: 700px; padding-top: 56.25%; background-image: url('data:image/png;base64, {{ team_charts[team.name]['throughput'] }}');"></div>
+                </figure>
+                <a href="#perfundo-untarget" class="perfundo__close perfundo__control">Close</a>
+            </div>
+            {% endif %}
+
+            {% if team_charts[team.name]['scatterplot'] %}
+            <div id="team-scatterplot-{{ team.name | urlencode }}" class="perfundo__overlay fadeInLeft">
+                <figure class="perfundo__content perfundo__figure">
+                    <figcaption class="perfundo__figcaption">Cycle time scatter plot for {{ team.name }}</figcaption>
+                    <div class="perfundo__image" style="width: 800px; height: 600px; padding-top: 56.25%; background-image: url('data:image/png;base64, {{ team_charts[team.name]['scatterplot'] }}');"></div>
+                </figure>
+                <a href="#perfundo-untarget" class="perfundo__close perfundo__control">Close</a>
+            </div>
+            {% endif %}
+
+        {% endfor %}
+
+        {% for outcome in outcomes %}
+
+            {% for epic in outcome['epics'] %}
+
+                {% if epic_charts[epic.key]['cfd'] %}
+                <div id="epic-cfd-{{ epic.key | urlencode }}" class="perfundo__overlay fadeInLeft">
+                    <figure class="perfundo__content perfundo__figure">
+                        <figcaption class="perfundo__figcaption">Cumulative Flow Diagram for {{ epic.summary }}</figcaption>
+                        <div class="perfundo__image" style="width: 800px; height: 500px; padding-top: 56.25%; background-image: url('data:image/png;base64, {{ epic_charts[epic.key]['cfd'] }}');"></div>
+                    </figure>
+                    <a href="#perfundo-untarget" class="perfundo__close perfundo__control">Close</a>
+                </div>
+                {% endif %}
+
+                {% if epic_charts[epic.key]['scatterplot'] %}
+                <div id="epic-scatterplot-{{ epic.key | urlencode }}" class="perfundo__overlay fadeInLeft">
+                    <figure class="perfundo__content perfundo__figure">
+                        <figcaption class="perfundo__figcaption">Cycle time scatter plot for {{ epic.summary }}</figcaption>
+                        <div class="perfundo__image" style="width: 800px; height: 600px; padding-top: 56.25%; background-image: url('data:image/png;base64, {{ epic_charts[epic.key]['scatterplot'] }}');"></div>
+                    </figure>
+                    <a href="#perfundo-untarget" class="perfundo__close perfundo__control">Close</a>
+                </div>
+                {% endif %}
+
+            {% endfor %}
+
+        {% endfor %}
+        
 
 
         <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>

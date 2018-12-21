@@ -1,19 +1,28 @@
+import io
 import logging
 import random
+import math
+import base64
 import datetime
 import dateutil
-import math
+
 import numpy as np
 import pandas as pd
 import scipy.stats
+import statsmodels.formula.api as sm
+import matplotlib.pyplot as plt
+import matplotlib.dates as mdates
 
 import jinja2
 
 from ..calculator import Calculator
+from ..utils import set_chart_style
 
 from .cycletime import calculate_cycle_times
 from .throughput import calculate_throughput
 from .forecast import throughput_sampler
+from .cfd import calculate_cfd_data
+from .scatterplot import calculate_scatterplot_data
 
 logger = logging.getLogger(__name__)
 
@@ -220,6 +229,10 @@ class ProgressReportCalculator(Calculator):
             logger.warning("No data found for progress report")
             return
 
+        cycle_names = [s['name'] for s in self.settings['cycle']]
+        backlog_column = self.settings['backlog_column']
+        quantiles = self.settings['quantiles']
+
         template = jinja_env.get_template('progressreport_template.html')
         today = datetime.date.today()
 
@@ -245,6 +258,15 @@ class ProgressReportCalculator(Calculator):
                 percent_complete=lambda epic: (
                     (epic.stories_done or 0) / epic.max_stories
                 ),
+                team_charts={team.name: {
+                    'cfd': plot_cfd(team.throughput_samples_cycle_times, cycle_names, backlog_column),
+                    'throughput': plot_throughput(team.throughput_samples_cycle_times),
+                    'scatterplot': plot_scatterplot(team.throughput_samples_cycle_times, quantiles)
+                } for team in data['teams']},
+                epic_charts={epic.key: {
+                    'cfd': plot_cfd(epic.story_cycle_times, cycle_names, backlog_column),
+                    'scatterplot': plot_scatterplot(epic.story_cycle_times, quantiles)
+                } for outcome in data['outcomes'] for epic in outcome.epics}
             ))
 
 class Outcome(object):
@@ -544,3 +566,150 @@ def calculate_epic_target(epic):
         max(epic.min_stories, 0),
         max(epic.min_stories, epic.max_stories, 1)
     )
+
+def plot_cfd(cycle_data, cycle_names, backlog_column):
+
+    # Prepare data
+    
+    if cycle_data is None or len(cycle_data) == 0:
+        return None
+    
+    cfd_data = calculate_cfd_data(cycle_data, cycle_names)
+    cfd_data = cfd_data.drop([backlog_column], axis=1)
+
+    backlog_column_index = cycle_names.index(backlog_column)
+    started_column = cycle_names[backlog_column_index + 1]  # config parser ensures there is at least one column after backlog
+
+    if cfd_data[started_column].max() <= 0:
+        return None
+    
+    # Plot
+    
+    fig, ax = plt.subplots()
+    fig.autofmt_xdate()
+
+    ax.set_xlabel("Date")
+    ax.set_ylabel("Number of items")
+
+    cfd_data.plot.area(ax=ax, stacked=False, legend=False)
+
+    ax.legend(loc='center left', bbox_to_anchor=(1, 0.5))
+
+    bottom = cfd_data[cfd_data.columns[-1]].min()
+    top = cfd_data[cfd_data.columns[0]].max()
+    ax.set_ylim(bottom=bottom, top=top)
+
+    set_chart_style()
+
+    # Return as base64 encoded string
+
+    buffer = io.BytesIO()
+    fig.savefig(buffer, format='png', bbox_inches='tight', dpi=150)
+    plt.close(fig)
+
+    return base64.b64encode(buffer.getvalue()).decode('utf-8')
+
+def plot_throughput(cycle_data, frequency='1W'):
+
+    # Prepare data
+
+    if cycle_data is None or len(cycle_data) == 0:
+        return None
+
+    throughput_data = calculate_throughput(cycle_data, frequency)
+    
+    # Calculate regression
+
+    day_zero = throughput_data.index[0]
+    throughput_data['day'] = (throughput_data.index - day_zero).days
+
+    fit = sm.ols(formula="count ~ day", data=throughput_data).fit()
+    throughput_data['fitted'] = fit.predict(throughput_data)
+
+    # Plot
+
+    fig, ax = plt.subplots()
+
+    ax.set_xlabel("Period starting")
+    ax.set_ylabel("Number of items")
+
+    ax.plot(throughput_data.index, throughput_data['count'], marker='o')
+    plt.xticks(throughput_data.index, [d.date().strftime('%d/%m/%Y') for d in throughput_data.index], rotation=70, size='small')
+
+    _, top = ax.get_ylim()
+    ax.set_ylim(0, top + 1)
+
+    for x, y in zip(throughput_data.index, throughput_data['count']):
+        if y == 0:
+            continue
+        ax.annotate(
+            "%.0f" % y,
+            xy=(x.toordinal(), y + 0.2),
+            ha='center',
+            va='bottom',
+            fontsize="x-small",
+        )
+
+    ax.plot(throughput_data.index, throughput_data['fitted'], '--', linewidth=2)
+
+    set_chart_style()
+
+    # Return as base64 encoded string
+
+    buffer = io.BytesIO()
+    fig.savefig(buffer, format='png', bbox_inches='tight', dpi=150)
+    plt.close(fig)
+
+    return base64.b64encode(buffer.getvalue()).decode('utf-8')
+
+def plot_scatterplot(cycle_data, quantiles):
+
+    # Prepare data
+    
+    if cycle_data is None or len(cycle_data) == 0:
+        return None
+    
+    scatterplot_data = calculate_scatterplot_data(cycle_data)
+
+    if len(scatterplot_data) < 2:
+        return None
+    
+    # Plot
+
+    chart_data = pd.DataFrame({
+        'completed_date': scatterplot_data['completed_date'].values.astype('datetime64[D]'),
+        'cycle_time': scatterplot_data['cycle_time']
+    }, index=scatterplot_data.index)
+
+    fig, ax = plt.subplots()
+    fig.autofmt_xdate()
+
+    ax.set_xlabel("Completed date")
+    ax.set_ylabel("Cycle time (days)")
+
+    ax.plot_date(x=chart_data['completed_date'], y=chart_data['cycle_time'], ms=5)
+    ax.xaxis.set_major_formatter(mdates.DateFormatter('%d/%m/%Y'))
+
+    _, top = ax.get_ylim()
+    ax.set_ylim(0, top + 1)
+
+    # Add quantiles
+    left, right = ax.get_xlim()
+    for quantile, value in chart_data['cycle_time'].quantile(quantiles).iteritems():
+        ax.hlines(value, left, right, linestyles='--', linewidths=1)
+        ax.annotate("%.0f%% (%.0f days)" % ((quantile * 100), value,),
+            xy=(left, value),
+            xytext=(left, value),
+            fontsize="x-small",
+            ha="left"
+        )
+
+    set_chart_style()
+
+    # Return as base64 encoded string
+
+    buffer = io.BytesIO()
+    fig.savefig(buffer, format='png', bbox_inches='tight', dpi=150)
+    plt.close(fig)
+
+    return base64.b64encode(buffer.getvalue()).decode('utf-8')
