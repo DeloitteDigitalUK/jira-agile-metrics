@@ -1,6 +1,7 @@
+import random
 import pytest
 import pandas as pd
-from datetime import datetime, date
+from datetime import datetime, date, timedelta
 from ..conftest import (
     FauxJIRA as JIRA,
     FauxIssue as Issue,
@@ -1153,6 +1154,156 @@ def test_calculator_no_fields(query_manager, settings, results):
     assert data['teams'][0].max_throughput == 10
     assert data['teams'][0].throughput_samples is None
     assert data['teams'][0].throughput_samples_window is None
+
+    # results[ProgressReportCalculator] = data
+    # calculator.write()
+
+def test_with_large_dataset(fields, settings, results):
+
+    # build a large and partially randomised data set to forecast on
+
+    field_lookup = {v['name'].lower(): v['id'] for v in fields}
+
+    def compare_value(i, clause):
+        key, val = [s.strip() for s in clause.split('=')]
+        ival = getattr(i.fields, field_lookup.get(key.lower(), key), None)
+        ival = getattr(ival, 'value', ival)
+        return val.strip('"') == ival
+
+    def simple_ql(i, jql):
+        clauses = [c.strip() for c in jql.split(' AND ') if "=" in c]
+        return all([compare_value(i, c) for c in clauses])
+    
+    def random_date_past(start, max_days):
+        return start - timedelta(days=random.randint(0, max_days))
+    
+    def random_date_future(start, max_days):
+        return start + timedelta(days=random.randint(0, max_days))
+
+    settings = extend_dict(settings, {
+        'quantiles': [0.75, 0.85, 0.95],
+        'progress_report_title': 'Acme Corp Websites',
+        'progress_report_teams': [
+            {
+                'name': 'Red',
+                'min_throughput': random.randint(5, 8),
+                'max_throughput': random.randint(10, 15),
+                'throughput_samples': None,
+                'throughput_samples_window': None,
+                'wip': random.randint(1, 3),
+            }, {
+                'name': 'Blue',
+                'min_throughput': None,
+                'max_throughput': None,
+                'throughput_samples': 'issuetype=story AND Team=Blue',
+                'throughput_samples_window': 6,
+                'wip': random.randint(1, 3),
+            }
+        ],
+        'progress_report_outcomes': [
+            {
+                'key': 'O1',
+                'name': 'MVP',
+                'epic_query': None,
+            }, {
+                'key': 'O2',
+                'name': 'Asia launch',
+                'epic_query': None,
+            }, {
+                'key': 'O3',
+                'name': 'Europe revamp',
+                'epic_query': None,
+            }
+        ],
+    })
+
+    today = date.today()
+    teams = [t['name'] for t in settings['progress_report_teams']]
+    outcomes = [o['key'] for o in settings['progress_report_outcomes']]
+    statuses = ['Backlog', 'Next', 'Build', 'QA', 'Done']
+
+    verbs = [
+        'ask', 'be', 'become', 'begin', 'call',  'feel', 'find', 'get', 'give',
+        'go', 'have', 'hear', 'help', 'keep', 'know', 'leave', 'like', 'live',
+        'look', 'make',  'might', 'move', 'need', 'play', 'put', 'run', 'say',
+        'see', 'show', 'start', 'take', 'talk', 'tell', 'think', 'try', 'turn',
+        'use', 'work',
+    ]
+    nouns = [
+        'area', 'book', 'business', 'case', 'child', 'company', 'country', 'day',
+        'eye', 'fact', 'family', 'government', 'group', 'hand', 'home', 'job',
+        'life', 'man', 'money', 'month', 'mother', 'night', 'number', 'people',
+        'place', 'point', 'problem', 'program', 'question', 'room', 'school',
+        'state', 'story', 'student', 'study', 'system', 'thing', 'time',
+        'water', 'way', 'week', 'woman', 'word', 'work', 'world', 'year'
+    ]
+        
+    epics = [Issue("E-%d" % i,
+        summary="%s %s" % (random.choice(verbs).capitalize(), random.choice(nouns)),
+        issuetype=Value('Epic', 'epic'),
+        status=Value('In progress', 'in-progress'),
+        resolution=None,
+        resolutiondate=None,
+        created="%s 00:00:00" % random_date_past(today, 30).isoformat(),
+        customfield_001=random.choice(teams),
+        customfield_201=random.choice(outcomes),
+        customfield_202="%s 00:00:00" % random_date_future(today + timedelta(days=55), 65).isoformat() if random.choice((True, True, False,)) else None,
+        customfield_203=random.randint(15, 20),
+        customfield_204=random.randint(20, 25),
+        changes=[]
+    ) for i in range(random.randint(9, 12))]
+
+    def make_story(i):
+
+        epic = random.choice(epics)
+        current_status = random.choice(statuses)
+        created = random_date_past(today, 15)
+        changes = [{
+            'date': created,
+            'from': None,
+            'to': statuses[0]
+        }]
+        
+        for s in statuses[1:]:
+            changes.append({
+                'date': random_date_future(changes[-1]['date'], 15),
+                'from': changes[-1]['to'],
+                'to': s,
+            })
+
+            if s == current_status:
+                break
+
+        return Issue("S-%d" % i,
+            summary="%s %s" % (random.choice(verbs).capitalize(), random.choice(nouns)),
+            issuetype=Value("Story", "story"),
+            status=Value(current_status, current_status.lower()),
+            resolution=Value('Done', 'done') if current_status == 'Done' else None,
+            resolutiondate="%s 00:00:00" % changes[-1]['date'] if current_status == 'Done' else None,
+            created="%s 00:00:00" % created.isoformat(),
+            customfield_001=epic.fields.customfield_001,
+            customfield_205=epic.key,
+            changes=[
+                Change(
+                    "%s 00:00:00" % c['date'],
+                    [("status", c['from'], c['to'],)]
+                ) for c in changes[1:]
+            ],
+        )
+
+    stories = [make_story(i) for i in range(100, 300)]
+
+    query_manager = QueryManager(
+        jira=JIRA(fields=fields, filter=simple_ql, issues=epics + stories),
+        settings=settings
+    )
+
+    calculator = ProgressReportCalculator(query_manager, settings, results)
+
+    data = calculator.run(trials=100)
+
+    assert len(data['outcomes']) == 3
+    assert len(data['teams']) == 2
 
     # results[ProgressReportCalculator] = data
     # calculator.write()

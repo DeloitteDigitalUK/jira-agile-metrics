@@ -17,7 +17,12 @@
 
         <style type="text/css">
             .icon-link {
+                color: inherit;   
+            }
+
+            .icon-link:hover {
                 color: inherit;
+                text-decoration: none;
             }
 
             .perfundo__image {
@@ -158,8 +163,13 @@
                     <table class="table table-sm table-hover">
                         <tbody>
                             <tr>
-                                <th>Epics query:</th>
-                                <td><a href="{{ jira_url }}/issues/?jql={{ outcome.epic_query | urlencode }}"><code>{{ outcome.epic_query }}</code></a></td>
+                                <th style="width: 20%">Epics query:</th>
+                                <td>
+                                    <code>{{ outcome.epic_query }}</code>
+                                    <a class="icon-link" href="{{ jira_url }}/issues/?jql={{ outcome.epic_query | urlencode }}" target="_blank">
+                                        <i class="fas fa-search"></i>
+                                    </a>
+                                </td>
                             </tr>
                         </tbody>
                     </table>
@@ -230,9 +240,15 @@
                         </td>
                         <td>
                             {% if epic.forecast %}
-                                {% if epic.forecast.deadline_quantile %}
+                                {% if epic.forecast.deadline_quantile is not none %}
                                 <span class="badge badge-pill badge-{{ color_code(epic.forecast.deadline_quantile) }}">
-                                    {{ (epic.forecast.deadline_quantile * 100) | round | int }}%
+                                    {% if epic.forecast.deadline_quantile > 0.95 %}
+                                        > 95%
+                                    {% elif epic.forecast.deadline_quantile < 0.1 %}
+                                        < 10%
+                                    {% else %}
+                                        {{ (epic.forecast.deadline_quantile * 100) | round | int }}%
+                                    {% endif %}
                                 </span>
                                 {% endif %}
                             {% endif %}

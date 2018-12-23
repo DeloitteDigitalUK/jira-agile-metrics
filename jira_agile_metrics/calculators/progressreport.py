@@ -248,11 +248,11 @@ class ProgressReportCalculator(Calculator):
                 outcomes=data['outcomes'],
                 teams=data['teams'],
                 enumerate=enumerate,
-                future_date=lambda weeks: today + datetime.timedelta(weeks=weeks),
+                future_date=lambda weeks: forward_weeks(today, weeks),
                 color_code=lambda q: (
-                    'info' if q is None else
-                    'danger' if q <= 0.75 else
-                    'warning' if q <= 0.85 else
+                    'primary' if q is None else
+                    'danger' if q <= 0.7 else
+                    'warning' if q <= 0.9 else
                     'success'
                 ),
                 percent_complete=lambda epic: (
@@ -567,6 +567,9 @@ def calculate_epic_target(epic):
         max(epic.min_stories, epic.max_stories, 1)
     )
 
+def forward_weeks(date, weeks):
+    return (date - datetime.timedelta(days=date.weekday())) + datetime.timedelta(weeks=weeks)
+
 def plot_cfd(cycle_data, cycle_names, backlog_column):
 
     # Prepare data
@@ -604,7 +607,7 @@ def plot_cfd(cycle_data, cycle_names, backlog_column):
     # Return as base64 encoded string
 
     buffer = io.BytesIO()
-    fig.savefig(buffer, format='png', bbox_inches='tight', dpi=150)
+    fig.savefig(buffer, format='png', bbox_inches='tight', dpi=100)
     plt.close(fig)
 
     return base64.b64encode(buffer.getvalue()).decode('utf-8')
@@ -657,7 +660,7 @@ def plot_throughput(cycle_data, frequency='1W'):
     # Return as base64 encoded string
 
     buffer = io.BytesIO()
-    fig.savefig(buffer, format='png', bbox_inches='tight', dpi=150)
+    fig.savefig(buffer, format='png', bbox_inches='tight', dpi=100)
     plt.close(fig)
 
     return base64.b64encode(buffer.getvalue()).decode('utf-8')
@@ -709,7 +712,7 @@ def plot_scatterplot(cycle_data, quantiles):
     # Return as base64 encoded string
 
     buffer = io.BytesIO()
-    fig.savefig(buffer, format='png', bbox_inches='tight', dpi=150)
+    fig.savefig(buffer, format='png', bbox_inches='tight', dpi=100)
     plt.close(fig)
 
     return base64.b64encode(buffer.getvalue()).decode('utf-8')
