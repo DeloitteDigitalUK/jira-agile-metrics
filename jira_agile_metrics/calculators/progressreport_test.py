@@ -1223,19 +1223,12 @@ def test_with_large_dataset(fields, settings, results):
     statuses = ['Backlog', 'Next', 'Build', 'QA', 'Done']
 
     verbs = [
-        'ask', 'be', 'become', 'begin', 'call',  'feel', 'find', 'get', 'give',
-        'go', 'have', 'hear', 'help', 'keep', 'know', 'leave', 'like', 'live',
-        'look', 'make',  'might', 'move', 'need', 'play', 'put', 'run', 'say',
-        'see', 'show', 'start', 'take', 'talk', 'tell', 'think', 'try', 'turn',
-        'use', 'work',
+        'build', 'launch', 'integrate', 'optimize', 'enable', 'facilitate',
+        'MVP for', 'beta-test', 'alpha-test'
     ]
     nouns = [
-        'area', 'book', 'business', 'case', 'child', 'company', 'country', 'day',
-        'eye', 'fact', 'family', 'government', 'group', 'hand', 'home', 'job',
-        'life', 'man', 'money', 'month', 'mother', 'night', 'number', 'people',
-        'place', 'point', 'problem', 'program', 'question', 'room', 'school',
-        'state', 'story', 'student', 'study', 'system', 'thing', 'time',
-        'water', 'way', 'week', 'woman', 'word', 'work', 'world', 'year'
+        'stock', 'website', 'system', 'basket', 'engine', 'search',
+        'browse', 'configurator', 'marketing', 'brochureware', 'campaign',
     ]
         
     epics = [Issue("E-%d" % i,
