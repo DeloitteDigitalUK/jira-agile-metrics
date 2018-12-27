@@ -31,7 +31,18 @@
 
             .progress-bar {
                 color: #333;
-                padding: 0 5px
+                padding: 0 5px;
+            }
+
+            .percent-complete {
+                font-size: 0.75rem;
+            }
+
+            @media print {
+                .progress-bar {
+                    color: inherit;
+                    padding: 0;
+                }
             }
 
         </style>
@@ -53,7 +64,7 @@
             </p>
 
             <p>
-                <a data-toggle="collapse" href="#configuration">
+                <a class="d-print-none" data-toggle="collapse" href="#configuration">
                     <small>Configuration &raquo;</small>
                 </a>
                 <div class="collapse" id="configuration">
@@ -116,21 +127,21 @@
                                                         {% endif -%}
                                                     </td>
                                                     <td>
-                                                        <a class="icon-link" href="{{ jira_url }}/issues/?jql={{ team.throughput_samples|urlencode }}" target="_blank">
+                                                        <a class="icon-link d-print-none" href="{{ jira_url }}/issues/?jql={{ team.throughput_samples|urlencode }}" target="_blank">
                                                             <i class="fas fa-search"></i>
                                                         </a>
                                                         {% if team_charts[team.name]['scatterplot'] %}
-                                                        <a class="icon-link perfundo__link" href="#team-scatterplot-{{ team.name | urlencode }}">
+                                                        <a class="icon-link d-print-none perfundo__link" href="#team-scatterplot-{{ team.name | urlencode }}">
                                                             <i class="fas fa-chart-bar"></i>
                                                         </a>
                                                         {% endif %}
                                                         {% if team_charts[team.name]['cfd'] %}
-                                                        <a class="icon-link perfundo__link" href="#team-cfd-{{ team.name | urlencode }}">
+                                                        <a class="icon-link d-print-none perfundo__link" href="#team-cfd-{{ team.name | urlencode }}">
                                                             <i class="fas fa-chart-area"></i>
                                                         </a>
                                                         {% endif %}
                                                         {% if team_charts[team.name]['throughput'] %}
-                                                        <a class="icon-link perfundo__link" href="#team-throughput-{{ team.name | urlencode }}">
+                                                        <a class="icon-link d-print-none perfundo__link" href="#team-throughput-{{ team.name | urlencode }}">
                                                             <i class="fas fa-chart-line"></i>
                                                         </a>
                                                         {% endif %}
@@ -154,7 +165,7 @@
             {% if outcome.name %}
             <h2>
                 {{ outcome.name }}
-                <a data-toggle="collapse" href="#outcome-configuration-{{idx}}"><small class="text-muted">&raquo;</small></a>
+                <a  class="d-print-none" data-toggle="collapse" href="#outcome-configuration-{{idx}}"><small class="text-muted">&raquo;</small></a>
             </h2>
             {% endif %}
 
@@ -166,7 +177,7 @@
                                 <th style="width: 20%">Epics query:</th>
                                 <td>
                                     <code>{{ outcome.epic_query }}</code>
-                                    <a class="icon-link" href="{{ jira_url }}/issues/?jql={{ outcome.epic_query | urlencode }}" target="_blank">
+                                    <a class="icon-link d-print-none" href="{{ jira_url }}/issues/?jql={{ outcome.epic_query | urlencode }}" target="_blank">
                                         <i class="fas fa-search"></i>
                                     </a>
                                 </td>
@@ -180,10 +191,10 @@
                 <thead>
                     <tr>
                         <th scope="col" style="width: 20%">Epic</th>
-                        <th scope="col" style="width: 15%">Team</th>
+                        <th scope="col" style="width: 10%">Team</th>
                         <th scope="col" style="width: 30%">Stories</th>
                         {% if epic_deadline_field %}
-                        <th scope="col" style="width: 10%">Deadline</th>
+                        <th scope="col" style="width: 15%">Deadline</th>
                         <th scope="col" style="width: 5%"></th>
                         {% endif %}
                         <th scope="col" style="width: 20%">Forecast</th>
@@ -199,7 +210,7 @@
                             <div class="progress" style="height: 30px">
                                 <div class="progress-bar bg-{{ color_code(epic.forecast.deadline_quantile) }}"
                                     role="progressbar"
-                                    style="width: {{ percent_complete(epic) * 100 | round | int }}%"
+                                    style="width: {{ percent_complete(epic) }}%"
                                     aria-valuenow="{{ epic.stories_done }}"
                                     aria-valuemin="0"
                                     aria-valuemax="{{ epic.max_stories }}">
@@ -211,17 +222,19 @@
                                 </div>
                             </div>
 
-                            <a class="icon-link" href="{{ jira_url }}/issues/?jql={{ epic.story_query | urlencode }}" target="_blank">
+                            <small class="d-none d-print-inline percent-complete">({{ percent_complete(epic) }}%)</small>
+
+                            <a class="icon-link d-print-none" href="{{ jira_url }}/issues/?jql={{ epic.story_query | urlencode }}" target="_blank">
                                 <i class="fas fa-search"></i>
                             </a>
 
                             {% if epic_charts[epic.key]['scatterplot'] %}
-                            <a class="icon-link perfundo__link" href="#epic-scatterplot-{{ epic.key | urlencode }}">
+                            <a class="icon-link d-print-none perfundo__link" href="#epic-scatterplot-{{ epic.key | urlencode }}">
                                 <i class="fas fa-chart-bar"></i>
                             </a>
                             {% endif %}
                             {% if epic_charts[epic.key]['cfd'] %}
-                            <a class="icon-link perfundo__link" href="#epic-cfd-{{ epic.key | urlencode }}">
+                            <a class="icon-link d-print-none perfundo__link" href="#epic-cfd-{{ epic.key | urlencode }}">
                                 <i class="fas fa-chart-area"></i>
                             </a>
                             {% endif %}
@@ -334,8 +347,6 @@
 
         {% endfor %}
         
-
-
         <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
         <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js" integrity="sha384-ChfqqxuZUCnJSK3+MXmPNIyE6ZbWh2IMqE241rYiqJxyMiZ6OW/JmZQ5stwEULTy" crossorigin="anonymous"></script>
         

@@ -256,7 +256,7 @@ class ProgressReportCalculator(Calculator):
                     'success'
                 ),
                 percent_complete=lambda epic: (
-                    (epic.stories_done or 0) / epic.max_stories
+                    int(round(((epic.stories_done or 0) / epic.max_stories) * 100))
                 ),
                 team_charts={team.name: {
                     'cfd': plot_cfd(team.throughput_samples_cycle_times, cycle_names, backlog_column),
