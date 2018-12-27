@@ -717,9 +717,154 @@ Here is an example:
 
 This will show withdrawn items broken down by the period in which they were
 withdrawn for the the 10 most recent periods. The default period length is
-monthly, but here we have set it to `2W-WED`, which means a two-week period
+monthlyasfd, but here we have set it to `2W-WED`, which means a two-week period
 starting on a Wednesday. `Waste window` and `Waste frequency` are both
 optional.
+
+## Progress report
+
+An status report that uses Monte Carlo simulation forecasting at the epic
+level.
+
+The report is presented as a self-contained HTML file with embedded
+images. It relies on a small number of commonly used, externally hosted
+libraries (the *Bootstrap* CSS/JS library and its *jQuery* dependency; the
+*Fontawesome* icon font), but can be served from any static web server or opened
+as a local file on any modern web browser. It should also print reasonably well,
+although the embedded images showing context-specific Cumulative Flow Diagrams
+and Cycle Time Scatter Plots are only accessible by clicking on the relevant
+icons in a browser.
+
+![](./docs/images/progressreport.png)
+
+The status report is based on the principle of *outcomes* (e.g. projects,
+releases, objectives) that are broken down into *epics*, which will eventually
+be further broken down into *stories*. Epics are assumed to be fully owned by
+exactly one *team*. Epics and stories are represented by JIRA tickets
+discoverable by JQL queries specified in the configuration file, whereas
+outcomes and teams are enumerated in the configuration file directly.
+
+A forecast to complete is then produced for each epic by calculating the
+presumed number of stories in the epic (randomly sampling between a minimum
+and maximum number of stories as set on the epic ticket in JIRA, or using the
+total number of stories raised against the epic, if higher); the number of
+stories raised against the epic that have been completed to date; and the
+presumed throughput of the relevant team (randomly sampled, either from a range
+of the minimum to maximum number of stories the team can complete per week, or
+through a JQL query that identifies the team's historical performance). This is
+done many times over in a Monte Carlo simulation, to identify a range of
+plausible completion dates. If a deadline is set on an epic, the forecast to
+complete will be compared with it, to highlight the likelihood of hitting the
+deadline.
+
+The simulation takes into account that a single team may have multiple epics to
+complete. A team can be configured to have an epic WIP limit of 1 (the default)
+or more. If the team is working on more than one epic at a time, it is assumed
+to distribute its throughout roughly evenly across all active epics, and to work
+through the epics in the order in which their respective outcomes are listed in
+the configuration file, and then in the order in which they are returned by the
+query used to find them.
+
+Here is a complete example configuration file that produces a report akin to
+the screenshot above:
+
+    Connection:
+        # not shown
+
+    Queries:
+        # not shown, and not direclty relevant to the progress report
+
+    Attributes:
+        # not shown, and not direclty relevant to the progress report
+
+    Known values:
+        # not shown
+
+    # Used for calculating progress against an epic, and team throughput: to
+    # identify whether stories are in the backlog, in progress, or completed.
+    Workflow:
+        Backlog: Backlog
+        Committed: Next
+        Build: Build
+        Test:
+            - Code review
+            - QA
+        Done: Done
+
+    Output:
+        # Used to determine which percentiles to show in the forecast
+        Quantiles:
+            - 0.75
+            - 0.85
+            - 0.95
+
+        # The name of the file to write. If not set, the progress report will
+        # not be produced
+        Progress report: progress.html
+
+        # Report title
+        Progress report title: Acme Corp Websites
+
+        # Names of JIRA fields on epics, used to determine the deadline, team,
+        # and min/max stories. All are optional:
+
+        # - if no deadline field is set, the report will not include any
+        #   deadline calculations
+        Progress report epic deadline field: Due date
+
+        # - if no team field is set, you must specify exactly one team under
+        #   `Progress report teams`, which will be used
+        Progress report epic team field: Team
+
+        # - if no min stories field is set, the story count will be based solely
+        #   on the number of stories raised against each epic, rather than an
+        #   estimated range; if no max stories field is set, the min stories
+        #   field will be used to identify an absolute value
+        Progress report epic min stories field: Min stories
+        Progress report epic max stories field: Max stories
+
+        # The query used to identify epics for each outcome. The special
+        # placeholder `{outcome}` will be replaced by the outcome key (or name,
+        # if the key is not set). May be overridden by the `Epic query` set on
+        # an outcome. If not set, the `Epic query` must be specified on each
+        # outcome.
+        Progress report epic query template: project = ABC AND type = Epic AND Outcome = {outcome} ORDER BY created
+
+        # The query used to identify stories for an epic. The placeholders
+        # `{epic}`, `{outcome}`, and `{team}` may be used to parameterise the
+        # query.
+        Progress report story query template: project = ABC AND type = Story AND "Epic link" = {epic}
+
+        # A list of teams. At least one team is required, and each team must
+        # have a `Name` and *either* `Min throughput` and `Max throughput`
+        # (stories per week), *or* a query in `Throughput samples`. `WIP`
+        # (number of epics the team may work on in parallel) and
+        # `Throughput samples window` (number of weeks in the past from which to
+        # draw samples) are optional.
+        Progress report teams:
+            - Name: Red
+              Min throughput: 5
+              Max throughput: 10
+            - Name: Blue
+              WIP: 2
+              Throughput samples: project = ABC AND type = Story AND Team = Blue
+              Throughput samples window: 6
+
+        # A list of outcomes. May be omitted, in which case epics will not be
+        # grouped into outcomes and the `Progress report epic query template`
+        # specifies a non-parameterised query for all relevant epics. If
+        # included, each outcome must have a `Name`. `Key`, which is used in
+        # the epic query template, is optional, defaulting to the same value as
+        # `Name`. `Epic query` may be used to specify a particular query for
+        # epics, overriding the more general `Progress report epic query template`.
+        Progress report outcomes:
+            - Name: MVP
+              Key: O1
+            - Name: Asia launch
+              Key: O2
+            - Name: Europe revamp
+              Key: O3
+              Epic query: project = ABC and type = Feature
 
 ## More details about the configuration file format
 
@@ -1052,7 +1197,49 @@ of filenames, or a single filename.
    grouped by last non-resolved status.
 - `Waste chart title: <title>` – Title for the waste chart.
 
+### Progress report
+
+- `Progress report: <filename>.html` – Write progress report to a standalone
+   HTML file.
+- `Progress report title: <title>` – Title of the progress report page.
+- `Progress report epic deadline field: <fieldname>` – Name of a date field
+   giving the deadline of an epic.
+- `Progress report epic team field: <fieldname>` – Name of a field giving the
+   name of the team responsible for an epic.
+- `Progress report epic min stories field: <fieldname>` – Name of an integer
+   field giving the minimum number of stories expected for an epic, for
+   forecasting purposes.
+- `Progress report epic max stories field: <fieldname>` – Name of an integer
+   field giving the maximum number of stories expected for an epic, for
+   forecasting purposes.
+- `Progress report epic query template: <query>` – Query used to identify epics
+   for an outcome. The placeholder `{outcome}` will be substituted for the given
+   outcome key (if set) or name.
+- `Progress report story query template: <query>` – Query used to identify
+   stories for an epic. The placeholder `{epic}` will be substituted for the
+   given epic key (JIRA reference). The placeholders `{outcome}` and `{team}`
+   may also be used to identify the outcome key/name and team name, respectively.
+- `Progress report teams: <list>` – A list of records with keys `Name`, `WIP`,
+   `Min throughput`, `Max throughput`, `Throughput samples` and/or
+   `Throughput samples window` which specify the teams that may be associated
+   with epics. `Name` is required, and you must specify either
+   `Min/Max throughput` (numeric values, in stories per week) *or*
+   `Throughput samples`, which is a JQL query to identify stories for the given
+   team for the purpose of calculating historical throughput. If
+   `Throughput samples window` is given, it specifies the number of weeks into
+   the past (from today's date) to use when calculating historical throughput.
+   `WIP` defaults to 1.
+- `Progress report outcomes: <list>` – A list of records with keys `Name`,
+  `Key`, and/or `Epic query`, which specify the outcomes to list on the progress
+  report. `Key` will default to the same value as `Name`. `Epic query`, if
+  given, takes precedence over `Progress report epic query template` when
+  finding epics for this outcome.
+
 ## Changelog
+
+### 0.11
+
+- Added progress report calculator
 
 ### 0.10
 
