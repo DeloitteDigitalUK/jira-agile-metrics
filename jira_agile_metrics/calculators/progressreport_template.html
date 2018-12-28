@@ -43,6 +43,11 @@
                     color: inherit;
                     padding: 0;
                 }
+
+                .epic-link {
+                    color: inherit !important;
+                    text-decoration: none !important;
+                }
             }
 
         </style>
@@ -203,7 +208,7 @@
                 <tbody>
                     {% for epic in outcome.epics %}
                     <tr>
-                        <td>{{ epic.key }}: {{ epic.summary }}</td>
+                        <td><a class="epic-link" href="{{ jira_url }}/browse/{{ epic.key }}" target="_blank">{{ epic.key }}: {{ epic.summary }}</a></td>
                         <td>{{ epic.team.name }}</td>
                         <td>
                             {% if epic.forecast %}
