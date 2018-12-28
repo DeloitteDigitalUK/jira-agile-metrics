@@ -7,9 +7,10 @@ import shutil
 import tempfile
 import base64
 import zipfile
+import jinja2
 
 from flask import Flask, render_template, request
-from jira import JIRA, JIRAError
+from jira import JIRA
 
 from ..config import config_to_options, CALCULATORS, ConfigError
 from ..querymanager import QueryManager
@@ -22,6 +23,8 @@ app = Flask('jira-agile-metrics',
     template_folder=template_folder,
     static_folder=static_folder
 )
+
+app.jinja_loader = jinja2.PackageLoader('jira_agile_metrics.webapp', 'templates')
 
 logger = logging.getLogger(__name__)
 
