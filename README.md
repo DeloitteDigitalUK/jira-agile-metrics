@@ -1240,6 +1240,8 @@ of filenames, or a single filename.
 ### 0.11
 
 - Added progress report calculator
+- Fixed issue with web server where template would not load if the package was
+  installed as an egg (i.e. not from source)
 
 ### 0.10
 
