@@ -119,7 +119,7 @@ def calculate_cfd_data(cycle_data, cycle_names):
     cfd_data = pd.concat({col: cfd_data[col].value_counts() for col in cfd_data}, axis=1)[cycle_names]
 
     # Fill missing dates with 0 and run a cumulative sum
-    cfd_data = cfd_data.fillna(0).cumsum(axis=0)
+    cfd_data = cfd_data.fillna(0).cumsum(axis=0).sort_index()
 
     # Reindex to make sure we have all dates
     start, end = cfd_data.index.min(), cfd_data.index.max()
