@@ -26,6 +26,11 @@ setup(
     install_requires=install_requires,
     setup_requires=['pytest-runner'],
     tests_require=['pytest'],
+    include_package_data=True,
+    package_data={
+        'jira_agile_metrics.webapp': ['templates/*.*', 'static/*.*'],
+        'jira_agile_metrics.calculators': ['*.html'],
+    },
     entry_points={
         'console_scripts': [
             'jira-agile-metrics=jira_agile_metrics.cli:main',
