@@ -1,3 +1,4 @@
+import logging
 import yaml
 import datetime
 import os.path
@@ -41,6 +42,8 @@ CALCULATORS = (
     WasteCalculator,
     ProgressReportCalculator,
 )
+
+logger = logging.getLogger(__name__)
 
 class ConfigError(Exception):
     pass
@@ -430,7 +433,7 @@ def config_to_options(data):
         })
 
     if len(options['settings']['queries']) == 0:
-        raise ConfigError("No `Query` value or `Queries` section found")
+        logger.warning("No `Query` value or `Queries` section found. Many calculators rely on one of these.")
 
     # Parse Workflow. Assume first status is backlog and last status is complete.
 
