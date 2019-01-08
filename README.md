@@ -840,14 +840,15 @@ the screenshot above:
         # (stories per week), *or* a query in `Throughput samples`. `WIP`
         # (number of epics the team may work on in parallel) and
         # `Throughput samples window` (number of weeks in the past from which to
-        # draw samples) are optional.
+        # draw samples) are optional. The placeholder `{team}` can be used to
+        # reference the team name.
         Progress report teams:
             - Name: Red
               Min throughput: 5
               Max throughput: 10
             - Name: Blue
               WIP: 2
-              Throughput samples: project = ABC AND type = Story AND Team = Blue
+              Throughput samples: project = ABC AND type = Story AND Team = {team}
               Throughput samples window: 6
 
         # A list of outcomes. May be omitted, in which case epics will not be
@@ -1228,7 +1229,8 @@ of filenames, or a single filename.
    team for the purpose of calculating historical throughput. If
    `Throughput samples window` is given, it specifies the number of weeks into
    the past (from today's date) to use when calculating historical throughput.
-   `WIP` defaults to 1.
+   You can use the placeholder `{team}` in `Throughput samples` as a shortcut
+   to repeating the team name. `WIP` defaults to 1.
 - `Progress report outcomes: <list>` – A list of records with keys `Name`,
   `Key`, and/or `Epic query`, which specify the outcomes to list on the progress
   report. `Key` will default to the same value as `Name`. `Epic query`, if
@@ -1236,6 +1238,11 @@ of filenames, or a single filename.
   finding epics for this outcome.
 
 ## Changelog
+
+### 0.12
+
+- Preserve background colour in print CSS for progress report
+- Allow use of `{team}` placeholder in team throughput sample query.
 
 ### 0.11
 

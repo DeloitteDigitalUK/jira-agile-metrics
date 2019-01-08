@@ -16,6 +16,7 @@
         </style>
 
         <style type="text/css">
+
             .icon-link {
                 color: inherit;   
             }
@@ -32,6 +33,7 @@
             .progress-bar {
                 color: #333;
                 padding: 0 5px;
+                text-align: left;
             }
 
             .percent-complete {
@@ -39,15 +41,56 @@
             }
 
             @media print {
+                
                 .progress-bar {
-                    color: inherit;
-                    padding: 0;
+                    color: black;
+                    padding: 0 5px;
+                    text-align: left;
                 }
 
                 .epic-link {
                     color: inherit !important;
                     text-decoration: none !important;
                 }
+
+                /* Restore background colours */
+
+                .bg-success {
+                    background-color: #28a745;
+                }
+
+                .bg-warning {
+                    background-color: #ffc107;
+                }
+
+                .bg-danger {
+                    background-color: #dc3545;
+                }
+
+                .bg-primary {
+                    background-color: #007bff;
+                }
+
+                .badge-success {
+                    color: #fff;
+                    background-color: #28a745;
+                }
+
+                .badge-warning {
+                    color: #fff;
+                    background-color: #ffc107;
+                }
+
+                .badge-danger {
+                    color: #fff;
+                    background-color: #dc3545;
+                }
+
+                .badge-primary {
+                    color: #fff;
+                    background-color: #007bff;
+                }
+
             }
 
         </style>
