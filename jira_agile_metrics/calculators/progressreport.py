@@ -146,7 +146,9 @@ class ProgressReportCalculator(Calculator):
                 wip=team['wip'],
                 min_throughput=team['min_throughput'],
                 max_throughput=team['max_throughput'],
-                throughput_samples=team['throughput_samples'],
+                throughput_samples=team['throughput_samples'].format(
+                    team='"%s"' % team['name'],
+                ) if team['throughput_samples'] else None,
                 throughput_samples_window=team['throughput_samples_window'],
             ) for team in teams
         ]
