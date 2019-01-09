@@ -58,6 +58,7 @@ class ProgressReportCalculator(Calculator):
         epic_query_template = self.settings['progress_report_epic_query_template']
         if not epic_query_template:
             if (
+                self.settings['progress_report_outcomes'] is None or
                 len(self.settings['progress_report_outcomes']) == 0 or
                 any(map(lambda o: o['epic_query'] is None, self.settings['progress_report_outcomes']))
             ):
