@@ -1239,6 +1239,11 @@ of filenames, or a single filename.
 
 ## Changelog
 
+### 0.13
+
+- Make sure change history is always iterated in date order, even if JIRA returns
+  them differently.
+
 ### 0.12
 
 - Preserve background colour in print CSS for progress report
