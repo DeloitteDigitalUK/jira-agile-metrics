@@ -161,8 +161,10 @@ def calculate_cycle_times(
             impediment_start_status = None
             impediment_start = None
 
-            # Record date of status and impediments flag changes
-            for snapshot in query_manager.iter_changes(issue, ['status', 'Flagged']):
+            # Record date of status and impediments flag changes, order them by date
+            ordered_snapshots = list(query_manager.iter_changes(issue, ['status', 'Flagged']))
+            ordered_snapshots.sort(key=lambda x: x.date, reverse=False)
+            for snapshot in ordered_snapshots:
                 if snapshot.change == 'status':
                     snapshot_cycle_step = cycle_lookup.get(snapshot.to_string.lower(), None)
                     if snapshot_cycle_step is None:
