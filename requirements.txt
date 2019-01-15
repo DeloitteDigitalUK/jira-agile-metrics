@@ -1,3 +1,6 @@
+cryptography
+pyjwt
+requests-oauthlib>=1.2.0
 jira
 PyYAML
 pandas>=0.23.0
