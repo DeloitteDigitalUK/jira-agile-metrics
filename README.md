@@ -1239,6 +1239,11 @@ of filenames, or a single filename.
 
 ## Changelog
 
+### 0.14
+
+- Force min/max stories fields to integers even if string fields in JIRA
+- Log which state change caused a backward move
+
 ### 0.13
 
 - Make sure change history is always iterated in date order, even if JIRA returns

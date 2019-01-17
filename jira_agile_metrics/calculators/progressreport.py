@@ -434,8 +434,8 @@ def find_epics(
             status=issue.fields.status.name,
             resolution=issue.fields.resolution.name if issue.fields.resolution else None,
             resolution_date=dateutil.parser.parse(issue.fields.resolutiondate) if issue.fields.resolutiondate else None,
-            min_stories=query_manager.resolve_field_value(issue, epic_min_stories_field) if epic_min_stories_field else None,
-            max_stories=query_manager.resolve_field_value(issue, epic_max_stories_field) if epic_max_stories_field else None,
+            min_stories=int_or_none(query_manager.resolve_field_value(issue, epic_min_stories_field)) if epic_min_stories_field else None,
+            max_stories=int_or_none(query_manager.resolve_field_value(issue, epic_max_stories_field)) if epic_max_stories_field else None,
             team_name=query_manager.resolve_field_value(issue, epic_team_field) if epic_team_field else None,
             deadline=deadline,
             outcome=outcome,
@@ -719,3 +719,6 @@ def plot_scatterplot(cycle_data, quantiles):
     plt.close(fig)
 
     return base64.b64encode(buffer.getvalue()).decode('utf-8')
+
+def int_or_none(value):
+    return int(value) if value and value.isdigit() else None
