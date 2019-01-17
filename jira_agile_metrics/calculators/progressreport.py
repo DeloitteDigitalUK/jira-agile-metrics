@@ -36,7 +36,8 @@ class ProgressReportCalculator(Calculator):
     """
 
     def run(self, now=None, trials=1000):
-        if 'progress_report' not in self.settings:
+        
+        if self.settings['progress_report'] is None:
             return
 
         # Prepare and validate configuration options
