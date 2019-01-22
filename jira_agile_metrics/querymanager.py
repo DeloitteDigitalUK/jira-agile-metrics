@@ -1,3 +1,4 @@
+import json
 import itertools
 import logging
 import dateutil.parser
@@ -53,6 +54,10 @@ class QueryManager(object):
         # Look up fields in JIRA and resolve attributes to fields
         logger.debug("Resolving JIRA fields")
         self.jira_fields = self.jira.fields()
+
+        if len(self.jira_fields) == 0:
+            raise ConfigError("No field data retrieved from JIRA. This likely means a problem with the JIRA API.") from None
+
         self.jira_fields_to_names = {field['id']: field['name'] for field in self.jira.fields()}
         field_id = None
 
@@ -65,6 +70,10 @@ class QueryManager(object):
         try:
             return next((f['id'] for f in self.jira_fields if f['name'].lower() == name.lower()))
         except StopIteration:
+
+            # XXX: we are having problems with this falsely claiming fields don't exist
+            logger.debug("Failed to look up %s in JIRA fields: %s", name, json.dumps(self.jira_fields))
+
             raise ConfigError("JIRA field with name `%s` does not exist (did you try to use the field id instead?)" % name) from None
 
     def resolve_attribute_value(self, issue, attribute_name):
