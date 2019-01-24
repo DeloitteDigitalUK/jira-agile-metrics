@@ -65,7 +65,8 @@ def run_command_line(parser, args):
         return
     
     logging.basicConfig(
-        format='%(message)s',
+        format='[%(asctime)s %(levelname)s] %(message)s',
+        datefmt='%Y-%m-%d %H:%M:%S',
         level=(
             logging.DEBUG if args.very_verbose else
             logging.INFO if args.verbose else

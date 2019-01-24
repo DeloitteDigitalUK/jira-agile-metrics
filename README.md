@@ -1239,6 +1239,10 @@ of filenames, or a single filename.
 
 ## Changelog
 
+### 0.17
+
+- Make logging output date/time and logging level again for easier debugging
+
 ### 0.16
 
 - Attempted fix for throughput calculator crashing in some edge cases
