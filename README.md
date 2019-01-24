@@ -1239,6 +1239,16 @@ of filenames, or a single filename.
 
 ## Changelog
 
+### 0.16
+
+- Attempted fix for throughput calculator crashing in some edge cases
+
+
+### 0.15
+
+- Brown bag
+
+
 ### 0.14
 
 - Force min/max stories fields to integers even if string fields in JIRA

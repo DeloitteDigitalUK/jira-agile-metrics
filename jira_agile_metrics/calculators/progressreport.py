@@ -722,4 +722,6 @@ def plot_scatterplot(cycle_data, quantiles):
     return base64.b64encode(buffer.getvalue()).decode('utf-8')
 
 def int_or_none(value):
-    return int(value) if value and value.isdigit() else None
+    return value if isinstance(value, int) else \
+           int(value) if isinstance(value, (str, bytes)) and value.isdigit() \
+           else None

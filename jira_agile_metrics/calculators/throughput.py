@@ -115,8 +115,11 @@ def calculate_throughput(cycle_data, frequency, window=None):
     # make sure we have 0 for periods with no throughput, and force to window if set
     window_start = throughput.index.min()
     window_end = throughput.index.max()
-
+    
     if window:
         window_start = window_end - (pd.tseries.frequencies.to_offset(frequency) * (window - 1))
+
+    if window_start is pd.NaT or window_end is pd.NaT:
+        return pd.DataFrame([], columns=['count'], index=[])
     
     return throughput.reindex(index=pd.DatetimeIndex(start=window_start, end=window_end, freq=frequency)).fillna(0)
