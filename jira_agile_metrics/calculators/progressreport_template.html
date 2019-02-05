@@ -254,9 +254,9 @@
                         <td><a class="epic-link" href="{{ jira_url }}/browse/{{ epic.key }}" target="_blank">{{ epic.key }}: {{ epic.summary }}</a></td>
                         <td>{{ epic.team.name }}</td>
                         <td>
-                            {% if epic.forecast %}
+                            {% if epic.min_stories %}
                             <div class="progress" style="height: 30px">
-                                <div class="progress-bar bg-{{ color_code(epic.forecast.deadline_quantile) }}"
+                                <div class="progress-bar bg-{{ color_code(epic.forecast.deadline_quantile if epic.forecast else None) }}"
                                     role="progressbar"
                                     style="width: {{ percent_complete(epic) }}%"
                                     aria-valuenow="{{ epic.stories_done }}"

@@ -1239,6 +1239,10 @@ of filenames, or a single filename.
 
 ## Changelog
 
+### 0.18
+
+- Don't show a forecast for epics that are complete
+
 ### 0.17
 
 - Make logging output date/time and logging level again for easier debugging

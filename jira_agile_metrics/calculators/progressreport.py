@@ -486,7 +486,7 @@ def update_story_counts(
         epic.max_stories = max(epic.min_stories, epic.stories_raised, 1)
 
 def forecast_to_complete(team, epics, quantiles, trials=1000, max_iterations=9999, now=None):
-    
+
     # Allows unit testing to use a fixed date
     if now is None:
         now = datetime.datetime.utcnow()
@@ -551,19 +551,22 @@ def forecast_to_complete(team, epics, quantiles, trials=1000, max_iterations=999
 
     for epic in epics:
         trials = epic_trials[epic.key].dropna()
-        
-        deadline_quantile = None
-        if epic.deadline:
-            # how many weeks are there from today until the deadline...
-            weeks_to_deadline = math.ceil((epic.deadline.date() - now.date()).days / 7)
 
-            # ...and what trial quantile does that correspond to (higher = more confident)
-            deadline_quantile = scipy.stats.percentileofscore(trials, weeks_to_deadline) / 100
+        if any(trials):  # if all trials resulted in zero weeks, don't record a forecast
+            deadline_quantile = None
+            if epic.deadline:
+                # how many weeks are there from today until the deadline...
+                weeks_to_deadline = math.ceil((epic.deadline.date() - now.date()).days / 7)
 
-        epic.forecast = Forecast(
-            quantiles=list(zip(quantiles, trials.quantile(quantiles))),
-            deadline_quantile=deadline_quantile
-        )
+                # ...and what trial quantile does that correspond to (higher = more confident)
+                deadline_quantile = scipy.stats.percentileofscore(trials, weeks_to_deadline) / 100
+
+            epic.forecast = Forecast(
+                quantiles=list(zip(quantiles, trials.quantile(quantiles))),
+                deadline_quantile=deadline_quantile
+            )
+        else:
+            epic.forecast = None
 
 def calculate_epic_target(epic):
     return random.randint(
