@@ -238,7 +238,7 @@ def calculate_daily_throughput(cycle_data, done_column, window_start, window_end
         .rename(columns={'key': 'count', done_column: 'completed_timestamp'}) \
         .groupby('completed_timestamp').count() \
         .resample("1D").sum() \
-        .reindex(index=pd.DatetimeIndex(start=window_start, end=window_end, freq='D')) \
+        .reindex(index=pd.date_range(start=window_start, end=window_end, freq='D')) \
         .fillna(0)
 
 def throughput_sampler(throughput_data, start_value, target):

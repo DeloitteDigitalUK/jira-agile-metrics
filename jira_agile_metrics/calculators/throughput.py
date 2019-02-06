@@ -122,4 +122,4 @@ def calculate_throughput(cycle_data, frequency, window=None):
     if window_start is pd.NaT or window_end is pd.NaT:
         return pd.DataFrame([], columns=['count'], index=[])
     
-    return throughput.reindex(index=pd.DatetimeIndex(start=window_start, end=window_end, freq=frequency)).fillna(0)
+    return throughput.reindex(index=pd.date_range(start=window_start, end=window_end, freq=frequency)).fillna(0)

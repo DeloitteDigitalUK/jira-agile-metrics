@@ -1,7 +1,7 @@
 import pytest
 import datetime
 import numpy as np
-from pandas import DataFrame, DatetimeIndex, Timestamp
+from pandas import DataFrame, Timestamp, date_range
 
 from .cycletime import CycleTimeCalculator
 from .cfd import CFDCalculator
@@ -37,7 +37,7 @@ def results(query_manager, settings, large_cycle_time_results):
 def test_empty(query_manager, settings, minimal_cycle_time_columns):
     results = {
         CycleTimeCalculator: DataFrame([], columns=minimal_cycle_time_columns),
-        BurnupCalculator: DataFrame([], columns=['Backlog', 'Committed', 'Build', 'Test', 'Done'], index=DatetimeIndex(start=datetime.date(2018, 1, 1), periods=0, freq='D'))
+        BurnupCalculator: DataFrame([], columns=['Backlog', 'Committed', 'Build', 'Test', 'Done'], index=date_range(start=datetime.date(2018, 1, 1), periods=0, freq='D'))
     }
 
     calculator = BurnupForecastCalculator(query_manager, settings, results)

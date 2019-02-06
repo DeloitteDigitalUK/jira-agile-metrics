@@ -1,6 +1,6 @@
 import pytest
 import datetime
-from pandas import DataFrame, DatetimeIndex, Timestamp
+from pandas import DataFrame, Timestamp, date_range
 
 from .cfd import CFDCalculator
 from .wip import WIPChartCalculator
@@ -39,7 +39,7 @@ def results(query_manager, settings, large_cycle_time_results):
 
 def test_empty(query_manager, settings, minimal_cycle_time_columns):
     results = {
-        CFDCalculator: DataFrame([], columns=['Backlog', 'Committed', 'Build', 'Test', 'Done'], index=DatetimeIndex(start=datetime.date(2018, 1, 1), periods=0, freq='D'))
+        CFDCalculator: DataFrame([], columns=['Backlog', 'Committed', 'Build', 'Test', 'Done'], index=date_range(start=datetime.date(2018, 1, 1), periods=0, freq='D'))
     }
 
     calculator = WIPChartCalculator(query_manager, settings, results)
