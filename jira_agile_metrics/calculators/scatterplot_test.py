@@ -73,10 +73,10 @@ def test_calculate_scatterplot(query_manager, settings, results):
     data = calculator.run()
 
     assert data[['key', 'completed_date', 'cycle_time']].to_dict('records') == [
-        {'key': 'A-13', 'completed_date': Timestamp('2018-01-07 01:01:01'), 'cycle_time': 5.0},
-        {'key': 'A-14', 'completed_date': Timestamp('2018-01-07 01:01:01'), 'cycle_time': 5.0},
-        {'key': 'A-15', 'completed_date': Timestamp('2018-01-08 01:01:01'), 'cycle_time': 5.0},
-        {'key': 'A-16', 'completed_date': Timestamp('2018-01-08 01:01:01'), 'cycle_time': 5.0},
-        {'key': 'A-17', 'completed_date': Timestamp('2018-01-09 01:01:01'), 'cycle_time': 5.0},
-        {'key': 'A-18', 'completed_date': Timestamp('2018-01-09 01:01:01'), 'cycle_time': 4.0},
+        {'key': 'A-13', 'completed_date': Timestamp('2018-01-07 00:00:00'), 'cycle_time': 5.0},
+        {'key': 'A-14', 'completed_date': Timestamp('2018-01-07 00:00:00'), 'cycle_time': 5.0},
+        {'key': 'A-15', 'completed_date': Timestamp('2018-01-08 00:00:00'), 'cycle_time': 5.0},
+        {'key': 'A-16', 'completed_date': Timestamp('2018-01-08 00:00:00'), 'cycle_time': 5.0},
+        {'key': 'A-17', 'completed_date': Timestamp('2018-01-09 00:00:00'), 'cycle_time': 5.0},
+        {'key': 'A-18', 'completed_date': Timestamp('2018-01-09 00:00:00'), 'cycle_time': 4.0},
     ]

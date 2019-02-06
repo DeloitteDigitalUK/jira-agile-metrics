@@ -174,7 +174,7 @@ def calculate_cycle_times(
 
                     # Keep the first time we entered a step
                     if item[snapshot_cycle_step_name] is None:
-                        item[snapshot_cycle_step_name] = snapshot.date
+                        item[snapshot_cycle_step_name] = snapshot.date.date()
 
                     # Wipe any subsequent dates, in case this was a move backwards
                     found_cycle_name = False

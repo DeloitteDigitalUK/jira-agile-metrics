@@ -152,7 +152,7 @@ class QueryManager(object):
             )
 
         for change in sorted(issue.changelog.histories, key=lambda c: dateutil.parser.parse(c.created)):
-            change_date = dateutil.parser.parse(change.created)
+            change_date = dateutil.parser.parse(change.created, ignoretz=True)
 
             for item in change.items:
                 if item.field in fields:

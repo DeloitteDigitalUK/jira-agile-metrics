@@ -1239,6 +1239,10 @@ of filenames, or a single filename.
 
 ## Changelog
 
+### 0.19
+
+- Fix a crash with newer versions of Pandas calculating CFD charts
+
 ### 0.18
 
 - Don't show a forecast for epics that are complete

@@ -218,7 +218,7 @@ def _issues(issues):
         'Done': i['Done']
     } for idx, i in enumerate(issues)]
 
-def _ts(datestring, timestring="01:01:01", freq=None):
+def _ts(datestring, timestring="00:00:00", freq=None):
     return Timestamp('%s %s' % (datestring, timestring,), freq=freq)
 
 @pytest.fixture

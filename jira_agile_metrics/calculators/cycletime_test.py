@@ -157,7 +157,7 @@ def test_movement(jira, settings):
         'blocked_days': 0,
         'impediments': [],
 
-        'Backlog': Timestamp('2018-01-01 01:01:01'),
+        'Backlog': Timestamp('2018-01-01 00:00:00'),
         'Committed': NaT,
         'Build': NaT,
         'Test': NaT,
@@ -183,8 +183,8 @@ def test_movement(jira, settings):
             {'start': datetime.date(2018, 1, 8), 'end': None, 'status': 'Committed', 'flag': 'Impediment'},
         ],
 
-        'Backlog': Timestamp('2018-01-02 01:01:01'),
-        'Committed': Timestamp('2018-01-03 01:01:01'),
+        'Backlog': Timestamp('2018-01-02 00:00:00'),
+        'Committed': Timestamp('2018-01-03 00:00:00'),
         'Build': NaT,
         'Test': NaT,
         'Done': NaT,
@@ -200,16 +200,16 @@ def test_movement(jira, settings):
         'Release': 'None',
         'Team': 'Team 1',
 
-        'completed_timestamp': Timestamp('2018-01-06 01:01:01'),
+        'completed_timestamp': Timestamp('2018-01-06 00:00:00'),
         'cycle_time': Timedelta('3 days 00:00:00'),
         'blocked_days': 2,
         'impediments': [{'start': datetime.date(2018, 1, 4), 'end': datetime.date(2018, 1, 6), 'status': 'Build', 'flag': 'Impediment'}],
 
-        'Backlog': Timestamp('2018-01-03 01:01:01'),
-        'Committed': Timestamp('2018-01-03 01:01:01'),
-        'Build': Timestamp('2018-01-04 01:01:01'),
-        'Test': Timestamp('2018-01-05 01:01:01'),
-        'Done': Timestamp('2018-01-06 01:01:01'),
+        'Backlog': Timestamp('2018-01-03 00:00:00'),
+        'Committed': Timestamp('2018-01-03 00:00:00'),
+        'Build': Timestamp('2018-01-04 00:00:00'),
+        'Test': Timestamp('2018-01-05 00:00:00'),
+        'Done': Timestamp('2018-01-06 00:00:00'),
     }, {
         'key': 'A-4',
         'url': 'https://example.org/browse/A-4',
@@ -227,8 +227,8 @@ def test_movement(jira, settings):
         'blocked_days': 3,
         'impediments': [{'start': datetime.date(2018, 1, 7), 'end': datetime.date(2018, 1, 10), 'status': 'Committed', 'flag': 'Awaiting input'}],
 
-        'Backlog': Timestamp('2018-01-04 01:01:01'),
-        'Committed': Timestamp('2018-01-04 01:01:01'),
+        'Backlog': Timestamp('2018-01-04 00:00:00'),
+        'Committed': Timestamp('2018-01-04 00:00:00'),
         'Build': NaT,
         'Test': NaT,
         'Done': NaT,
