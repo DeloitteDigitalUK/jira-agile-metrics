@@ -1239,6 +1239,13 @@ of filenames, or a single filename.
 
 ## Changelog
 
+### 0.20
+
+- Use a cumulative distribution function definition of a percentile when
+  calculating chance of hitting the deadilne (basically: if the deadline is
+  in the same week as the forecast worst case date, treat it as 100% not 50%
+  likely)
+
 ### 0.19
 
 - Fix a crash with newer versions of Pandas calculating CFD charts

@@ -900,7 +900,7 @@ def test_forecast_to_complete_wip_2():
     assert epics[0].forecast.deadline_quantile is None  # no deadline set
 
     assert epics[1].forecast.quantiles == [(0.5, 2.0), (0.9, 2.0)]  # +2 weeks in parallel with E-1 since wip=2
-    assert epics[1].forecast.deadline_quantile == 0.55  # deadline is same week as best case scenario
+    assert epics[1].forecast.deadline_quantile == 1  # deadline is same week as best case scenario
 
     assert epics[2].forecast.quantiles == [(0.5, 4.0), (0.9, 4.0)]  # +2 weeks after E-2 since wip=2 and it finishes first
     assert epics[2].forecast.deadline_quantile == 1  # deadline is after worst case scenario

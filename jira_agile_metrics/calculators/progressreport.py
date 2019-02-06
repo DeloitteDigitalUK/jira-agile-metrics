@@ -559,7 +559,7 @@ def forecast_to_complete(team, epics, quantiles, trials=1000, max_iterations=999
                 weeks_to_deadline = math.ceil((epic.deadline.date() - now.date()).days / 7)
 
                 # ...and what trial quantile does that correspond to (higher = more confident)
-                deadline_quantile = scipy.stats.percentileofscore(trials, weeks_to_deadline) / 100
+                deadline_quantile = scipy.stats.percentileofscore(trials, weeks_to_deadline, kind='weak') / 100
 
             epic.forecast = Forecast(
                 quantiles=list(zip(quantiles, trials.quantile(quantiles))),
