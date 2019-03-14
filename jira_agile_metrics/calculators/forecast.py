@@ -101,7 +101,7 @@ class BurnupForecastCalculator(Calculator):
 
         deadline = self.settings['burnup_forecast_chart_deadline']
         if deadline:
-            logger.debug("Forecasting with deadline", deadline.isoformat())
+            logger.debug("Forecasting with deadline %s", deadline.isoformat())
 
         deadline_confidence = self.settings['burnup_forecast_chart_deadline_confidence']
         if deadline_confidence:
