@@ -1298,5 +1298,7 @@ def test_with_large_dataset(fields, settings, results):
     assert len(data['outcomes']) == 3
     assert len(data['teams']) == 2
 
-    # results[ProgressReportCalculator] = data
-    # calculator.write()
+    results[ProgressReportCalculator] = data
+
+    # TODO: Used for visual testing - comment out
+    calculator.write()

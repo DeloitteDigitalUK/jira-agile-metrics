@@ -1239,6 +1239,10 @@ of filenames, or a single filename.
 
 ## Changelog
 
+### 0.21
+
+- Allow progress report output to be viewed by team as well as by outcome.
+
 ### 0.20
 
 - Use a cumulative distribution function definition of a percentile when

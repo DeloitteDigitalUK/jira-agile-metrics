@@ -240,6 +240,13 @@ class ProgressReportCalculator(Calculator):
         template = jinja_env.get_template('progressreport_template.html')
         today = datetime.date.today()
 
+        epics_by_team = {}
+        for outcome in data['outcomes']:
+            for epic in outcome.epics:
+                if epic.team.name not in epics_by_team:
+                    epics_by_team[epic.team.name] = []
+                epics_by_team[epic.team.name].append(epic)
+
         with open(output_file, 'w') as of:
             of.write(template.render(
                 jira_url=self.query_manager.jira._options['server'],
@@ -251,6 +258,7 @@ class ProgressReportCalculator(Calculator):
                 epic_team_field=self.settings['progress_report_epic_team_field'],
                 outcomes=data['outcomes'],
                 teams=data['teams'],
+                epics_by_team=epics_by_team,
                 enumerate=enumerate,
                 future_date=lambda weeks: forward_weeks(today, weeks),
                 color_code=lambda q: (
