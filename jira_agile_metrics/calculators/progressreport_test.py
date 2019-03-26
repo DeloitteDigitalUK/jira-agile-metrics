@@ -1300,5 +1300,5 @@ def test_with_large_dataset(fields, settings, results):
 
     results[ProgressReportCalculator] = data
 
-    # TODO: Used for visual testing - comment out
-    calculator.write()
+    # Used for visual testing - comment out
+    # calculator.write()
