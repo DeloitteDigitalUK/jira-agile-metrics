@@ -186,7 +186,7 @@ above:
     Output:
 
         # CSV files with raw data for input to other tools or further analysis in a spreadsheet
-        # If you use .json or .xslx as the extension, you can get JSON data files or Excel
+        # If you use .json or .xlsx as the extension, you can get JSON data files or Excel
         # spreadsheets instead
 
         Cycle time data:
