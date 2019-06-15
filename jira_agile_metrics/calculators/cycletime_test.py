@@ -89,6 +89,27 @@ def jira(custom_fields):
     ])
 
 @pytest.fixture
+def jira_with_skipped_columns(custom_fields):
+    return JIRA(fields=custom_fields, issues=[
+        Issue("A-10",
+            summary="Gaps",
+            issuetype=Value("Story", "story"),
+            status=Value("Done", "done"),
+            resolution=Value("Done", "Done"),
+            resolutiondate="2018-01-04 01:01:01",
+            created="2018-01-01 01:01:01",
+            customfield_001="Team 1",
+            customfield_002=Value(None, 10),
+            customfield_003=Value(None, []),
+            customfield_100=None,
+            changes=[
+                Change("2018-01-02 01:05:01", [("status", "Backlog", "Next",)]),
+                Change("2018-01-04 01:01:01", [("status", "Next", "Done",), ("resolution", None, "done")]), # skipping columns Build and Test
+            ],
+        ),
+    ])
+
+@pytest.fixture
 def settings(custom_settings):
     return custom_settings
 
@@ -110,12 +131,12 @@ def test_columns(jira, settings):
         'Estimate',
         'Release',
         'Team',
-        
+
         'cycle_time',
         'completed_timestamp',
         'blocked_days',
         'impediments',
-        
+
         'Backlog',
         'Committed',
         'Build',
@@ -221,7 +242,7 @@ def test_movement(jira, settings):
         'Estimate': 30,
         'Release': 'None',
         'Team': 'Team 1',
-        
+
         'completed_timestamp': NaT,
         'cycle_time': NaT,
         'blocked_days': 3,
@@ -233,3 +254,35 @@ def test_movement(jira, settings):
         'Test': NaT,
         'Done': NaT,
     }]
+
+def test_movement_skipped_columns(jira_with_skipped_columns, settings):
+    query_manager = QueryManager(jira_with_skipped_columns, settings)
+    results = {}
+    calculator = CycleTimeCalculator(query_manager, settings, results)
+
+    data = calculator.run(now=datetime.datetime(2018, 1, 10, 15, 37, 0))
+
+    assert data.to_dict('records') == [{
+        'key': 'A-10',
+        'url': 'https://example.org/browse/A-10',
+        'issue_type': 'Story',
+        'summary': 'Gaps',
+        'status': 'Done',
+        'resolution': 'Done',
+
+        'Estimate': 10,
+        'Release': 'None',
+        'Team': 'Team 1',
+
+        'completed_timestamp': Timestamp('2018-01-04 00:00:00'),
+        'cycle_time': Timedelta('2 days 00:00:00'),
+        'blocked_days': 0,
+        'impediments': [],
+
+        'Backlog': Timestamp('2018-01-01 00:00:00'),
+        'Committed': Timestamp('2018-01-02 00:00:00'),
+        'Build': Timestamp('2018-01-04 00:00:00'),
+        'Test': Timestamp('2018-01-04 00:00:00'),
+        'Done': Timestamp('2018-01-04 00:00:00'),
+    }]
+
