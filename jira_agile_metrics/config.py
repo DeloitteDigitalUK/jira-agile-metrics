@@ -88,32 +88,31 @@ def expand_key(key):
     return str(key).replace('_', ' ').lower()
 
 def to_progress_report_teams_list(value):
-    def build_record(val):
-        return {
-            'name': val[expand_key('name')] if expand_key('name') in val else None,
-            'wip': force_int('wip', val[expand_key('wip')]) if expand_key('wip') in val else 1,
-            'min_throughput': force_int('min_throughput', val[expand_key('min_throughput')]) if expand_key('min_throughput') in val else None,
-            'max_throughput': force_int('max_throughput', val[expand_key('max_throughput')]) if expand_key('max_throughput') in val else None,
-            'throughput_samples': val[expand_key('throughput_samples')] if expand_key('throughput_samples') in val else None,
-            'throughput_samples_window': force_int('throughput_samples_window', val[expand_key('throughput_samples_window')]) if expand_key('throughput_samples_window') in val else None,
-        }
-    return list(map(build_record, value))
+    return [{
+        'name': val[expand_key('name')] if expand_key('name') in val else None,
+        'wip': force_int('wip', val[expand_key('wip')]) if expand_key('wip') in val else 1,
+        'min_throughput': force_int('min_throughput', val[expand_key('min_throughput')]) if expand_key('min_throughput') in val else None,
+        'max_throughput': force_int('max_throughput', val[expand_key('max_throughput')]) if expand_key('max_throughput') in val else None,
+        'throughput_samples': val[expand_key('throughput_samples')] if expand_key('throughput_samples') in val else None,
+        'throughput_samples_window': force_int('throughput_samples_window', val[expand_key('throughput_samples_window')]) if expand_key('throughput_samples_window') in val else None,
+    } for val in value]
 
 def to_progress_report_outcomes_list(value):
-    def build_record(val):
-        return {
-            'name': val[expand_key('name')] if expand_key('name') in val else None,
-            'key': val[expand_key('key')] if expand_key('key') in val else None,
-            'epic_query': val[expand_key('epic_query')] if expand_key('epic_query') in val else None,
-        }
-    return list(map(build_record, value))
+    return [{
+        'name': val[expand_key('name')] if expand_key('name') in val else None,
+        'key': val[expand_key('key')] if expand_key('key') in val else None,
+        'epic_query': val[expand_key('epic_query')] if expand_key('epic_query') in val else None,
+    } for val in value]
 
 
-def config_to_options(data):
+def config_to_options(data, cwd=None, extended=False):
     try:
         config = ordered_load(data, yaml.SafeLoader)
     except Exception:
         raise ConfigError("Unable to parse YAML configuration file.") from None
+    
+    if config is None:
+        raise ConfigError("Configuration file is empty") from None
 
     options = {
         'connection': {
@@ -247,25 +246,42 @@ def config_to_options(data):
         }
     }
 
+    # Recursively parse an `extends` file but only if a base path is given,
+    # otherwise we can plausible leak files in server mode.
+    if 'extends' in config:
+        if cwd is None:
+            raise ConfigError("`extends` is not supported here.")
+
+        extends_filename = os.path.abspath(os.path.normpath(os.path.join(cwd, config['extends'].replace('/', os.path.sep))))
+
+        if not os.path.exists(extends_filename):
+            raise ConfigError("File `%s` referenced in `extends` not found." % extends_filename) from None
+        
+        logger.debug("Extending file %s" % extends_filename)
+        with open(extends_filename) as extends_file:
+            options = config_to_options(extends_file.read(), cwd=os.path.dirname(extends_filename), extended=True)
+
     # Parse and validate Connection
 
-    if 'domain' in config['connection']:
-        options['connection']['domain'] = config['connection']['domain']
+    if 'connection' in config:
 
-    if 'username' in config['connection']:
-        options['connection']['username'] = config['connection']['username']
+        if 'domain' in config['connection']:
+            options['connection']['domain'] = config['connection']['domain']
 
-    if 'password' in config['connection']:
-        options['connection']['password'] = config['connection']['password']
-    
-    if 'http proxy' in config['connection']:
-        options['connection']['http_proxy'] = config['connection']['http proxy']
-    
-    if 'https proxy' in config['connection']:
-        options['connection']['https_proxy'] = config['connection']['https proxy']
+        if 'username' in config['connection']:
+            options['connection']['username'] = config['connection']['username']
 
-    if 'jira client options' in config['connection']:
-        options['connection']['jira_client_options'] = config['connection']['jira client options']
+        if 'password' in config['connection']:
+            options['connection']['password'] = config['connection']['password']
+        
+        if 'http proxy' in config['connection']:
+            options['connection']['http_proxy'] = config['connection']['http proxy']
+        
+        if 'https proxy' in config['connection']:
+            options['connection']['https_proxy'] = config['connection']['https proxy']
+
+        if 'jira client options' in config['connection']:
+            options['connection']['jira_client_options'] = config['connection']['jira client options']
 
     # Parse and validate output options
     if 'output' in config:
@@ -420,54 +436,52 @@ def config_to_options(data):
 
     if 'queries' in config:
         options['settings']['query_attribute'] = config['queries'].get('attribute', None)
-        for query in config['queries']['criteria']:
-            options['settings']['queries'].append({
-                'value': query.get('value', None),
-                'jql': query.get('jql', None),
-            })
+        options['settings']['queries'] = [{
+            'value': q.get('value', None),
+            'jql': q.get('jql', None),
+        } for q in config['queries']['criteria']]
 
     if 'query' in config:
-        options['settings']['queries'].append({
+        options['settings']['queries'] = [{
             'value': None,
             'jql': config['query'],
-        })
+        }]
 
-    if len(options['settings']['queries']) == 0:
+    if not extended and len(options['settings']['queries']) == 0:
         logger.warning("No `Query` value or `Queries` section found. Many calculators rely on one of these.")
 
     # Parse Workflow. Assume first status is backlog and last status is complete.
 
-    if 'workflow' not in config:
-        raise ConfigError("`Workflow` section not found")
-
-    if len(config['workflow'].keys()) < 3:
-        raise ConfigError("`Workflow` section must contain at least three statuses")
-
-    for name, statuses in config['workflow'].items():
-        statuses = force_list(statuses)
-
-        options['settings']['cycle'].append({
+    if 'workflow' in config:
+        if len(config['workflow'].keys()) < 3:
+            raise ConfigError("`Workflow` section must contain at least three statuses")
+        
+        options['settings']['cycle'] = [{
             "name": name,
             "type": StatusTypes.accepted,
-            "statuses": statuses
-        })
+            "statuses": force_list(statuses)
+        } for name, statuses in config['workflow'].items()]
 
-    options['settings']['cycle'][0]['type'] = StatusTypes.backlog
-    options['settings']['cycle'][-1]['type'] = StatusTypes.complete
+        options['settings']['cycle'][0]['type'] = StatusTypes.backlog
+        options['settings']['cycle'][-1]['type'] = StatusTypes.complete
 
-    if options['settings']['backlog_column'] is None:
-        options['settings']['backlog_column'] = options['settings']['cycle'][0]['name']
-    if options['settings']['committed_column'] is None:
-        options['settings']['committed_column'] = options['settings']['cycle'][1]['name']
-    if options['settings']['final_column'] is None:
-        options['settings']['final_column'] = options['settings']['cycle'][-2]['name']
-    if options['settings']['done_column'] is None:
-        options['settings']['done_column'] = options['settings']['cycle'][-1]['name']
+        if options['settings']['backlog_column'] is None:
+            options['settings']['backlog_column'] = options['settings']['cycle'][0]['name']
+        if options['settings']['committed_column'] is None:
+            options['settings']['committed_column'] = options['settings']['cycle'][1]['name']
+        if options['settings']['final_column'] is None:
+            options['settings']['final_column'] = options['settings']['cycle'][-2]['name']
+        if options['settings']['done_column'] is None:
+            options['settings']['done_column'] = options['settings']['cycle'][-1]['name']
 
-    # Parse attributes (fields)
+    # Make sure we have workflow (but only if this file is not being extended by another)
+    if not extended and len(options['settings']['cycle']) == 0:
+        raise ConfigError("`Workflow` section not found")
+
+    # Parse attributes (fields) - merge from extended file if needed
 
     if 'attributes' in config:
-        options['settings']['attributes'] = dict(config['attributes'])
+        options['settings']['attributes'].update(dict(config['attributes']))
 
     if 'known values' in config:
         for name, values in config['known values'].items():

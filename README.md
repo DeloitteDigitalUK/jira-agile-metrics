@@ -260,6 +260,60 @@ And if you are realy curious:
 
     $ jira-agile-metrics -vv config.yaml
 
+## Reusing elements of a config file
+
+If you want to reuse some configuration elements (e.g., `Connection`,
+`Workflow`) across multiple configuration files, you can use the `Extends`
+option to "import" one file into another.
+
+For example, if you had a file called `common.yaml` with:
+
+    Connection:
+        Domain: https://myjira.atlassian.net
+
+    Workflow: 
+        Backlog: Backlog
+        Committed: Committed
+        Elaboration: Elaboration
+        Build: Build
+        QA:
+            - Code review
+            - Test
+        Done: Done
+    
+    Output:
+
+        Quantiles:
+            - 0.5
+            - 0.75
+            - 0.95
+
+Another file, e.g. `team1.yaml`, could then reuse these settings with:
+
+    Extends: common.yaml
+
+    Output:
+        Cycle time data: team1-cycletime.csv
+        CFD chart: team1-cfd.png
+        CFD chart title: Team 1: CFD
+
+The extended filename is resolved relative to the file being loaded, so in
+this example they would be in the same directory. You can use relative or
+absolute paths. Note that the path separator for relative paths is always `/`
+(forward slash), even on Windows!
+
+When one file extends another, the extending file can override any options
+set in the extended file. So, for example, if `team1.yaml` also set `Quantiles`
+under `Output`, the list from `common.yaml` would be overridden in its entirety.
+This is the case for any option under `Output`, and for the `Query` / `Queries`
+and `Workflow` options in their entirety. Any `Attributes` will be merged.
+
+You can use `Extends` recursively, i.e. an extended file can extend another
+file.
+
+**Note:** The `Extends` feature is not available in server mode. If a file with
+an `Extends` line is uploaded to the server, an error will be thrown.
+
 ## Available metrics
 
 `jira-agile-metrics` can produce a number of data files and charts, which can
@@ -1238,6 +1292,11 @@ of filenames, or a single filename.
   finding epics for this outcome.
 
 ## Changelog
+
+### 0.22
+
+- Add support for `Extends` in config file.
+- Allow `-o` as an alias for `--output-directory`
 
 ### 0.21
 
