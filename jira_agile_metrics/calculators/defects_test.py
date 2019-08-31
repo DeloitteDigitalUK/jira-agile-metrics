@@ -1,6 +1,5 @@
-import datetime
 import pytest
-from pandas import Timedelta, Timestamp, NaT
+from pandas import Timestamp, NaT
 
 from ..conftest import (
     FauxJIRA as JIRA,
