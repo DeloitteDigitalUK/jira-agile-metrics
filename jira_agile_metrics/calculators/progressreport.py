@@ -634,7 +634,7 @@ def plot_cfd(cycle_data, cycle_names, backlog_column):
     # Return as base64 encoded string
 
     buffer = io.BytesIO()
-    fig.savefig(buffer, format='png', bbox_inches='tight', dpi=100)
+    fig.savefig(buffer, format='png', bbox_inches='tight', dpi=220)
     plt.close(fig)
 
     return base64.b64encode(buffer.getvalue()).decode('utf-8')
@@ -687,7 +687,7 @@ def plot_throughput(cycle_data, frequency='1W'):
     # Return as base64 encoded string
 
     buffer = io.BytesIO()
-    fig.savefig(buffer, format='png', bbox_inches='tight', dpi=100)
+    fig.savefig(buffer, format='png', bbox_inches='tight', dpi=220)
     plt.close(fig)
 
     return base64.b64encode(buffer.getvalue()).decode('utf-8')
@@ -739,7 +739,7 @@ def plot_scatterplot(cycle_data, quantiles):
     # Return as base64 encoded string
 
     buffer = io.BytesIO()
-    fig.savefig(buffer, format='png', bbox_inches='tight', dpi=100)
+    fig.savefig(buffer, format='png', bbox_inches='tight', dpi=220)
     plt.close(fig)
 
     return base64.b64encode(buffer.getvalue()).decode('utf-8')

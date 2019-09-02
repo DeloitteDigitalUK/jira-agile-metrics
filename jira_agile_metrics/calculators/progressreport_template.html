@@ -288,7 +288,7 @@
                         
                     {% if outcome.name %}
                     <h2>
-                        {{ outcome.name }}
+                        <a  class="d-print-none" name="{{ outcome.key }}">{{ outcome.name }}</a>
                         <a  class="d-print-none" data-toggle="collapse" href="#outcome-configuration-{{idx}}"><small class="text-muted">&raquo;</small></a>
                     </h2>
                     {% endif %}
@@ -420,7 +420,7 @@
             <div id="team-cfd-{{ team.name | urlencode }}" class="perfundo__overlay fadeInLeft">
                 <figure class="perfundo__content perfundo__figure">
                     <figcaption class="perfundo__figcaption">Cumulative Flow Diagram of historical samples for {{ team.name }}</figcaption>
-                    <div class="perfundo__image" style="width: 800px; height: 500px; padding-top: 56.25%; background-image: url('data:image/png;base64, {{ team_charts[team.name]['cfd'] }}');"></div>
+                    <img class="perfundo__image" style="height: auto; width: auto; max-height: 600px; max-width: 800px" src="data:image/png;base64, {{ team_charts[team.name]['cfd'] }}" />
                 </figure>
                 <a href="#perfundo-untarget" class="perfundo__close perfundo__control">Close</a>
             </div>
@@ -430,7 +430,7 @@
             <div id="team-throughput-{{ team.name | urlencode }}" class="perfundo__overlay fadeInLeft">
                 <figure class="perfundo__content perfundo__figure">
                     <figcaption class="perfundo__figcaption">Historical weekly throughput for {{ team.name }}</figcaption>
-                    <div class="perfundo__image" style="width: 800px; height: 700px; padding-top: 56.25%; background-image: url('data:image/png;base64, {{ team_charts[team.name]['throughput'] }}');"></div>
+                    <img class="perfundo__image" style="height: auto; width: auto; max-height: 600px; max-width: 800px" src="data:image/png;base64, {{ team_charts[team.name]['throughput'] }}" />
                 </figure>
                 <a href="#perfundo-untarget" class="perfundo__close perfundo__control">Close</a>
             </div>
@@ -440,7 +440,7 @@
             <div id="team-scatterplot-{{ team.name | urlencode }}" class="perfundo__overlay fadeInLeft">
                 <figure class="perfundo__content perfundo__figure">
                     <figcaption class="perfundo__figcaption">Cycle time scatter plot for {{ team.name }}</figcaption>
-                    <div class="perfundo__image" style="width: 800px; height: 600px; padding-top: 56.25%; background-image: url('data:image/png;base64, {{ team_charts[team.name]['scatterplot'] }}');"></div>
+                    <img class="perfundo__image" style="height: auto; width: auto; max-height: 600px; max-width: 800px" src="data:image/png;base64, {{ team_charts[team.name]['scatterplot'] }}" />
                 </figure>
                 <a href="#perfundo-untarget" class="perfundo__close perfundo__control">Close</a>
             </div>
@@ -456,7 +456,7 @@
                 <div id="epic-cfd-{{ epic.key | urlencode }}" class="perfundo__overlay fadeInLeft">
                     <figure class="perfundo__content perfundo__figure">
                         <figcaption class="perfundo__figcaption">Cumulative Flow Diagram for {{ epic.summary }}</figcaption>
-                        <div class="perfundo__image" style="width: 800px; height: 500px; padding-top: 56.25%; background-image: url('data:image/png;base64, {{ epic_charts[epic.key]['cfd'] }}');"></div>
+                        <img class="perfundo__image" style="height: auto; width: auto; max-height: 600px; max-width: 800px" src="data:image/png;base64, {{ epic_charts[epic.key]['cfd'] }}" />
                     </figure>
                     <a href="#perfundo-untarget" class="perfundo__close perfundo__control">Close</a>
                 </div>
@@ -466,7 +466,7 @@
                 <div id="epic-scatterplot-{{ epic.key | urlencode }}" class="perfundo__overlay fadeInLeft">
                     <figure class="perfundo__content perfundo__figure">
                         <figcaption class="perfundo__figcaption">Cycle time scatter plot for {{ epic.summary }}</figcaption>
-                        <div class="perfundo__image" style="width: 800px; height: 600px; padding-top: 56.25%; background-image: url('data:image/png;base64, {{ epic_charts[epic.key]['scatterplot'] }}');"></div>
+                        <img class="perfundo__image" style="height: auto; width: auto; max-height: 600px; max-width: 800px" src="data:image/png;base64, {{ epic_charts[epic.key]['scatterplot'] }}" />
                     </figure>
                     <a href="#perfundo-untarget" class="perfundo__close perfundo__control">Close</a>
                 </div>
