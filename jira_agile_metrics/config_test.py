@@ -223,6 +223,8 @@ Output:
           Deadline: 2019-06-01
         - Name: Outcome two
           Epic query: project = ABS and type = Feature
+    Progress report outcome deadline field: Due date
+    Progress report outcome query: project = ABC AND type = Outcome AND resolution IS EMPTY
 """)
 
     assert options['connection'] == {
@@ -372,7 +374,8 @@ Output:
             {'key': 'O1', 'name': 'Outcome one', 'deadline': datetime.date(2019, 6, 1), 'epic_query': None},
             {'key': None, 'name': 'Outcome two', 'deadline': None, 'epic_query': "project = ABS and type = Feature"}
         ],
-        
+        'progress_report_outcome_deadline_field': 'Due date',
+        'progress_report_outcome_query': 'project = ABC AND type = Outcome AND resolution IS EMPTY',
     }
 
 def test_config_to_options_strips_directories():

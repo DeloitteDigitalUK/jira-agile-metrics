@@ -244,6 +244,8 @@ def config_to_options(data, cwd=None, extended=False):
             'progress_report_epic_team_field': None,
             'progress_report_teams': None,
             'progress_report_outcomes': None,
+            'progress_report_outcome_query': None,
+            'progress_report_outcome_deadline_field': None,
         }
     }
 
@@ -423,6 +425,8 @@ def config_to_options(data, cwd=None, extended=False):
             'progress_report_epic_min_stories_field',
             'progress_report_epic_max_stories_field',
             'progress_report_epic_team_field',
+            'progress_report_outcome_query',
+            'progress_report_outcome_deadline_field',
         ]:
             if expand_key(key) in config['output']:
                 options['settings'][key] = config['output'][expand_key(key)]

@@ -63,6 +63,7 @@ class ProgressReportCalculator(Calculator):
         epic_query_template = self.settings['progress_report_epic_query_template']
         if not epic_query_template:
             if (
+                self.settings['progress_report_outcome_query'] is not None or
                 self.settings['progress_report_outcomes'] is None or
                 len(self.settings['progress_report_outcomes']) == 0 or
                 any(map(lambda o: o['epic_query'] is None, self.settings['progress_report_outcomes']))
@@ -123,11 +124,9 @@ class ProgressReportCalculator(Calculator):
             logger.error("`Progress report epic team field` is required if there is more than one team under `Progress report teams`.")
             return None
 
-        # if not set, we use a single epic query and don't group by outcomes
+        # Find outcomes. If none set, we use a single epic query and don't group by outcomes
         
-        # TODO: Permit a `Progress report outcomes query` field to be used instead; runs a JIRA query to get
-        # the outcomes and set values from that. Outcome key is then the issue key.
-
+        # explicitly set
         outcomes = [
             Outcome(
                 name=o['name'],
@@ -139,12 +138,19 @@ class ProgressReportCalculator(Calculator):
                 )
             ) for o in self.settings['progress_report_outcomes']
         ]
+
+        outcome_query = self.settings['progress_report_outcome_query']
+        if outcome_query:
+            outcome_deadline_field = self.settings['progress_report_outcome_deadline_field']
+            if outcome_deadline_field:
+                outcome_deadline_field = self.query_manager.field_name_to_id(outcome_deadline_field)
+
+            outcomes.extend(find_outcomes(self.query_manager, outcome_query, outcome_deadline_field, epic_query_template))
         
         if len(outcomes) > 0:
-            for outcome in outcomes:
-                if not outcome.name:
-                    logger.error("Outcomes must have a name.")
-                    return None
+            if not all([bool(outcome.name) for outcome in outcomes]):
+                logger.error("Outcomes must have a name.")
+                return None
         else:
             outcomes = [Outcome(name=None, key=None, epic_query=epic_query_template)]
 
@@ -428,6 +434,19 @@ def calculate_team_throughput(
     
     return calculate_throughput(cycle_times, frequency=frequency, window=team.throughput_samples_window)
 
+def find_outcomes(
+    query_manager,
+    query,
+    outcome_deadline_field,
+    epic_query_template
+):
+    for issue in query_manager.find_issues(query):
+        yield Outcome(
+            name=issue.fields.summary,
+            key=issue.key,
+            deadline=date_value(query_manager, issue, outcome_deadline_field),
+            epic_query=epic_query_template.format(outcome='"%s"' % issue.key),
+        )
 
 def find_epics(
     query_manager,
@@ -439,16 +458,6 @@ def find_epics(
 ):
 
     for issue in query_manager.find_issues(outcome.epic_query):
-
-        # default to outcome deadline, but allow it to be overridden at the epic level
-        deadline = outcome.deadline
-        if epic_deadline_field is not None:
-            deadline = query_manager.resolve_field_value(issue, epic_deadline_field)
-            if isinstance(deadline, (str, bytes)) and deadline != "":
-                deadline = dateutil.parser.parse(deadline)
-            elif deadline is None:
-                deadline = outcome.deadline
-
         yield Epic(
             key=issue.key,
             summary=issue.fields.summary,
@@ -458,7 +467,7 @@ def find_epics(
             min_stories=int_or_none(query_manager.resolve_field_value(issue, epic_min_stories_field)) if epic_min_stories_field else None,
             max_stories=int_or_none(query_manager.resolve_field_value(issue, epic_max_stories_field)) if epic_max_stories_field else None,
             team_name=query_manager.resolve_field_value(issue, epic_team_field) if epic_team_field else None,
-            deadline=deadline,
+            deadline=date_value(query_manager, issue, epic_deadline_field, default=outcome.deadline),
             outcome=outcome,
         )
 
@@ -748,3 +757,13 @@ def int_or_none(value):
     return value if isinstance(value, int) else \
            int(value) if isinstance(value, (str, bytes)) and value.isdigit() \
            else None
+
+def date_value(query_manager, issue, field_name, default=None):
+    value = default
+    if field_name is not None:
+        value = query_manager.resolve_field_value(issue, field_name)
+        if isinstance(value, (str, bytes)) and value != "":
+            value = dateutil.parser.parse(value)
+        elif value is None:
+            value = default
+    return value

@@ -798,18 +798,23 @@ exactly one *team*. Epics and stories are represented by JIRA tickets
 discoverable by JQL queries specified in the configuration file, whereas
 outcomes and teams are enumerated in the configuration file directly.
 
-A forecast to complete is then produced for each epic by calculating the
-presumed number of stories in the epic (randomly sampling between a minimum
-and maximum number of stories as set on the epic ticket in JIRA, or using the
-total number of stories raised against the epic, if higher); the number of
-stories raised against the epic that have been completed to date; and the
-presumed throughput of the relevant team (randomly sampled, either from a range
-of the minimum to maximum number of stories the team can complete per week, or
-through a JQL query that identifies the team's historical performance). This is
-done many times over in a Monte Carlo simulation, to identify a range of
+A forecast to complete is then produced for each epic by calculating:
+
+- the presumed number of stories in the epic (randomly sampling between a
+  minimum and maximum number of stories as set on the epic ticket in JIRA, or
+  using the total number of stories raised against the epic, if higher);
+- the number of stories raised against the epic that have been completed to
+  date;
+- and the presumed throughput of the relevant team (randomly sampled, either
+  from a range of the minimum to maximum number of stories the team can complete
+  per week, or through a JQL query that identifies the team's historical
+  performance).
+  
+This is done many times over in a Monte Carlo simulation, to identify a range of
 plausible completion dates. If a deadline is set on an epic, the forecast to
 complete will be compared with it, to highlight the likelihood of hitting the
-deadline.
+deadline. (Deadlines may also be set at the outcome-level, in which case the
+outcome deadline is the default for all epics.)
 
 The simulation takes into account that a single team may have multiple epics to
 complete. A team can be configured to have an epic WIP limit of 1 (the default)
@@ -824,15 +829,8 @@ the screenshot above:
 
     Connection:
         # not shown
-
-    Queries:
-        # not shown, and not direclty relevant to the progress report
-
-    Attributes:
-        # not shown, and not direclty relevant to the progress report
-
-    Known values:
-        # not shown
+    
+    # ...
 
     # Used for calculating progress against an epic, and team throughput: to
     # identify whether stories are in the backlog, in progress, or completed.
@@ -867,7 +865,7 @@ the screenshot above:
         Progress report epic deadline field: Due date
 
         # - if no team field is set, you must specify exactly one team under
-        #   `Progress report teams`, which will be used
+        #   `Progress report teams`, which will be used for all epics
         Progress report epic team field: Team
 
         # - if no min stories field is set, the story count will be based solely
@@ -880,8 +878,8 @@ the screenshot above:
         # The query used to identify epics for each outcome. The special
         # placeholder `{outcome}` will be replaced by the outcome key (or name,
         # if the key is not set). May be overridden by the `Epic query` set on
-        # an outcome. If not set, the `Epic query` must be specified on each
-        # outcome.
+        # an individual outcome. If not set, the `Epic query` must be specified
+        # on each outcome, and it is not possible to use outcomes as tickets.
         Progress report epic query template: project = ABC AND type = Epic AND Outcome = {outcome} ORDER BY created
 
         # The query used to identify stories for an epic. The placeholders
@@ -895,7 +893,7 @@ the screenshot above:
         # (number of epics the team may work on in parallel) and
         # `Throughput samples window` (number of weeks in the past from which to
         # draw samples) are optional. The placeholder `{team}` can be used to
-        # reference the team name.
+        # reference the team name in the samples query.
         Progress report teams:
             - Name: Red
               Min throughput: 5
@@ -923,6 +921,55 @@ the screenshot above:
             - Name: Europe revamp
               Key: O3
               Epic query: project = ABC and type = Feature
+
+In this example, we have listed the outcomes explicitly in the configuration
+file. It is also possible for the outcomes to be managed as JIRA ticket (or even
+to mix the two approaches). To do this, you need to specify a query for finding
+the outcomes:
+
+        Progress report outcome query: project = ABC AND type = Outcome AND resolution IS EMPTY ORDER BY summary
+
+        # Optionally give a field name for the outcome-level deadline, which
+        # will be used as a fallback if epic-level deadlines are not set
+        Progress report outcome deadline field: Due date
+
+If using tickets to specify outcomes, `Progress report epic query template` must
+be set. The `{outcome}` placeholder will be replaced by the relevant outcome
+ticket `key`. You can thus use a linked issue field to specify the outcome.
+
+In a simpler use case, you can model a single team performing all work, and/or
+dispense with the "outcome" level entirely, modelling only epics. The assumed
+min/max story count and the entire concept of deadlines are also optional.
+
+Here is a minimal example:
+
+    # ...
+
+    Workflow:
+        Backlog: Backlog
+        Committed: Next
+        Build: Build
+        Test:
+            - Code review
+            - QA
+        Done: Done
+
+    Output:
+
+        Quantiles:
+            - 0.75
+            - 0.85
+            - 0.95
+
+        Progress report: progress-minimal.html
+        Progress report title: Acme Corp Websites
+        Progress report epic min stories field: Story count
+        Progress report epic query template: project = ABC AND type = Epic AND resolution IS EMPTY ORDER BY created
+        Progress report story query template: project = ABC AND type = Story AND "Epic link" = {epic}
+        Progress report teams:
+            - Name: Default
+              Min throughput: 5
+              Max throughput: 10
 
 ## More details about the configuration file format
 
@@ -1294,12 +1341,22 @@ of filenames, or a single filename.
   `Deadline` will be used as a fallback if an epic level deadline is not set.
   `Epic query`, if given, takes precedence over
   `Progress report epic query template` when finding epics for this outcome.
+- `Progress report outcome query: <query>` – Allows outcomes to be enumerated
+  in JIRA issues, rather than the `Progress report outcomes` list. Each matching
+  issue will be used as an outcome, with the outcome key for the epic query
+  template being the issue key and the issue summary being the outcome title.
+  If used, `Progress report epic query template` *must* be set.
+- `Progress report epic deadline field: <fieldname>` – Name of a date field
+   giving the deadline of an outcome. Used as a fallback if no epic-level
+   deadline is set. Optional.
 
 ## Changelog
 
 ### 0.23
 
 - Allow deadline to be set on outcomes as a fallback for epic level deadlines
+- Add support for `Progress report outcome query` and
+  `Progress report outcome deadline field`.
 
 ### 0.22
 
