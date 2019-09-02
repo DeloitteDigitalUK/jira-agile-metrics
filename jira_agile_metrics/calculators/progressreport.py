@@ -37,6 +37,10 @@ class ProgressReportCalculator(Calculator):
 
     def run(self, now=None, trials=1000):
         
+        # TODO: Add output option to produce a per-outcome simple burnup chart.
+        # Show total stories in backlog + flat "max" line + progress of stories
+        # to date.
+
         if self.settings['progress_report'] is None:
             return
 
@@ -121,10 +125,14 @@ class ProgressReportCalculator(Calculator):
 
         # if not set, we use a single epic query and don't group by outcomes
         
+        # TODO: Permit a `Progress report outcomes query` field to be used instead; runs a JIRA query to get
+        # the outcomes and set values from that. Outcome key is then the issue key.
+
         outcomes = [
             Outcome(
                 name=o['name'],
                 key=o['key'] if o['key'] else o['name'],
+                deadline=datetime.datetime.combine(o['deadline'], datetime.datetime.min.time()) if o['deadline'] else None,
                 epic_query=(
                     o['epic_query'] if o['epic_query']
                     else epic_query_template.format(outcome='"%s"' % (o['key'] if o['key'] else o['name']))
@@ -283,10 +291,11 @@ class ProgressReportCalculator(Calculator):
 
 class Outcome(object):
 
-    def __init__(self, name, key, epic_query=None, epics=None):
+    def __init__(self, name, key, deadline=None, epic_query=None, epics=None):
         self.name = name
         self.key = key
         self.epic_query = epic_query
+        self.deadline = deadline
         self.epics = epics if epics is not None else []
 
 class Team(object):
@@ -431,11 +440,14 @@ def find_epics(
 
     for issue in query_manager.find_issues(outcome.epic_query):
 
-        deadline = None
+        # default to outcome deadline, but allow it to be overridden at the epic level
+        deadline = outcome.deadline
         if epic_deadline_field is not None:
             deadline = query_manager.resolve_field_value(issue, epic_deadline_field)
-            if isinstance(deadline, (str, bytes)):
+            if isinstance(deadline, (str, bytes)) and deadline != "":
                 deadline = dateutil.parser.parse(deadline)
+            elif deadline is None:
+                deadline = outcome.deadline
 
         yield Epic(
             key=issue.key,

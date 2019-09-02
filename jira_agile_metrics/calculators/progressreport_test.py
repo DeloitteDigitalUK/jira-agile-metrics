@@ -69,10 +69,12 @@ def settings(custom_settings):
             {
                 'key': 'O1',
                 'name': 'Outcome one',
+                'deadline': None,
                 'epic_query': None
             }, {
                 'key': None,
                 'name': 'Outcome two',
+                'deadline': None,
                 'epic_query': 'outcome="Outcome two" AND status=in-progress'
             }
         ],
@@ -374,7 +376,7 @@ def test_calculate_epic_target():
 
 def test_find_epics(query_manager):
 
-    outcome = Outcome("Outcome one", "O1", 'issuetype=epic AND Outcome=O1')
+    outcome = Outcome("Outcome one", "O1", None, 'issuetype=epic AND Outcome=O1')
     
     epics = list(find_epics(
         query_manager=query_manager,
@@ -413,7 +415,7 @@ def test_find_epics(query_manager):
 
 def test_find_epics_minimal_fields(query_manager):
 
-    outcome = Outcome("Outcome one", "O1", 'issuetype=epic AND Outcome=O1')
+    outcome = Outcome("Outcome one", "O1", None, 'issuetype=epic AND Outcome=O1')
 
     epics = list(find_epics(
         query_manager=query_manager,
@@ -449,6 +451,49 @@ def test_find_epics_minimal_fields(query_manager):
     }
     assert epics[1].key == 'E-2'
     assert epics[2].key == 'E-3'
+
+def test_find_epics_defaults_to_outcome_deadline(query_manager):
+
+    outcome = Outcome("Outcome one", "O1", datetime(2019, 6, 1), 'issuetype=epic AND Outcome=O1')
+    
+    epics = list(find_epics(
+        query_manager=query_manager,
+        epic_min_stories_field='customfield_203',
+        epic_max_stories_field='customfield_204',
+        epic_team_field='customfield_001',
+        epic_deadline_field='customfield_202',
+        outcome=outcome)
+    )
+
+    assert len(epics) == 3
+    assert epics[0].__dict__ == {
+        'key': 'E-1',
+        'summary': 'Epic 1',
+        'status': 'In progress',
+        'resolution': None,
+        'resolution_date': None,
+        'team_name': 'Team 1',
+        'deadline': datetime(2018, 3, 1, 0, 0),
+        'min_stories': 10,
+        'max_stories': 15,
+        'story_cycle_times': None,
+        'stories_raised': None,
+        'stories_in_backlog': None,
+        'stories_in_progress': None,
+        'stories_done': None,
+        'first_story_started': None,
+        'last_story_finished': None,
+        'outcome': outcome,
+        'team': None,
+        'forecast': None,
+        'story_query': None,
+    }
+
+    assert epics[1].key == 'E-2'
+    assert epics[1].deadline == datetime(2018, 3, 1, 0, 0)
+
+    assert epics[2].key == 'E-3'
+    assert epics[2].deadline == datetime(2019, 6, 1, 0, 0)
 
 def test_update_story_counts(query_manager, settings):
     
@@ -1160,6 +1205,8 @@ def test_calculator_no_fields(query_manager, settings, results):
 
 def test_with_large_dataset(fields, settings, results):
 
+    today = date.today()
+
     # build a large and partially randomised data set to forecast on
 
     field_lookup = {v['name'].lower(): v['id'] for v in fields}
@@ -1204,20 +1251,22 @@ def test_with_large_dataset(fields, settings, results):
             {
                 'key': 'O1',
                 'name': 'MVP',
+                'deadline': random_date_future(today + timedelta(days=55), 65),
                 'epic_query': None,
             }, {
                 'key': 'O2',
                 'name': 'Asia launch',
+                'deadline': None,
                 'epic_query': None,
             }, {
                 'key': 'O3',
                 'name': 'Europe revamp',
+                'deadline': None,
                 'epic_query': None,
             }
         ],
     })
 
-    today = date.today()
     teams = [t['name'] for t in settings['progress_report_teams']]
     outcomes = [o['key'] for o in settings['progress_report_outcomes']]
     statuses = ['Backlog', 'Next', 'Build', 'QA', 'Done']

@@ -220,6 +220,7 @@ Output:
     Progress report outcomes:
         - Name: Outcome one
           Key: O1
+          Deadline: 2019-06-01
         - Name: Outcome two
           Epic query: project = ABS and type = Feature
 """)
@@ -367,7 +368,10 @@ Output:
             {'name': 'Team one', 'max_throughput': 10, 'min_throughput': 5, 'throughput_samples': None, 'throughput_samples_window': None, 'wip': 1},
             {'name': 'Team two', 'max_throughput': None, 'min_throughput': None, 'throughput_samples': 'project = ABC AND type = Story AND team = "Team two" AND resolution = "Done"', 'wip': 2, 'throughput_samples_window': 6}
         ],
-        'progress_report_outcomes': [{'key': 'O1', 'name': 'Outcome one', 'epic_query': None}, {'key': None, 'name': 'Outcome two', 'epic_query': "project = ABS and type = Feature"}],
+        'progress_report_outcomes': [
+            {'key': 'O1', 'name': 'Outcome one', 'deadline': datetime.date(2019, 6, 1), 'epic_query': None},
+            {'key': None, 'name': 'Outcome two', 'deadline': None, 'epic_query': "project = ABS and type = Feature"}
+        ],
         
     }
 

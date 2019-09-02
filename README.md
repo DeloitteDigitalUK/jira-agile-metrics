@@ -910,11 +910,14 @@ the screenshot above:
         # specifies a non-parameterised query for all relevant epics. If
         # included, each outcome must have a `Name`. `Key`, which is used in
         # the epic query template, is optional, defaulting to the same value as
-        # `Name`. `Epic query` may be used to specify a particular query for
+        # `Name`. `Deadline` can be used to specify a deadline for all epics
+        # in the report, which can be overridden on a per-epic basis.
+        # `Epic query` may be used to specify a particular query for
         # epics, overriding the more general `Progress report epic query template`.
         Progress report outcomes:
             - Name: MVP
               Key: O1
+              Deadline: 2019-01-01
             - Name: Asia launch
               Key: O2
             - Name: Europe revamp
@@ -1286,12 +1289,17 @@ of filenames, or a single filename.
    You can use the placeholder `{team}` in `Throughput samples` as a shortcut
    to repeating the team name. `WIP` defaults to 1.
 - `Progress report outcomes: <list>` – A list of records with keys `Name`,
-  `Key`, and/or `Epic query`, which specify the outcomes to list on the progress
-  report. `Key` will default to the same value as `Name`. `Epic query`, if
-  given, takes precedence over `Progress report epic query template` when
-  finding epics for this outcome.
+  `Key`, `Deadline`, and/or `Epic query`, which specify the outcomes to list on
+  the progress report. `Key` will default to the same value as `Name`.
+  `Deadline` will be used as a fallback if an epic level deadline is not set.
+  `Epic query`, if given, takes precedence over
+  `Progress report epic query template` when finding epics for this outcome.
 
 ## Changelog
+
+### 0.23
+
+- Allow deadline to be set on outcomes as a fallback for epic level deadlines
 
 ### 0.22
 

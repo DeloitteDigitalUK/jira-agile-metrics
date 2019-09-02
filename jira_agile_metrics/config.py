@@ -101,6 +101,7 @@ def to_progress_report_outcomes_list(value):
     return [{
         'name': val[expand_key('name')] if expand_key('name') in val else None,
         'key': val[expand_key('key')] if expand_key('key') in val else None,
+        'deadline': force_date('deadline', val[expand_key('deadline')]) if expand_key('deadline') in val else None,
         'epic_query': val[expand_key('epic_query')] if expand_key('epic_query') in val else None,
     } for val in value]
 
