@@ -115,10 +115,11 @@ class ProgressReportCalculator(Calculator):
                 if team['min_throughput'] > team['max_throughput']:
                     logger.error("`Min throughput` must be less than or equal to `Max throughput`.")
                     return None
-            elif not team['throughput_samples']:
-                logger.error("`Throughput samples` is required if `Min/max throughput` is not specified.")
-                return None
-            
+                if team['throughput_samples']:
+                    logger.error("`Throughput samples` cannot be used if `Min/max throughput` is already specified.")
+                
+                # Note: If neither min/max throughput or samples are specified, we turn off forecasting
+
         # if there is only one team and we don't record an epic's team, always use data for that one team
         if not epic_team_field and len(teams) != 1:
             logger.error("`Progress report epic team field` is required if there is more than one team under `Progress report teams`.")
@@ -229,7 +230,8 @@ class ProgressReportCalculator(Calculator):
         # Run Monte Carlo simulation to complete
         
         for team in teams:
-            forecast_to_complete(team, team_epics[team.name], quantiles, trials=trials, now=now)
+            if team.sampler is not None:
+                forecast_to_complete(team, team_epics[team.name], quantiles, trials=trials, now=now)
 
         return {
             'outcomes': outcomes,
@@ -404,9 +406,6 @@ def update_team_sampler(
     # Use min/max if set and query either wasn't set, or returned nothing
     if team.sampler is None and team.min_throughput and team.max_throughput:
         team.sampler = throughput_range_sampler(team.min_throughput, max(team.min_throughput, team.max_throughput))
-    
-    if team.sampler is None:
-        logger.error("Unable to calculate throughput for team %s." % team.name)
 
 def calculate_team_throughput(
     team,

@@ -938,7 +938,7 @@ be set. The `{outcome}` placeholder will be replaced by the relevant outcome
 ticket `key`. You can thus use a linked issue field to specify the outcome.
 
 In a simpler use case, you can model a single team performing all work, and/or
-dispense with the "outcome" level entirely, modelling only epics. The assumed
+dispense with the "outcome" level entirely, modelling only epics. The estimated
 min/max story count and the entire concept of deadlines are also optional.
 
 Here is a minimal example:
@@ -970,6 +970,12 @@ Here is a minimal example:
             - Name: Default
               Min throughput: 5
               Max throughput: 10
+
+You can also turn off forecasts if you don't have confidence in the
+predictability of team pace or the data quality. You will still get the
+progress bars and charts. Simply omit `Min throughput` and `Max throughput`
+and `Throughput samples` from the team configuration. You can do this for some
+or all teams.
 
 ## More details about the configuration file format
 
@@ -1327,8 +1333,8 @@ of filenames, or a single filename.
 - `Progress report teams: <list>` – A list of records with keys `Name`, `WIP`,
    `Min throughput`, `Max throughput`, `Throughput samples` and/or
    `Throughput samples window` which specify the teams that may be associated
-   with epics. `Name` is required, and you must specify either
-   `Min/Max throughput` (numeric values, in stories per week) *or*
+   with epics. `Name` is required, and you can specify either
+   `Min/Max throughput` (numeric values, in stories per week) or
    `Throughput samples`, which is a JQL query to identify stories for the given
    team for the purpose of calculating historical throughput. If
    `Throughput samples window` is given, it specifies the number of weeks into
@@ -1357,6 +1363,7 @@ of filenames, or a single filename.
 - Allow deadline to be set on outcomes as a fallback for epic level deadlines
 - Add support for `Progress report outcome query` and
   `Progress report outcome deadline field`.
+- Allow progress report to run without a forecast for some/all teams.
 
 ### 0.22
 
