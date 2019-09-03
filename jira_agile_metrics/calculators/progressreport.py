@@ -257,8 +257,12 @@ class ProgressReportCalculator(Calculator):
         today = datetime.date.today()
 
         epics_by_team = {}
+        have_outcomes = False
         have_forecasts = False
         for outcome in data['outcomes']:
+            if outcome.name is not None:
+                have_outcomes = True
+
             for epic in outcome.epics:
                 if epic.forecast is not None:
                     have_forecasts = True
@@ -278,6 +282,7 @@ class ProgressReportCalculator(Calculator):
                 outcomes=data['outcomes'],
                 teams=data['teams'],
                 have_teams=len(data['teams']) > 1,
+                have_outcomes=have_outcomes,
                 have_forecasts=have_forecasts,
                 epics_by_team=epics_by_team,
                 enumerate=enumerate,

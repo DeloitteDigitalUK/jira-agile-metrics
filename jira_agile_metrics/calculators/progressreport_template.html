@@ -231,7 +231,7 @@
                                                 {% if team.min_throughput %}
                                                     <td>{{ team.min_throughput }} &ndash; {{ team.max_throughput }} stories/week</td>
                                                     <td></td>
-                                                {% else %}
+                                                {% elif team.throughput_samples %}
                                                     <td>
                                                         Historical data
                                                         {%- if team.throughput_samples_window %}
@@ -258,6 +258,9 @@
                                                         </a>
                                                         {% endif %}
                                                     </td>
+                                                {% else %}
+                                                    <td>(Forecasting disabled)</td>
+                                                    <td></td>
                                                 {% endif %}
                                                 <td>{{ team.wip }}</td>
                                             </tr>
@@ -272,6 +275,7 @@
                 </div>
             </p>
 
+            {% if have_teams %}
             <ul class="nav nav-tabs" id="forecast-view-tabs" role="tablist">
                 <li class="nav-item">
                     <a class="nav-link active" id="outcome-tab" data-toggle="tab" href="#by-outcome" role="tab" aria-controls="by-outcome" aria-selected="true">By outcome</a>
@@ -280,6 +284,7 @@
                     <a class="nav-link" id="team-tab" data-toggle="tab" href="#by-team" role="tab" aria-controls="by-team" aria-selected="false">By team</a>
                 </li>
             </ul>
+            {% endif %}
   
             <div class="tab-content">
                 <div class="tab-pane fade show active" id="by-outcome" role="tabpanel" aria-labelledby="outcome-tab">
@@ -315,12 +320,10 @@
                         <thead>
                             <tr>
                                 <th scope="col" style="width: 20%">Epic</th>
-                                <th scope="col" style="width: 10%">Team</th>
+                                {% if have_teams %}<th scope="col" style="width: 10%">Team</th>{% endif %}
                                 <th scope="col" style="width: 30%">Stories</th>
-                                {% if epic_deadline_field %}
                                 <th scope="col" style="width: 15%">Deadline</th>
                                 {% if have_forecasts %} <th scope="col" style="width: 5%"></th> {% endif %}
-                                {% endif %}
                                 {% if have_forecasts %} <th scope="col" style="width: 20%">Forecast (week starting)</th> {% endif %}
                             </tr>
                         </thead>
@@ -328,11 +331,10 @@
                             {% for epic in outcome.epics %}
                             <tr>
                                 <td><a class="epic-link" href="{{ jira_url }}/browse/{{ epic.key }}" target="_blank">{{ epic.key }}: {{ epic.summary }}</a></td>
-                                <td>{{ epic.team.name }}</td>
+                                {% if have_teams %}<td>{{ epic.team.name }}</td>{% endif %}
                                 <td>
                                     {{ epic_progress(epic )}}
                                 </td>
-                                {% if epic_deadline_field %}
                                 <td>
                                     {% if epic.deadline %}
                                     {{ epic.deadline.strftime("%d %b %Y") }}
@@ -344,7 +346,6 @@
                                 <td>
                                     {{ epic_forecast_percentile(epic) }}
                                 </td>
-                                {% endif %}
                                 {% endif %}
                                 {% if have_forecasts %}
                                 <td>
@@ -359,6 +360,7 @@
                     {% endfor %}
                 </div>
 
+                {% if have_teams %}
                 <div class="tab-pane fade" id="by-team" role="tabpanel" aria-labelledby="team-tab">
             
                     {% for team in teams %}
@@ -371,12 +373,10 @@
                         <thead>
                             <tr>
                                 <th scope="col" style="width: 20%">Epic</th>
-                                <th scope="col" style="width: 10%">Outcome</th>
+                                {% if have_outcomes %} <th scope="col" style="width: 10%">Outcome</th> {% endif %}
                                 <th scope="col" style="width: 30%">Stories</th>
-                                {% if epic_deadline_field %}
                                 <th scope="col" style="width: 15%">Deadline</th>
                                 {% if have_forecasts %} <th scope="col" style="width: 5%"></th> {% endif %}
-                                {% endif %}
                                 {% if have_forecasts %} <th scope="col" style="width: 20%">Forecast (week starting)</th> {% endif %}
                             </tr>
                         </thead>
@@ -384,11 +384,10 @@
                             {% for epic in epics_by_team[team.name] %}
                             <tr>
                                 <td><a class="epic-link" href="{{ jira_url }}/browse/{{ epic.key }}" target="_blank">{{ epic.key }}: {{ epic.summary }}</a></td>
-                                <td>{{ epic.outcome.name }}</td>
+                                {% if have_outcomes %} <td>{{ epic.outcome.name }}</td> {% endif %}
                                 <td>
                                     {{ epic_progress(epic )}}
                                 </td>
-                                {% if epic_deadline_field %}
                                 <td>
                                     {% if epic.deadline %}
                                     {{ epic.deadline.strftime("%d %b %Y") }}
@@ -400,7 +399,6 @@
                                 <td>
                                     {{ epic_forecast_percentile(epic) }}
                                 </td>
-                                {% endif %}
                                 {% endif %}
                                 {% if have_forecasts %}
                                 <td>
@@ -415,6 +413,7 @@
                     {% endfor %}
 
                 </div>
+                {% endif %}
 
             </div>
 
