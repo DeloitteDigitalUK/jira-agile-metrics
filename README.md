@@ -971,11 +971,46 @@ Here is a minimal example:
               Min throughput: 5
               Max throughput: 10
 
-You can also turn off forecasts if you don't have confidence in the
-predictability of team pace or the data quality. You will still get the
-progress bars and charts. Simply omit `Min throughput` and `Max throughput`
-and `Throughput samples` from the team configuration. You can do this for some
-or all teams.
+You can also turn off forecasts for some or all teams, if you don't have
+confidence in the predictability of team pace or in the underlying data quality.
+You will still get the progress bars and charts. In this case, you can either
+omit the `Min throughput` / `Max throughput` fields for a specific team, or 
+omit the `Progress report teams` section in its entirety.
+Team names will be taken from the relevant field on epics (presuming an epic
+team field name is specified):
+
+    # ...
+
+    Workflow:
+        Backlog: Backlog
+        Committed: Next
+        Build: Build
+        Test:
+            - Code review
+            - QA
+        Done: Done
+
+    Output:
+
+        Quantiles:
+            - 0.75
+            - 0.85
+            - 0.95
+
+        Progress report: progress-teams.html
+        Progress report title: Acme Corp Websites
+        Progress report epic min stories field: Story count
+        Progress report epic query template: project = ABC AND type = Epic AND resolution IS EMPTY ORDER BY created
+        Progress report story query template: project = ABC AND type = Story AND "Epic link" = {epic}
+        Progress report epic team field: Team
+
+Technically you can omit both the teams list (so no forecasts) and the team
+field name, in which case you just get a breakdown of the epics with no
+forecasting or grouping.
+
+Also note that if you do specify a list of teams and an epic team field, the
+list of teams will be automatically extended with any team names found that are
+not explicitly listed in the configuration.
 
 ## More details about the configuration file format
 
@@ -1364,6 +1399,9 @@ of filenames, or a single filename.
 - Add support for `Progress report outcome query` and
   `Progress report outcome deadline field`.
 - Allow progress report to run without a forecast for some/all teams.
+- Allow progress report to be run without teams being explicitly defined.
+  Team names are picked up from the epic teams field if specified, and no
+  forecasting will take place for such teams.
 
 ### 0.22
 

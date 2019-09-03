@@ -95,11 +95,7 @@ class ProgressReportCalculator(Calculator):
         if epic_team_field:
             epic_team_field = self.query_manager.field_name_to_id(epic_team_field)
 
-        teams = self.settings['progress_report_teams']
-
-        if not teams:
-            logger.error("At least one team must be set up under `Progress report teams`.")
-            return None
+        teams = self.settings['progress_report_teams'] or []
 
         for team in teams:
             if not team['name']:
@@ -120,14 +116,15 @@ class ProgressReportCalculator(Calculator):
                 
                 # Note: If neither min/max throughput or samples are specified, we turn off forecasting
 
-        # if there is only one team and we don't record an epic's team, always use data for that one team
-        if not epic_team_field and len(teams) != 1:
+        # If we aren't recording teams against epics, there can be either no teams
+        # at all, or a single, default team, but not multiple.
+        if not epic_team_field and len(teams) > 1:
             logger.error("`Progress report epic team field` is required if there is more than one team under `Progress report teams`.")
             return None
 
-        # Find outcomes. If none set, we use a single epic query and don't group by outcomes
-        
-        # explicitly set
+        # Find outcomes, either in the config file or by querying JIRA (or both).
+        # If none set, we use a single epic query and don't group by outcomes
+
         outcomes = [
             Outcome(
                 name=o['name'],
@@ -157,6 +154,9 @@ class ProgressReportCalculator(Calculator):
 
         # Calculate a throughput sampler function for each team.
 
+        # It is possible for there to be zero teams, in which case we will
+        # create teams on-the-fly from the `epic_team_field`.
+
         teams = [
             Team(
                 name=team['name'],
@@ -179,14 +179,12 @@ class ProgressReportCalculator(Calculator):
                 done_column=done_column,
             )
 
-        team_lookup = {team.name: team for team in teams}
-        team_epics = {team.name: [] for team in teams}
+        team_lookup = {team.name.lower(): team for team in teams}
+        team_epics = {team.name.lower(): [] for team in teams}
 
-        default_team = None
-
-        # Degenerate case: single team and no epic team field
-        if not epic_team_field:
-            default_team = teams[0]
+        # Degenerate case: single team and no epic team field - all forecasts
+        # use this team
+        default_team = teams[0] if not epic_team_field and len(teams) == 1 else None
 
         # Calculate epic progress for each outcome
         #  - Run `epic_query_template` to find relevant epics
@@ -202,16 +200,21 @@ class ProgressReportCalculator(Calculator):
                 outcome=outcome
             ):
                 if not epic_team_field:
-                    epic.team = default_team
+                    epic.team = default_team  # single defined team, or None
                 else:
-                    epic.team = team_lookup.get(epic.team_name, None)
+                    epic.team = team_lookup.get(epic.team_name.lower(), None)
 
                     if epic.team is None:
-                        logger.warning("Cannot find team %s for epic %s. Ignoring epic." % (epic.team_name, epic.key,))
-                        continue
+                        logger.info("Cannot find team %s for epic %s. Dynamically adding a non-forecasted team." % (epic.team_name, epic.key,))
+                        epic.team = Team(name=epic.team_name)
+                        teams.append(epic.team)
+                        team_lookup[epic.team.name.lower()] = epic.team
+                        team_epics[epic.team.name.lower()] = []
                 
                 outcome.epics.append(epic)
-                team_epics[epic.team.name].append(epic)
+
+                if epic.team is not None:
+                    team_epics[epic.team.name.lower()].append(epic)
                 
                 epic.story_query = story_query_template.format(
                     epic='"%s"' % epic.key,
@@ -231,7 +234,7 @@ class ProgressReportCalculator(Calculator):
         
         for team in teams:
             if team.sampler is not None:
-                forecast_to_complete(team, team_epics[team.name], quantiles, trials=trials, now=now)
+                forecast_to_complete(team, team_epics[team.name.lower()], quantiles, trials=trials, now=now)
 
         return {
             'outcomes': outcomes,
@@ -266,9 +269,10 @@ class ProgressReportCalculator(Calculator):
             for epic in outcome.epics:
                 if epic.forecast is not None:
                     have_forecasts = True
-                if epic.team.name not in epics_by_team:
-                    epics_by_team[epic.team.name] = []
-                epics_by_team[epic.team.name].append(epic)
+                if epic.team is not None:
+                    if epic.team.name not in epics_by_team:
+                        epics_by_team[epic.team.name] = []
+                    epics_by_team[epic.team.name].append(epic)
 
         with open(output_file, 'w') as of:
             of.write(template.render(
@@ -281,6 +285,7 @@ class ProgressReportCalculator(Calculator):
                 epic_team_field=self.settings['progress_report_epic_team_field'],
                 outcomes=data['outcomes'],
                 teams=data['teams'],
+                num_teams=len(data['teams']),
                 have_teams=len(data['teams']) > 1,
                 have_outcomes=have_outcomes,
                 have_forecasts=have_forecasts,
@@ -318,7 +323,8 @@ class Outcome(object):
 
 class Team(object):
 
-    def __init__(self, name, wip,
+    def __init__(self, name,
+        wip=1,
         min_throughput=None,
         max_throughput=None,
         throughput_samples=None,

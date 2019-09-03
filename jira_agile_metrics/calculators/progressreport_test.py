@@ -28,7 +28,7 @@ from .progressreport import (
 )
 
 # for debugging - leave off!
-WRITE_TEST_OUTPUTS = True
+WRITE_TEST_OUTPUTS = False
 
 statuses = ['Backlog', 'Next', 'Build', 'QA', 'Done']
 
@@ -2133,6 +2133,344 @@ def test_with_large_dataset_teams_no_outcomes(fields, settings, results):
     data = calculator.run(trials=100)
 
     assert len(data['teams']) == 2
+
+    results[ProgressReportCalculator] = data
+
+    if WRITE_TEST_OUTPUTS:
+        calculator.write()
+
+def test_with_large_dataset_no_teams(fields, settings, results):
+
+    today = date.today()
+
+    # build a large and partially randomised data set to forecast on
+
+    field_lookup = {v['name'].lower(): v['id'] for v in fields}
+
+    def compare_value(i, clause):
+        key, val = [s.strip() for s in clause.split('=')]
+        ival = getattr(i.fields, field_lookup.get(key.lower(), key), None)
+        ival = getattr(ival, 'value', ival)
+        return val.strip('"') == ival
+
+    def simple_ql(i, jql):
+        clauses = [c.strip() for c in jql.split(' AND ') if "=" in c]
+        return all([compare_value(i, c) for c in clauses])
+    
+    settings = extend_dict(settings, {
+        'quantiles': [0.75, 0.85, 0.95],
+        'progress_report': 'progress-no-teams.html',
+        'progress_report_title': 'Acme Corp Websites',
+        'progress_report_teams': None,
+        'progress_report_outcomes': [],
+        'progress_report_outcome_query': 'issuetype=outcome',
+        'progress_report_outcome_deadline_field': 'Deadline',
+        'progress_report_epic_team_field': None,
+    })
+
+    outcomes = [Issue("O-%d" % i,
+        summary="%s %s" % (random.choice(verbs).capitalize(), random.choice(nouns)),
+        issuetype=Value('Outcome', 'outcome'),
+        status=Value('In progress', 'in-progress'),
+        resolution=None,
+        resolutiondate=None,
+        created="%s 00:00:00" % random_date_past(today, 30).isoformat(),
+        customfield_202="%s 00:00:00" % random_date_future(today + timedelta(days=55), 65).isoformat() if random.choice((True, True, False,)) else None,
+        changes=[]
+    ) for i in range(random.randint(2, 4))]
+        
+    epics = [Issue("E-%d" % i,
+        summary="%s %s" % (random.choice(verbs).capitalize(), random.choice(nouns)),
+        issuetype=Value('Epic', 'epic'),
+        status=Value('In progress', 'in-progress'),
+        resolution=None,
+        resolutiondate=None,
+        created="%s 00:00:00" % random_date_past(today, 30).isoformat(),
+        customfield_201=random.choice([o.key for o in outcomes]),
+        customfield_202="%s 00:00:00" % random_date_future(today + timedelta(days=55), 65).isoformat() if random.choice((True, True, False,)) else None,
+        customfield_203=random.randint(15, 20),
+        customfield_204=random.randint(20, 25),
+        changes=[]
+    ) for i in range(random.randint(9, 12))]
+
+    def make_story(i):
+
+        epic = random.choice(epics)
+        current_status = random.choice(statuses)
+        created = random_date_past(today, 15)
+        changes = [{
+            'date': created,
+            'from': None,
+            'to': statuses[0]
+        }]
+        
+        for s in statuses[1:]:
+            changes.append({
+                'date': random_date_future(changes[-1]['date'], 15),
+                'from': changes[-1]['to'],
+                'to': s,
+            })
+
+            if s == current_status:
+                break
+
+        return Issue("S-%d" % i,
+            summary="%s %s" % (random.choice(verbs).capitalize(), random.choice(nouns)),
+            issuetype=Value("Story", "story"),
+            status=Value(current_status, current_status.lower()),
+            resolution=Value('Done', 'done') if current_status == 'Done' else None,
+            resolutiondate="%s 00:00:00" % changes[-1]['date'] if current_status == 'Done' else None,
+            created="%s 00:00:00" % created.isoformat(),
+            customfield_205=epic.key,
+            changes=[
+                Change(
+                    "%s 00:00:00" % c['date'],
+                    [("status", c['from'], c['to'],)]
+                ) for c in changes[1:]
+            ],
+        )
+
+    stories = [make_story(i) for i in range(100, 300)]
+
+    query_manager = QueryManager(
+        jira=JIRA(fields=fields, filter=simple_ql, issues=outcomes + epics + stories),
+        settings=settings
+    )
+
+    calculator = ProgressReportCalculator(query_manager, settings, results)
+
+    data = calculator.run(trials=100)
+
+    assert len(data['teams']) == 0
+
+    results[ProgressReportCalculator] = data
+
+    if WRITE_TEST_OUTPUTS:
+        calculator.write()
+
+def test_with_large_dataset_dynamic_teams(fields, settings, results):
+
+    today = date.today()
+
+    # build a large and partially randomised data set to forecast on
+
+    field_lookup = {v['name'].lower(): v['id'] for v in fields}
+
+    def compare_value(i, clause):
+        key, val = [s.strip() for s in clause.split('=')]
+        ival = getattr(i.fields, field_lookup.get(key.lower(), key), None)
+        ival = getattr(ival, 'value', ival)
+        return val.strip('"') == ival
+
+    def simple_ql(i, jql):
+        clauses = [c.strip() for c in jql.split(' AND ') if "=" in c]
+        return all([compare_value(i, c) for c in clauses])
+    
+    settings = extend_dict(settings, {
+        'quantiles': [0.75, 0.85, 0.95],
+        'progress_report': 'progress-dynamic-teams.html',
+        'progress_report_title': 'Acme Corp Websites',
+        'progress_report_teams': None,
+        'progress_report_outcomes': [],
+        'progress_report_outcome_query': 'issuetype=outcome',
+        'progress_report_outcome_deadline_field': 'Deadline',
+    })
+
+    teams = ["Alpha", "Beta", "Delta"]
+    
+    outcomes = [Issue("O-%d" % i,
+        summary="%s %s" % (random.choice(verbs).capitalize(), random.choice(nouns)),
+        issuetype=Value('Outcome', 'outcome'),
+        status=Value('In progress', 'in-progress'),
+        resolution=None,
+        resolutiondate=None,
+        created="%s 00:00:00" % random_date_past(today, 30).isoformat(),
+        customfield_202="%s 00:00:00" % random_date_future(today + timedelta(days=55), 65).isoformat() if random.choice((True, True, False,)) else None,
+        changes=[]
+    ) for i in range(random.randint(2, 4))]
+        
+    epics = [Issue("E-%d" % i,
+        summary="%s %s" % (random.choice(verbs).capitalize(), random.choice(nouns)),
+        issuetype=Value('Epic', 'epic'),
+        status=Value('In progress', 'in-progress'),
+        resolution=None,
+        resolutiondate=None,
+        created="%s 00:00:00" % random_date_past(today, 30).isoformat(),
+        customfield_001=random.choice(teams),
+        customfield_201=random.choice([o.key for o in outcomes]),
+        customfield_202="%s 00:00:00" % random_date_future(today + timedelta(days=55), 65).isoformat() if random.choice((True, True, False,)) else None,
+        customfield_203=random.randint(15, 20),
+        customfield_204=random.randint(20, 25),
+        changes=[]
+    ) for i in range(random.randint(9, 12))]
+
+    def make_story(i):
+
+        epic = random.choice(epics)
+        current_status = random.choice(statuses)
+        created = random_date_past(today, 15)
+        changes = [{
+            'date': created,
+            'from': None,
+            'to': statuses[0]
+        }]
+        
+        for s in statuses[1:]:
+            changes.append({
+                'date': random_date_future(changes[-1]['date'], 15),
+                'from': changes[-1]['to'],
+                'to': s,
+            })
+
+            if s == current_status:
+                break
+
+        return Issue("S-%d" % i,
+            summary="%s %s" % (random.choice(verbs).capitalize(), random.choice(nouns)),
+            issuetype=Value("Story", "story"),
+            status=Value(current_status, current_status.lower()),
+            resolution=Value('Done', 'done') if current_status == 'Done' else None,
+            resolutiondate="%s 00:00:00" % changes[-1]['date'] if current_status == 'Done' else None,
+            created="%s 00:00:00" % created.isoformat(),
+            customfield_001=epic.fields.customfield_001,
+            customfield_205=epic.key,
+            changes=[
+                Change(
+                    "%s 00:00:00" % c['date'],
+                    [("status", c['from'], c['to'],)]
+                ) for c in changes[1:]
+            ],
+        )
+
+    stories = [make_story(i) for i in range(100, 300)]
+
+    query_manager = QueryManager(
+        jira=JIRA(fields=fields, filter=simple_ql, issues=outcomes + epics + stories),
+        settings=settings
+    )
+
+    calculator = ProgressReportCalculator(query_manager, settings, results)
+
+    data = calculator.run(trials=100)
+
+    results[ProgressReportCalculator] = data
+
+    if WRITE_TEST_OUTPUTS:
+        calculator.write()
+
+def test_with_large_dataset_static_and_dynamic_teams(fields, settings, results):
+
+    today = date.today()
+
+    # build a large and partially randomised data set to forecast on
+
+    field_lookup = {v['name'].lower(): v['id'] for v in fields}
+
+    def compare_value(i, clause):
+        key, val = [s.strip() for s in clause.split('=')]
+        ival = getattr(i.fields, field_lookup.get(key.lower(), key), None)
+        ival = getattr(ival, 'value', ival)
+        return val.strip('"') == ival
+
+    def simple_ql(i, jql):
+        clauses = [c.strip() for c in jql.split(' AND ') if "=" in c]
+        return all([compare_value(i, c) for c in clauses])
+    
+    settings = extend_dict(settings, {
+        'quantiles': [0.75, 0.85, 0.95],
+        'progress_report': 'progress-mixed-teams.html',
+        'progress_report_title': 'Acme Corp Websites',
+        'progress_report_teams': [
+            {
+                'name': 'Red',
+                'min_throughput': random.randint(3, 5),
+                'max_throughput': random.randint(5, 7),
+                'throughput_samples': None,
+                'throughput_samples_window': None,
+                'wip': 1,
+            },
+        ],
+        'progress_report_outcomes': [],
+        'progress_report_outcome_query': 'issuetype=outcome',
+        'progress_report_outcome_deadline_field': 'Deadline',
+    })
+
+    teams = [t['name'] for t in settings['progress_report_teams']] + ["Green", "Purple"]
+    
+    outcomes = [Issue("O-%d" % i,
+        summary="%s %s" % (random.choice(verbs).capitalize(), random.choice(nouns)),
+        issuetype=Value('Outcome', 'outcome'),
+        status=Value('In progress', 'in-progress'),
+        resolution=None,
+        resolutiondate=None,
+        created="%s 00:00:00" % random_date_past(today, 30).isoformat(),
+        customfield_202="%s 00:00:00" % random_date_future(today + timedelta(days=55), 65).isoformat() if random.choice((True, True, False,)) else None,
+        changes=[]
+    ) for i in range(random.randint(2, 4))]
+        
+    epics = [Issue("E-%d" % i,
+        summary="%s %s" % (random.choice(verbs).capitalize(), random.choice(nouns)),
+        issuetype=Value('Epic', 'epic'),
+        status=Value('In progress', 'in-progress'),
+        resolution=None,
+        resolutiondate=None,
+        created="%s 00:00:00" % random_date_past(today, 30).isoformat(),
+        customfield_001=random.choice(teams),
+        customfield_201=random.choice([o.key for o in outcomes]),
+        customfield_202="%s 00:00:00" % random_date_future(today + timedelta(days=55), 65).isoformat() if random.choice((True, True, False,)) else None,
+        customfield_203=random.randint(15, 20),
+        customfield_204=random.randint(20, 25),
+        changes=[]
+    ) for i in range(random.randint(9, 12))]
+
+    def make_story(i):
+
+        epic = random.choice(epics)
+        current_status = random.choice(statuses)
+        created = random_date_past(today, 15)
+        changes = [{
+            'date': created,
+            'from': None,
+            'to': statuses[0]
+        }]
+        
+        for s in statuses[1:]:
+            changes.append({
+                'date': random_date_future(changes[-1]['date'], 15),
+                'from': changes[-1]['to'],
+                'to': s,
+            })
+
+            if s == current_status:
+                break
+
+        return Issue("S-%d" % i,
+            summary="%s %s" % (random.choice(verbs).capitalize(), random.choice(nouns)),
+            issuetype=Value("Story", "story"),
+            status=Value(current_status, current_status.lower()),
+            resolution=Value('Done', 'done') if current_status == 'Done' else None,
+            resolutiondate="%s 00:00:00" % changes[-1]['date'] if current_status == 'Done' else None,
+            created="%s 00:00:00" % created.isoformat(),
+            customfield_001=epic.fields.customfield_001,
+            customfield_205=epic.key,
+            changes=[
+                Change(
+                    "%s 00:00:00" % c['date'],
+                    [("status", c['from'], c['to'],)]
+                ) for c in changes[1:]
+            ],
+        )
+
+    stories = [make_story(i) for i in range(100, 300)]
+
+    query_manager = QueryManager(
+        jira=JIRA(fields=fields, filter=simple_ql, issues=outcomes + epics + stories),
+        settings=settings
+    )
+
+    calculator = ProgressReportCalculator(query_manager, settings, results)
+
+    data = calculator.run(trials=100)
 
     results[ProgressReportCalculator] = data
 
