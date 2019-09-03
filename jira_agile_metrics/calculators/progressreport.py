@@ -257,8 +257,11 @@ class ProgressReportCalculator(Calculator):
         today = datetime.date.today()
 
         epics_by_team = {}
+        have_forecasts = False
         for outcome in data['outcomes']:
             for epic in outcome.epics:
+                if epic.forecast is not None:
+                    have_forecasts = True
                 if epic.team.name not in epics_by_team:
                     epics_by_team[epic.team.name] = []
                 epics_by_team[epic.team.name].append(epic)
@@ -274,6 +277,8 @@ class ProgressReportCalculator(Calculator):
                 epic_team_field=self.settings['progress_report_epic_team_field'],
                 outcomes=data['outcomes'],
                 teams=data['teams'],
+                have_teams=len(data['teams']) > 1,
+                have_forecasts=have_forecasts,
                 epics_by_team=epics_by_team,
                 enumerate=enumerate,
                 future_date=lambda weeks: forward_weeks(today, weeks),

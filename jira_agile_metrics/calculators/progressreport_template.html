@@ -319,9 +319,9 @@
                                 <th scope="col" style="width: 30%">Stories</th>
                                 {% if epic_deadline_field %}
                                 <th scope="col" style="width: 15%">Deadline</th>
-                                <th scope="col" style="width: 5%"></th>
+                                {% if have_forecasts %} <th scope="col" style="width: 5%"></th> {% endif %}
                                 {% endif %}
-                                <th scope="col" style="width: 20%">Forecast (week starting)</th>
+                                {% if have_forecasts %} <th scope="col" style="width: 20%">Forecast (week starting)</th> {% endif %}
                             </tr>
                         </thead>
                         <tbody>
@@ -340,13 +340,17 @@
                                     <em>N/A</em>
                                     {% endif %}
                                 </td>
+                                {% if have_forecasts %}
                                 <td>
                                     {{ epic_forecast_percentile(epic) }}
                                 </td>
                                 {% endif %}
+                                {% endif %}
+                                {% if have_forecasts %}
                                 <td>
                                     {{ epic_forecast_dates(epic) }}
                                 </td>
+                                {% endif %}
                             </tr>
                             {% endfor %}
                         </tbody>
@@ -371,9 +375,9 @@
                                 <th scope="col" style="width: 30%">Stories</th>
                                 {% if epic_deadline_field %}
                                 <th scope="col" style="width: 15%">Deadline</th>
-                                <th scope="col" style="width: 5%"></th>
+                                {% if have_forecasts %} <th scope="col" style="width: 5%"></th> {% endif %}
                                 {% endif %}
-                                <th scope="col" style="width: 20%">Forecast (week starting)</th>
+                                {% if have_forecasts %} <th scope="col" style="width: 20%">Forecast (week starting)</th> {% endif %}
                             </tr>
                         </thead>
                         <tbody>
@@ -392,13 +396,17 @@
                                     <em>N/A</em>
                                     {% endif %}
                                 </td>
+                                {% if have_forecasts %}
                                 <td>
                                     {{ epic_forecast_percentile(epic) }}
                                 </td>
                                 {% endif %}
+                                {% endif %}
+                                {% if have_forecasts %}
                                 <td>
                                     {{ epic_forecast_dates(epic) }}
                                 </td>
+                                {% endif %}
                             </tr>
                             {% endfor %}
                         </tbody>
