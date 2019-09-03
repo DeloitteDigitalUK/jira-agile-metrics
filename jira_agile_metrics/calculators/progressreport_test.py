@@ -27,6 +27,9 @@ from .progressreport import (
     ProgressReportCalculator
 )
 
+# for debugging - leave off!
+WRITE_TEST_OUTPUTS = False
+
 @pytest.fixture
 def fields(custom_fields):
     return custom_fields + [  # customfield_001 = Team
@@ -1297,6 +1300,7 @@ def test_with_large_dataset(fields, settings, results):
 
     settings = extend_dict(settings, {
         'quantiles': [0.75, 0.85, 0.95],
+        'progress_report': 'progress-large.html',
         'progress_report_title': 'Acme Corp Websites',
         'progress_report_teams': [
             {
@@ -1417,8 +1421,8 @@ def test_with_large_dataset(fields, settings, results):
 
     results[ProgressReportCalculator] = data
 
-    # Used for visual testing - comment out
-    # calculator.write()
+    if WRITE_TEST_OUTPUTS:
+        calculator.write()
 
 def test_with_large_dataset_and_outcome_as_tickets(fields, settings, results):
 
@@ -1446,6 +1450,7 @@ def test_with_large_dataset_and_outcome_as_tickets(fields, settings, results):
 
     settings = extend_dict(settings, {
         'quantiles': [0.75, 0.85, 0.95],
+        'progress_report': 'progress-outcome-tickets.html',
         'progress_report_title': 'Acme Corp Websites',
         'progress_report_teams': [
             {
@@ -1560,8 +1565,8 @@ def test_with_large_dataset_and_outcome_as_tickets(fields, settings, results):
 
     results[ProgressReportCalculator] = data
 
-    # Used for visual testing - comment out
-    # calculator.write()
+    if WRITE_TEST_OUTPUTS:
+        calculator.write()
 
 def test_with_large_dataset_and_outcome_as_tickets_no_forecast(fields, settings, results):
 
@@ -1589,6 +1594,7 @@ def test_with_large_dataset_and_outcome_as_tickets_no_forecast(fields, settings,
 
     settings = extend_dict(settings, {
         'quantiles': [0.75, 0.85, 0.95],
+        'progress_report': 'progress-no-forecast.html',
         'progress_report_title': 'Acme Corp Websites',
         'progress_report_teams': [
             {
@@ -1703,8 +1709,8 @@ def test_with_large_dataset_and_outcome_as_tickets_no_forecast(fields, settings,
 
     results[ProgressReportCalculator] = data
 
-    # Used for visual testing - comment out
-    # calculator.write()
+    if WRITE_TEST_OUTPUTS:
+        calculator.write()
 
 def test_with_large_dataset_and_outcome_as_tickets_mixed_forecast(fields, settings, results):
 
@@ -1732,6 +1738,7 @@ def test_with_large_dataset_and_outcome_as_tickets_mixed_forecast(fields, settin
 
     settings = extend_dict(settings, {
         'quantiles': [0.75, 0.85, 0.95],
+        'progress_report': 'progress-mixed-forecasts.html',
         'progress_report_title': 'Acme Corp Websites',
         'progress_report_teams': [
             {
@@ -1846,8 +1853,8 @@ def test_with_large_dataset_and_outcome_as_tickets_mixed_forecast(fields, settin
 
     results[ProgressReportCalculator] = data
 
-    # Used for visual testing - comment out
-    calculator.write()
+    if WRITE_TEST_OUTPUTS:
+        calculator.write()
 
 def test_with_large_dataset_minimal(fields, settings, results):
 
@@ -1969,8 +1976,8 @@ def test_with_large_dataset_minimal(fields, settings, results):
 
     results[ProgressReportCalculator] = data
 
-    # Used for visual testing - comment out
-    # calculator.write()
+    if WRITE_TEST_OUTPUTS:
+        calculator.write()
 
 def test_with_large_dataset_minimal_no_forecast(fields, settings, results):
 
@@ -1998,8 +2005,8 @@ def test_with_large_dataset_minimal_no_forecast(fields, settings, results):
 
     settings = extend_dict(settings, {
         'quantiles': [0.75, 0.85, 0.95],
+        'progress_report': 'progress-minimal-no-forecast.html',
         'progress_report_title': 'Acme Corp Websites',
-        'progress_report': 'progress-minimal.html',
         'progress_report_epic_query_template': 'issuetype=epic',
         'progress_report_story_query_template': 'issuetype=story AND Epic={epic}',
         'progress_report_epic_deadline_field': None,
@@ -2092,5 +2099,5 @@ def test_with_large_dataset_minimal_no_forecast(fields, settings, results):
 
     results[ProgressReportCalculator] = data
 
-    # Used for visual testing - comment out
-    # calculator.write()
+    if WRITE_TEST_OUTPUTS:
+        calculator.write()
