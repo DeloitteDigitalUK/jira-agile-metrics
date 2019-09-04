@@ -1402,6 +1402,8 @@ of filenames, or a single filename.
 - Allow progress report to be run without teams being explicitly defined.
   Team names are picked up from the epic teams field if specified, and no
   forecasting will take place for such teams.
+- Add target and deadline lines to epic level CFDs in progress report.
+- Add out-come level CFD in progress reports.
 
 ### 0.22
 
