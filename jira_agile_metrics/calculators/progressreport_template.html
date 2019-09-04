@@ -313,6 +313,14 @@
                                             </a>
                                         </td>
                                     </tr>
+                                    {% if outcome_charts[outcome.key]['cfd'] %}
+                                    <tr>
+                                        <th style="width: 20%">Cumulative progress:</th>
+                                        <td>
+                                            <img style="height: auto; width: auto; max-height: 600px; max-width: 800px" src="data:image/png;base64, {{ outcome_charts[outcome.key]['cfd'] }}" />
+                                        </td>
+                                    </tr>
+                                    {% endif %}
                                 </tbody>
                             </table>
                         </div>

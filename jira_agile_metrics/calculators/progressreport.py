@@ -12,11 +12,12 @@ import scipy.stats
 import statsmodels.formula.api as sm
 import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
+import matplotlib.transforms
 
 import jinja2
 
 from ..calculator import Calculator
-from ..utils import set_chart_style
+from ..utils import set_chart_style, to_days_since_epoch
 
 from .cycletime import calculate_cycle_times
 from .throughput import calculate_throughput
@@ -301,13 +302,22 @@ class ProgressReportCalculator(Calculator):
                 percent_complete=lambda epic: (
                     int(round(((epic.stories_done or 0) / epic.max_stories) * 100))
                 ),
+                outcome_charts={outcome.key: {
+                    'cfd': plot_cfd(
+                        cycle_data=pd.concat([e.story_cycle_times for e in outcome.epics]),
+                        cycle_names=cycle_names,
+                        backlog_column=backlog_column,
+                        target=sum([e.max_stories or 0 for e in outcome.epics]),
+                        deadline=outcome.deadline
+                    ) if len(outcome.epics) > 0 else None,
+                } for outcome in data['outcomes']},
                 team_charts={team.name: {
                     'cfd': plot_cfd(team.throughput_samples_cycle_times, cycle_names, backlog_column),
                     'throughput': plot_throughput(team.throughput_samples_cycle_times),
                     'scatterplot': plot_scatterplot(team.throughput_samples_cycle_times, quantiles)
                 } for team in data['teams']},
                 epic_charts={epic.key: {
-                    'cfd': plot_cfd(epic.story_cycle_times, cycle_names, backlog_column),
+                    'cfd': plot_cfd(epic.story_cycle_times, cycle_names, backlog_column, target=epic.max_stories, deadline=epic.deadline),
                     'scatterplot': plot_scatterplot(epic.story_cycle_times, quantiles)
                 } for outcome in data['outcomes'] for epic in outcome.epics}
             ))
@@ -621,7 +631,7 @@ def calculate_epic_target(epic):
 def forward_weeks(date, weeks):
     return (date - datetime.timedelta(days=date.weekday())) + datetime.timedelta(weeks=weeks)
 
-def plot_cfd(cycle_data, cycle_names, backlog_column):
+def plot_cfd(cycle_data, cycle_names, backlog_column, target=None, deadline=None):
 
     # Prepare data
     
@@ -642,16 +652,59 @@ def plot_cfd(cycle_data, cycle_names, backlog_column):
     fig, ax = plt.subplots()
     fig.autofmt_xdate()
 
-    ax.set_xlabel("Date")
+    transform_horizontal = matplotlib.transforms.blended_transform_factory(ax.transAxes, ax.transData)
+
+    ax.set_xlabel(None)
     ax.set_ylabel("Number of items")
 
     cfd_data.plot.area(ax=ax, stacked=False, legend=False)
 
+    # Deadline
+
+    if deadline is not None:
+        bottom, top = ax.get_ylim()
+        left, right = ax.get_xlim()
+
+        deadline_dse = to_days_since_epoch(deadline.date())
+
+        ax.vlines(deadline, bottom, target, color='r', linestyles='-', linewidths=0.5)
+        ax.annotate("Due: %s" % (deadline.strftime("%d/%m/%Y"),),
+            xy=(deadline, target),
+            xytext=(0, 10),
+            textcoords='offset points',
+            fontsize="x-small",
+            ha="right",
+            color='black',
+            backgroundcolor="#ffffff"
+        )
+
+        # Make sure we can see deadline line
+        if right < deadline_dse:
+            ax.set_xlim(left, deadline_dse + 1)
+
+    # Target line
+
+    if target is not None:
+        left, right = ax.get_xlim()
+        ax.hlines(target, left, right, linestyles='--', linewidths=1)
+        ax.annotate("Target: %d" % (target,),
+            xy=(0.02, target),
+            xycoords=transform_horizontal,
+            fontsize="x-small",
+            ha="left",
+            va="center",
+            backgroundcolor="#ffffff"
+        )
+
+    # Legend
+
     ax.legend(loc='center left', bbox_to_anchor=(1, 0.5))
 
+    # Spacing
+
     bottom = cfd_data[cfd_data.columns[-1]].min()
-    top = cfd_data[cfd_data.columns[0]].max()
-    ax.set_ylim(bottom=bottom, top=top)
+    top = max(cfd_data[cfd_data.columns[0]].max(), 0 if target is None else target)
+    ax.set_ylim(bottom=bottom, top=top + (0 if target is None else 5))
 
     set_chart_style()
 
