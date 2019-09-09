@@ -295,8 +295,11 @@
                         
                     {% if outcome.name %}
                     <h2>
-                        <a  class="d-print-none" name="{{ outcome.key }}">{{ outcome.name }}</a>
-                        <a  class="d-print-none" data-toggle="collapse" href="#outcome-configuration-{{idx}}"><small class="text-muted">&raquo;</small></a>
+                        <a name="{{ outcome.key }}">{{ outcome.name }}</a>
+                        {% if outcome.is_jira %}
+                        <a class="icon-link d-print-none" href="{{ jira_url }}/browse/{{ outcome.key }}" target="_blank"><small class="fas fa-search"></small></a>
+                        {% endif %}
+                        <a class="d-print-none" data-toggle="collapse" href="#outcome-configuration-{{idx}}"><small class="text-muted">&raquo;</small></a>
                     </h2>
                     {% endif %}
 

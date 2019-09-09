@@ -38,10 +38,6 @@ class ProgressReportCalculator(Calculator):
 
     def run(self, now=None, trials=1000):
         
-        # TODO: Add output option to produce a per-outcome simple burnup chart.
-        # Show total stories in backlog + flat "max" line + progress of stories
-        # to date.
-
         if self.settings['progress_report'] is None:
             return
 
@@ -79,21 +75,21 @@ class ProgressReportCalculator(Calculator):
         
         # if not set, we only show forecast completion date, no RAG/deadline
         epic_deadline_field = self.settings['progress_report_epic_deadline_field']
-        if epic_deadline_field:
+        if epic_deadline_field and epic_deadline_field not in self.query_manager.jira_fields_to_names:
             epic_deadline_field = self.query_manager.field_name_to_id(epic_deadline_field)
 
         epic_min_stories_field = self.settings['progress_report_epic_min_stories_field']
-        if epic_min_stories_field:
+        if epic_min_stories_field and epic_min_stories_field not in self.query_manager.jira_fields_to_names:
             epic_min_stories_field = self.query_manager.field_name_to_id(epic_min_stories_field)
 
         epic_max_stories_field = self.settings['progress_report_epic_max_stories_field']
         if not epic_max_stories_field:
             epic_max_stories_field = epic_min_stories_field
-        else:
+        elif epic_max_stories_field not in self.query_manager.jira_fields_to_names:
             epic_max_stories_field = self.query_manager.field_name_to_id(epic_max_stories_field)
 
         epic_team_field = self.settings['progress_report_epic_team_field']
-        if epic_team_field:
+        if epic_team_field and epic_team_field not in self.query_manager.jira_fields_to_names:
             epic_team_field = self.query_manager.field_name_to_id(epic_team_field)
 
         teams = self.settings['progress_report_teams'] or []
@@ -136,12 +132,12 @@ class ProgressReportCalculator(Calculator):
                     else epic_query_template.format(outcome='"%s"' % (o['key'] if o['key'] else o['name']))
                 )
             ) for o in self.settings['progress_report_outcomes']
-        ]
+        ] if self.settings['progress_report_outcomes'] is not None else []
 
         outcome_query = self.settings['progress_report_outcome_query']
         if outcome_query:
             outcome_deadline_field = self.settings['progress_report_outcome_deadline_field']
-            if outcome_deadline_field:
+            if outcome_deadline_field and outcome_deadline_field not in self.query_manager.jira_fields_to_names:
                 outcome_deadline_field = self.query_manager.field_name_to_id(outcome_deadline_field)
 
             outcomes.extend(find_outcomes(self.query_manager, outcome_query, outcome_deadline_field, epic_query_template))
@@ -203,14 +199,16 @@ class ProgressReportCalculator(Calculator):
                 if not epic_team_field:
                     epic.team = default_team  # single defined team, or None
                 else:
-                    epic.team = team_lookup.get(epic.team_name.lower(), None)
+                    
+                    epic_team_name = epic.team_name.strip() if epic.team_name else ""
+                    epic.team = team_lookup.get(epic_team_name.lower(), None)
 
                     if epic.team is None:
-                        logger.info("Cannot find team %s for epic %s. Dynamically adding a non-forecasted team." % (epic.team_name, epic.key,))
-                        epic.team = Team(name=epic.team_name)
+                        logger.info("Cannot find team `%s` for epic `%s`. Dynamically adding a non-forecasted team." % (epic_team_name, epic.key,))
+                        epic.team = Team(name=epic_team_name)
                         teams.append(epic.team)
-                        team_lookup[epic.team.name.lower()] = epic.team
-                        team_epics[epic.team.name.lower()] = []
+                        team_lookup[epic_team_name.lower()] = epic.team
+                        team_epics[epic_team_name.lower()] = []
                 
                 outcome.epics.append(epic)
 
@@ -219,7 +217,7 @@ class ProgressReportCalculator(Calculator):
                 
                 epic.story_query = story_query_template.format(
                     epic='"%s"' % epic.key,
-                    team='"%s"' % epic.team_name if epic.team_name else None,
+                    team='"%s"' % epic.team.name,
                     outcome='"%s"' % outcome.key,
                 )
 
@@ -233,6 +231,8 @@ class ProgressReportCalculator(Calculator):
 
         # Run Monte Carlo simulation to complete
         
+        teams.sort(key=lambda t: t.name)
+
         for team in teams:
             if team.sampler is not None:
                 forecast_to_complete(team, team_epics[team.name.lower()], quantiles, trials=trials, now=now)
@@ -324,12 +324,13 @@ class ProgressReportCalculator(Calculator):
 
 class Outcome(object):
 
-    def __init__(self, name, key, deadline=None, epic_query=None, epics=None):
+    def __init__(self, name, key, deadline=None, epic_query=None, epics=None, is_jira=False):
         self.name = name
         self.key = key
         self.epic_query = epic_query
         self.deadline = deadline
         self.epics = epics if epics is not None else []
+        self.is_jira = is_jira
 
 class Team(object):
 
@@ -471,6 +472,7 @@ def find_outcomes(
             key=issue.key,
             deadline=date_value(query_manager, issue, outcome_deadline_field),
             epic_query=epic_query_template.format(outcome='"%s"' % issue.key),
+            is_jira=True
         )
 
 def find_epics(

@@ -1393,6 +1393,12 @@ of filenames, or a single filename.
 
 ## Changelog
 
+### 0.24
+
+- Allow using either field id or title for field names in the progress report.
+- Fix several errors that would occur when running with no defined teams or
+  outcomes in the configuration file.
+
 ### 0.23
 
 - Allow deadline to be set on outcomes as a fallback for epic level deadlines

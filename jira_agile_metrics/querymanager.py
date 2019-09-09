@@ -58,7 +58,7 @@ class QueryManager(object):
         if len(self.jira_fields) == 0:
             raise ConfigError("No field data retrieved from JIRA. This likely means a problem with the JIRA API.") from None
 
-        self.jira_fields_to_names = {field['id']: field['name'] for field in self.jira.fields()}
+        self.jira_fields_to_names = {field['id']: field['name'] for field in self.jira_fields}
         field_id = None
 
         for name, field in self.settings['attributes'].items():
