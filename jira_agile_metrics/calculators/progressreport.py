@@ -217,7 +217,7 @@ class ProgressReportCalculator(Calculator):
                 
                 epic.story_query = story_query_template.format(
                     epic='"%s"' % epic.key,
-                    team='"%s"' % epic.team.name,
+                    team='"%s"' % epic.team.name if epic.team is not None else None,
                     outcome='"%s"' % outcome.key,
                 )
 
