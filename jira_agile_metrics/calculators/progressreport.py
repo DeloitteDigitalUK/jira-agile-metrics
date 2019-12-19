@@ -12,11 +12,12 @@ import scipy.stats
 import statsmodels.formula.api as sm
 import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
+import matplotlib.transforms
 
 import jinja2
 
 from ..calculator import Calculator
-from ..utils import set_chart_style
+from ..utils import set_chart_style, to_days_since_epoch
 
 from .cycletime import calculate_cycle_times
 from .throughput import calculate_throughput
@@ -59,6 +60,7 @@ class ProgressReportCalculator(Calculator):
         epic_query_template = self.settings['progress_report_epic_query_template']
         if not epic_query_template:
             if (
+                self.settings['progress_report_outcome_query'] is not None or
                 self.settings['progress_report_outcomes'] is None or
                 len(self.settings['progress_report_outcomes']) == 0 or
                 any(map(lambda o: o['epic_query'] is None, self.settings['progress_report_outcomes']))
@@ -73,28 +75,24 @@ class ProgressReportCalculator(Calculator):
         
         # if not set, we only show forecast completion date, no RAG/deadline
         epic_deadline_field = self.settings['progress_report_epic_deadline_field']
-        if epic_deadline_field:
+        if epic_deadline_field and epic_deadline_field not in self.query_manager.jira_fields_to_names:
             epic_deadline_field = self.query_manager.field_name_to_id(epic_deadline_field)
 
         epic_min_stories_field = self.settings['progress_report_epic_min_stories_field']
-        if epic_min_stories_field:
+        if epic_min_stories_field and epic_min_stories_field not in self.query_manager.jira_fields_to_names:
             epic_min_stories_field = self.query_manager.field_name_to_id(epic_min_stories_field)
 
         epic_max_stories_field = self.settings['progress_report_epic_max_stories_field']
         if not epic_max_stories_field:
             epic_max_stories_field = epic_min_stories_field
-        else:
+        elif epic_max_stories_field not in self.query_manager.jira_fields_to_names:
             epic_max_stories_field = self.query_manager.field_name_to_id(epic_max_stories_field)
 
         epic_team_field = self.settings['progress_report_epic_team_field']
-        if epic_team_field:
+        if epic_team_field and epic_team_field not in self.query_manager.jira_fields_to_names:
             epic_team_field = self.query_manager.field_name_to_id(epic_team_field)
 
-        teams = self.settings['progress_report_teams']
-
-        if not teams:
-            logger.error("At least one team must be set up under `Progress report teams`.")
-            return None
+        teams = self.settings['progress_report_teams'] or []
 
         for team in teams:
             if not team['name']:
@@ -110,37 +108,51 @@ class ProgressReportCalculator(Calculator):
                 if team['min_throughput'] > team['max_throughput']:
                     logger.error("`Min throughput` must be less than or equal to `Max throughput`.")
                     return None
-            elif not team['throughput_samples']:
-                logger.error("`Throughput samples` is required if `Min/max throughput` is not specified.")
-                return None
-            
-        # if there is only one team and we don't record an epic's team, always use data for that one team
-        if not epic_team_field and len(teams) != 1:
+                if team['throughput_samples']:
+                    logger.error("`Throughput samples` cannot be used if `Min/max throughput` is already specified.")
+                
+                # Note: If neither min/max throughput or samples are specified, we turn off forecasting
+
+        # If we aren't recording teams against epics, there can be either no teams
+        # at all, or a single, default team, but not multiple.
+        if not epic_team_field and len(teams) > 1:
             logger.error("`Progress report epic team field` is required if there is more than one team under `Progress report teams`.")
             return None
 
-        # if not set, we use a single epic query and don't group by outcomes
-        
+        # Find outcomes, either in the config file or by querying JIRA (or both).
+        # If none set, we use a single epic query and don't group by outcomes
+
         outcomes = [
             Outcome(
                 name=o['name'],
                 key=o['key'] if o['key'] else o['name'],
+                deadline=datetime.datetime.combine(o['deadline'], datetime.datetime.min.time()) if o['deadline'] else None,
                 epic_query=(
                     o['epic_query'] if o['epic_query']
                     else epic_query_template.format(outcome='"%s"' % (o['key'] if o['key'] else o['name']))
                 )
             ) for o in self.settings['progress_report_outcomes']
-        ]
+        ] if self.settings['progress_report_outcomes'] is not None else []
+
+        outcome_query = self.settings['progress_report_outcome_query']
+        if outcome_query:
+            outcome_deadline_field = self.settings['progress_report_outcome_deadline_field']
+            if outcome_deadline_field and outcome_deadline_field not in self.query_manager.jira_fields_to_names:
+                outcome_deadline_field = self.query_manager.field_name_to_id(outcome_deadline_field)
+
+            outcomes.extend(find_outcomes(self.query_manager, outcome_query, outcome_deadline_field, epic_query_template))
         
         if len(outcomes) > 0:
-            for outcome in outcomes:
-                if not outcome.name:
-                    logger.error("Outcomes must have a name.")
-                    return None
+            if not all([bool(outcome.name) for outcome in outcomes]):
+                logger.error("Outcomes must have a name.")
+                return None
         else:
             outcomes = [Outcome(name=None, key=None, epic_query=epic_query_template)]
 
         # Calculate a throughput sampler function for each team.
+
+        # It is possible for there to be zero teams, in which case we will
+        # create teams on-the-fly from the `epic_team_field`.
 
         teams = [
             Team(
@@ -164,14 +176,12 @@ class ProgressReportCalculator(Calculator):
                 done_column=done_column,
             )
 
-        team_lookup = {team.name: team for team in teams}
-        team_epics = {team.name: [] for team in teams}
+        team_lookup = {team.name.lower(): team for team in teams}
+        team_epics = {team.name.lower(): [] for team in teams}
 
-        default_team = None
-
-        # Degenerate case: single team and no epic team field
-        if not epic_team_field:
-            default_team = teams[0]
+        # Degenerate case: single team and no epic team field - all forecasts
+        # use this team
+        default_team = teams[0] if not epic_team_field and len(teams) == 1 else None
 
         # Calculate epic progress for each outcome
         #  - Run `epic_query_template` to find relevant epics
@@ -187,20 +197,27 @@ class ProgressReportCalculator(Calculator):
                 outcome=outcome
             ):
                 if not epic_team_field:
-                    epic.team = default_team
+                    epic.team = default_team  # single defined team, or None
                 else:
-                    epic.team = team_lookup.get(epic.team_name, None)
+                    
+                    epic_team_name = epic.team_name.strip() if epic.team_name else ""
+                    epic.team = team_lookup.get(epic_team_name.lower(), None)
 
                     if epic.team is None:
-                        logger.warning("Cannot find team %s for epic %s. Ignoring epic." % (epic.team_name, epic.key,))
-                        continue
+                        logger.info("Cannot find team `%s` for epic `%s`. Dynamically adding a non-forecasted team." % (epic_team_name, epic.key,))
+                        epic.team = Team(name=epic_team_name)
+                        teams.append(epic.team)
+                        team_lookup[epic_team_name.lower()] = epic.team
+                        team_epics[epic_team_name.lower()] = []
                 
                 outcome.epics.append(epic)
-                team_epics[epic.team.name].append(epic)
+
+                if epic.team is not None:
+                    team_epics[epic.team.name.lower()].append(epic)
                 
                 epic.story_query = story_query_template.format(
                     epic='"%s"' % epic.key,
-                    team='"%s"' % epic.team_name if epic.team_name else None,
+                    team='"%s"' % epic.team.name if epic.team is not None else None,
                     outcome='"%s"' % outcome.key,
                 )
 
@@ -214,8 +231,11 @@ class ProgressReportCalculator(Calculator):
 
         # Run Monte Carlo simulation to complete
         
+        teams.sort(key=lambda t: t.name)
+
         for team in teams:
-            forecast_to_complete(team, team_epics[team.name], quantiles, trials=trials, now=now)
+            if team.sampler is not None:
+                forecast_to_complete(team, team_epics[team.name.lower()], quantiles, trials=trials, now=now)
 
         return {
             'outcomes': outcomes,
@@ -240,6 +260,21 @@ class ProgressReportCalculator(Calculator):
         template = jinja_env.get_template('progressreport_template.html')
         today = datetime.date.today()
 
+        epics_by_team = {}
+        have_outcomes = False
+        have_forecasts = False
+        for outcome in data['outcomes']:
+            if outcome.name is not None:
+                have_outcomes = True
+
+            for epic in outcome.epics:
+                if epic.forecast is not None:
+                    have_forecasts = True
+                if epic.team is not None:
+                    if epic.team.name not in epics_by_team:
+                        epics_by_team[epic.team.name] = []
+                    epics_by_team[epic.team.name].append(epic)
+
         with open(output_file, 'w') as of:
             of.write(template.render(
                 jira_url=self.query_manager.jira._options['server'],
@@ -251,6 +286,11 @@ class ProgressReportCalculator(Calculator):
                 epic_team_field=self.settings['progress_report_epic_team_field'],
                 outcomes=data['outcomes'],
                 teams=data['teams'],
+                num_teams=len(data['teams']),
+                have_teams=len(data['teams']) > 1,
+                have_outcomes=have_outcomes,
+                have_forecasts=have_forecasts,
+                epics_by_team=epics_by_team,
                 enumerate=enumerate,
                 future_date=lambda weeks: forward_weeks(today, weeks),
                 color_code=lambda q: (
@@ -262,28 +302,40 @@ class ProgressReportCalculator(Calculator):
                 percent_complete=lambda epic: (
                     int(round(((epic.stories_done or 0) / epic.max_stories) * 100))
                 ),
+                outcome_charts={outcome.key: {
+                    'cfd': plot_cfd(
+                        cycle_data=pd.concat([e.story_cycle_times for e in outcome.epics]),
+                        cycle_names=cycle_names,
+                        backlog_column=backlog_column,
+                        target=sum([e.max_stories or 0 for e in outcome.epics]),
+                        deadline=outcome.deadline
+                    ) if len(outcome.epics) > 0 else None,
+                } for outcome in data['outcomes']},
                 team_charts={team.name: {
                     'cfd': plot_cfd(team.throughput_samples_cycle_times, cycle_names, backlog_column),
                     'throughput': plot_throughput(team.throughput_samples_cycle_times),
                     'scatterplot': plot_scatterplot(team.throughput_samples_cycle_times, quantiles)
                 } for team in data['teams']},
                 epic_charts={epic.key: {
-                    'cfd': plot_cfd(epic.story_cycle_times, cycle_names, backlog_column),
+                    'cfd': plot_cfd(epic.story_cycle_times, cycle_names, backlog_column, target=epic.max_stories, deadline=epic.deadline),
                     'scatterplot': plot_scatterplot(epic.story_cycle_times, quantiles)
                 } for outcome in data['outcomes'] for epic in outcome.epics}
             ))
 
 class Outcome(object):
 
-    def __init__(self, name, key, epic_query=None, epics=None):
+    def __init__(self, name, key, deadline=None, epic_query=None, epics=None, is_jira=False):
         self.name = name
         self.key = key
         self.epic_query = epic_query
+        self.deadline = deadline
         self.epics = epics if epics is not None else []
+        self.is_jira = is_jira
 
 class Team(object):
 
-    def __init__(self, name, wip,
+    def __init__(self, name,
+        wip=1,
         min_throughput=None,
         max_throughput=None,
         throughput_samples=None,
@@ -381,9 +433,6 @@ def update_team_sampler(
     # Use min/max if set and query either wasn't set, or returned nothing
     if team.sampler is None and team.min_throughput and team.max_throughput:
         team.sampler = throughput_range_sampler(team.min_throughput, max(team.min_throughput, team.max_throughput))
-    
-    if team.sampler is None:
-        logger.error("Unable to calculate throughput for team %s." % team.name)
 
 def calculate_team_throughput(
     team,
@@ -411,6 +460,20 @@ def calculate_team_throughput(
     
     return calculate_throughput(cycle_times, frequency=frequency, window=team.throughput_samples_window)
 
+def find_outcomes(
+    query_manager,
+    query,
+    outcome_deadline_field,
+    epic_query_template
+):
+    for issue in query_manager.find_issues(query):
+        yield Outcome(
+            name=issue.fields.summary,
+            key=issue.key,
+            deadline=date_value(query_manager, issue, outcome_deadline_field),
+            epic_query=epic_query_template.format(outcome='"%s"' % issue.key),
+            is_jira=True
+        )
 
 def find_epics(
     query_manager,
@@ -422,13 +485,6 @@ def find_epics(
 ):
 
     for issue in query_manager.find_issues(outcome.epic_query):
-
-        deadline = None
-        if epic_deadline_field is not None:
-            deadline = query_manager.resolve_field_value(issue, epic_deadline_field)
-            if isinstance(deadline, (str, bytes)):
-                deadline = dateutil.parser.parse(deadline)
-
         yield Epic(
             key=issue.key,
             summary=issue.fields.summary,
@@ -438,7 +494,7 @@ def find_epics(
             min_stories=int_or_none(query_manager.resolve_field_value(issue, epic_min_stories_field)) if epic_min_stories_field else None,
             max_stories=int_or_none(query_manager.resolve_field_value(issue, epic_max_stories_field)) if epic_max_stories_field else None,
             team_name=query_manager.resolve_field_value(issue, epic_team_field) if epic_team_field else None,
-            deadline=deadline,
+            deadline=date_value(query_manager, issue, epic_deadline_field, default=outcome.deadline),
             outcome=outcome,
         )
 
@@ -577,7 +633,7 @@ def calculate_epic_target(epic):
 def forward_weeks(date, weeks):
     return (date - datetime.timedelta(days=date.weekday())) + datetime.timedelta(weeks=weeks)
 
-def plot_cfd(cycle_data, cycle_names, backlog_column):
+def plot_cfd(cycle_data, cycle_names, backlog_column, target=None, deadline=None):
 
     # Prepare data
     
@@ -598,23 +654,66 @@ def plot_cfd(cycle_data, cycle_names, backlog_column):
     fig, ax = plt.subplots()
     fig.autofmt_xdate()
 
-    ax.set_xlabel("Date")
+    transform_horizontal = matplotlib.transforms.blended_transform_factory(ax.transAxes, ax.transData)
+
+    ax.set_xlabel(None)
     ax.set_ylabel("Number of items")
 
     cfd_data.plot.area(ax=ax, stacked=False, legend=False)
 
+    # Deadline
+
+    if deadline is not None:
+        bottom, top = ax.get_ylim()
+        left, right = ax.get_xlim()
+
+        deadline_dse = to_days_since_epoch(deadline.date())
+
+        ax.vlines(deadline, bottom, target, color='r', linestyles='-', linewidths=0.5)
+        ax.annotate("Due: %s" % (deadline.strftime("%d/%m/%Y"),),
+            xy=(deadline, target),
+            xytext=(0, 10),
+            textcoords='offset points',
+            fontsize="x-small",
+            ha="right",
+            color='black',
+            backgroundcolor="#ffffff"
+        )
+
+        # Make sure we can see deadline line
+        if right < deadline_dse:
+            ax.set_xlim(left, deadline_dse + 1)
+
+    # Target line
+
+    if target is not None:
+        left, right = ax.get_xlim()
+        ax.hlines(target, left, right, linestyles='--', linewidths=1)
+        ax.annotate("Target: %d" % (target,),
+            xy=(0.02, target),
+            xycoords=transform_horizontal,
+            fontsize="x-small",
+            ha="left",
+            va="center",
+            backgroundcolor="#ffffff"
+        )
+
+    # Legend
+
     ax.legend(loc='center left', bbox_to_anchor=(1, 0.5))
 
+    # Spacing
+
     bottom = cfd_data[cfd_data.columns[-1]].min()
-    top = cfd_data[cfd_data.columns[0]].max()
-    ax.set_ylim(bottom=bottom, top=top)
+    top = max(cfd_data[cfd_data.columns[0]].max(), 0 if target is None else target)
+    ax.set_ylim(bottom=bottom, top=top + (0 if target is None else 5))
 
     set_chart_style()
 
     # Return as base64 encoded string
 
     buffer = io.BytesIO()
-    fig.savefig(buffer, format='png', bbox_inches='tight', dpi=100)
+    fig.savefig(buffer, format='png', bbox_inches='tight', dpi=220)
     plt.close(fig)
 
     return base64.b64encode(buffer.getvalue()).decode('utf-8')
@@ -667,7 +766,7 @@ def plot_throughput(cycle_data, frequency='1W'):
     # Return as base64 encoded string
 
     buffer = io.BytesIO()
-    fig.savefig(buffer, format='png', bbox_inches='tight', dpi=100)
+    fig.savefig(buffer, format='png', bbox_inches='tight', dpi=220)
     plt.close(fig)
 
     return base64.b64encode(buffer.getvalue()).decode('utf-8')
@@ -719,7 +818,7 @@ def plot_scatterplot(cycle_data, quantiles):
     # Return as base64 encoded string
 
     buffer = io.BytesIO()
-    fig.savefig(buffer, format='png', bbox_inches='tight', dpi=100)
+    fig.savefig(buffer, format='png', bbox_inches='tight', dpi=220)
     plt.close(fig)
 
     return base64.b64encode(buffer.getvalue()).decode('utf-8')
@@ -728,3 +827,13 @@ def int_or_none(value):
     return value if isinstance(value, int) else \
            int(value) if isinstance(value, (str, bytes)) and value.isdigit() \
            else None
+
+def date_value(query_manager, issue, field_name, default=None):
+    value = default
+    if field_name is not None:
+        value = query_manager.resolve_field_value(issue, field_name)
+        if isinstance(value, (str, bytes)) and value != "":
+            value = dateutil.parser.parse(value)
+        elif value is None:
+            value = default
+    return value

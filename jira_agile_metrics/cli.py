@@ -28,7 +28,7 @@ def configure_argument_parser():
     parser.add_argument('--server', metavar='127.0.0.1:8080', help='Run as a web server instead of a command line tool, on the given host and/or port. The remaining options do not apply.')
 
     # Output directory
-    parser.add_argument('--output-directory', metavar='metrics', help="Write output files to this directory, rather than the current working directory.")
+    parser.add_argument('--output-directory', '-o', metavar='metrics', help="Write output files to this directory, rather than the current working directory.")
 
     # Connection options
     parser.add_argument('--domain', metavar='https://my.jira.com', help='JIRA domain name')
@@ -78,7 +78,7 @@ def run_command_line(parser, args):
 
     logger.debug("Parsing options from %s", args.config)
     with open(args.config) as config:
-        options = config_to_options(config.read())
+        options = config_to_options(config.read(), cwd=os.path.dirname(os.path.abspath(args.config)))
 
     # Allow command line arguments to override options
     override_options(options['connection'], args)

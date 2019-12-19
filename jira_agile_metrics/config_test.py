@@ -1,9 +1,12 @@
 import datetime
+import tempfile
+import os.path
 
 from .config import (
     force_list,
     expand_key,
-    config_to_options
+    config_to_options,
+    ConfigError
 )
 
 def test_force_list():
@@ -217,8 +220,11 @@ Output:
     Progress report outcomes:
         - Name: Outcome one
           Key: O1
+          Deadline: 2019-06-01
         - Name: Outcome two
           Epic query: project = ABS and type = Feature
+    Progress report outcome deadline field: Due date
+    Progress report outcome query: project = ABC AND type = Outcome AND resolution IS EMPTY
 """)
 
     assert options['connection'] == {
@@ -364,8 +370,12 @@ Output:
             {'name': 'Team one', 'max_throughput': 10, 'min_throughput': 5, 'throughput_samples': None, 'throughput_samples_window': None, 'wip': 1},
             {'name': 'Team two', 'max_throughput': None, 'min_throughput': None, 'throughput_samples': 'project = ABC AND type = Story AND team = "Team two" AND resolution = "Done"', 'wip': 2, 'throughput_samples_window': 6}
         ],
-        'progress_report_outcomes': [{'key': 'O1', 'name': 'Outcome one', 'epic_query': None}, {'key': None, 'name': 'Outcome two', 'epic_query': "project = ABS and type = Feature"}],
-        
+        'progress_report_outcomes': [
+            {'key': 'O1', 'name': 'Outcome one', 'deadline': datetime.date(2019, 6, 1), 'epic_query': None},
+            {'key': None, 'name': 'Outcome two', 'deadline': None, 'epic_query': "project = ABS and type = Feature"}
+        ],
+        'progress_report_outcome_deadline_field': 'Due date',
+        'progress_report_outcome_query': 'project = ABC AND type = Outcome AND resolution IS EMPTY',
     }
 
 def test_config_to_options_strips_directories():
@@ -413,3 +423,132 @@ Output:
     assert options['settings']['throughput_chart'] == 'throughput.png'
     assert options['settings']['throughput_data'] == ['throughput.csv']
     assert options['settings']['wip_chart'] == 'wip.png'
+
+
+def test_config_to_options_extends():
+
+    with tempfile.NamedTemporaryFile() as fp:
+
+        # Base file
+        fp.write(b"""\
+Connection:
+    Domain: https://foo.com
+
+Workflow:
+    Backlog: Backlog
+    In progress: Build
+    Done: Done
+
+Attributes:
+    Release: Fix version/s
+    Team: Assigned team
+
+Output:
+    Quantiles:
+        - 0.1
+        - 0.2
+
+    Backlog column: Backlog
+    Committed column: Committed
+    Final column: Test
+    Done column: Done
+""")
+
+        fp.seek(0)
+
+        # Extend the file
+
+        options = config_to_options("""
+Extends: %s
+
+Connection:
+    Domain: https://bar.com
+
+Query: (filter=123)
+
+Attributes:
+    Release: Release number
+    Priority: Severity
+
+Output:
+
+    Quantiles:
+        - 0.5
+        - 0.7
+
+    Cycle time data: cycletime.csv
+""" % fp.name, cwd=os.path.abspath(fp.name))
+
+        # overridden
+        assert options['connection']['domain'] == 'https://bar.com'
+        
+        # from extended base
+        assert options['settings']['backlog_column'] == 'Backlog'
+        assert options['settings']['committed_column'] == 'Committed'
+        assert options['settings']['final_column'] == 'Test'
+        assert options['settings']['done_column'] == 'Done'
+
+        # from extending file
+        assert options['settings']['cycle_time_data'] == ['cycletime.csv']
+        
+        # overridden
+        assert options['settings']['quantiles'] == [0.5, 0.7]
+
+        # merged
+        assert options['settings']['attributes'] == {
+            'Release': 'Release number',
+            'Priority': 'Severity',
+            'Team': 'Assigned team'
+        }
+
+def test_config_to_options_extends_blocked_if_no_explicit_working_directory():
+
+    with tempfile.NamedTemporaryFile() as fp:
+
+        # Base file
+        fp.write(b"""\
+Connection:
+    Domain: https://foo.com
+
+Workflow:
+    Backlog: Backlog
+    In progress: Build
+    Done: Done
+
+Output:
+    Quantiles:
+        - 0.1
+        - 0.2
+
+    Backlog column: Backlog
+    Committed column: Committed
+    Final column: Test
+    Done column: Done
+""")
+
+        fp.seek(0)
+
+        # Extend the file
+
+        try:
+            config_to_options("""
+Extends: %s
+
+Connection:
+    Domain: https://bar.com
+
+Query: (filter=123)
+
+Output:
+
+    Quantiles:
+        - 0.5
+        - 0.7
+
+    Cycle time data: cycletime.csv
+""" % fp.name, cwd=None)
+
+        except ConfigError:
+            assert True
+        else:
+            assert False

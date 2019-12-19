@@ -90,3 +90,6 @@ ENV/
 
 # Mac files
 **/.DS_Store
+
+# Debug outputs that should not be committed
+progress*.html
