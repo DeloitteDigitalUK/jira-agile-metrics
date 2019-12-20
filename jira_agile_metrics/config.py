@@ -122,6 +122,7 @@ def config_to_options(data, cwd=None, extended=False):
             'password': None,
             'http_proxy': None,
             'https_proxy': None,
+            'jira_server_version_check': True,
             'jira_client_options': {}
         },
         'settings': {
@@ -285,6 +286,9 @@ def config_to_options(data, cwd=None, extended=False):
 
         if 'jira client options' in config['connection']:
             options['connection']['jira_client_options'] = config['connection']['jira client options']
+
+        if 'jira server version check' in config['connection']:
+            options['connection']['jira_server_version_check'] = config['connection']['jira server version check']
 
     # Parse and validate output options
     if 'output' in config:

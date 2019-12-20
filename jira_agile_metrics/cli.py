@@ -17,7 +17,7 @@ def configure_argument_parser():
     """Configure an ArgumentParser that manages command line options.
     """
 
-    parser = argparse.ArgumentParser(description='Extract Agile metrics data from JIRA and produce data and charts.')
+    parser = argparse.ArgumentParser(description='Extracting Agile metrics data from JIRA and produce data and charts.')
 
     # Basic options
     parser.add_argument('config', metavar='config.yml', nargs='?', help='Configuration file')
@@ -36,7 +36,8 @@ def configure_argument_parser():
     parser.add_argument('--password', metavar='password', help='JIRA password')
     parser.add_argument('--http-proxy', metavar='https://proxy.local', help='URL to HTTP Proxy')
     parser.add_argument('--https-proxy', metavar='https://proxy.local', help='URL to HTTPS Proxy')
-
+    parser.add_argument('--jira-server-version-check', type=bool, metavar='True', help='If true it will fetch JIRA server version info first to determine if some API calls are available')
+    
     return parser
 
 def main():
@@ -114,6 +115,8 @@ def get_jira_client(connection):
     password = connection['password']
     http_proxy = connection['http_proxy']
     https_proxy = connection['https_proxy']
+    jira_server_version_check = connection['jira_server_version_check']
+    logger.debug("Cheking JIRA server version: %s", jira_server_version_check)
 
     jira_client_options = connection['jira_client_options']
 
@@ -137,4 +140,4 @@ def get_jira_client(connection):
 
     options.update(jira_client_options)
 
-    return JIRA(options, basic_auth=(username, password), proxies=proxies)
+    return JIRA(options, basic_auth=(username, password), proxies=proxies, get_server_info=jira_server_version_check)
