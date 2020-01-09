@@ -17,7 +17,7 @@ def configure_argument_parser():
     """Configure an ArgumentParser that manages command line options.
     """
 
-    parser = argparse.ArgumentParser(description='Extracting Agile metrics data from JIRA and produce data and charts.')
+    parser = argparse.ArgumentParser(description='Extract Agile metrics data from JIRA and produce data and charts.')
 
     # Basic options
     parser.add_argument('config', metavar='config.yml', nargs='?', help='Configuration file')
@@ -116,7 +116,6 @@ def get_jira_client(connection):
     http_proxy = connection['http_proxy']
     https_proxy = connection['https_proxy']
     jira_server_version_check = connection['jira_server_version_check']
-    logger.debug("Cheking JIRA server version: %s", jira_server_version_check)
 
     jira_client_options = connection['jira_client_options']
 
