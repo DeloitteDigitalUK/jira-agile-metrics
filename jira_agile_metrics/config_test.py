@@ -234,6 +234,7 @@ Output:
         'username': 'user1',
         'http_proxy': 'https://proxy1.local',
         'https_proxy': 'https://proxy2.local',
+        'jira_server_version_check': True
     }
    
     assert options['settings'] == {
@@ -552,3 +553,22 @@ Output:
             assert True
         else:
             assert False
+
+def test_config_to_options_jira_server_bypass():
+
+    options = config_to_options("""\
+Connection:
+    Domain: https://foo.com
+    JIRA server version check: False
+
+Query: (filter=123)
+
+Workflow:
+    Backlog: Backlog
+    In progress: Build
+    Done: Done
+""")
+
+    assert options['connection']['domain'] == 'https://foo.com'
+    assert options['connection']['jira_server_version_check'] == False
+

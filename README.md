@@ -160,6 +160,8 @@ above:
     # How to connect to JIRA. Can also include `Username` and `Password`
     Connection:
         Domain: https://myjira.atlassian.net # your JIRA instance
+        # bypass JIRA API call for the server version endpoint 
+    #   Jira server version check: False
 
     # What issues to search for. Uses JQL syntax.
     Query: Project=ABC AND IssueType=Story AND (Resolution IS NULL OR Resolution IN (Completed, Withdrawn))

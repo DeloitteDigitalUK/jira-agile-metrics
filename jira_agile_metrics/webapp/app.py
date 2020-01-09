@@ -113,12 +113,13 @@ def get_jira_client(connection):
     username = connection['username']
     password = connection['password']
     jira_client_options = connection['jira_client_options']
+    jira_server_version_check = connection['jira_server_version_check']
 
     jira_options = {'server': url}
     jira_options.update(jira_client_options)
 
     try:
-        return JIRA(jira_options, basic_auth=(username, password))
+        return JIRA(jira_options, basic_auth=(username, password), get_server_info=jira_server_version_check)
     except Exception as e:
         if e.status_code == 401:
             raise ConfigError("JIRA authentication failed. Check URL and credentials, and ensure the account is not locked.") from None
