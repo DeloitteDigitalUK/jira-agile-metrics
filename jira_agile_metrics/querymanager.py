@@ -138,7 +138,8 @@ class QueryManager(object):
             try:
                 initial_value = next(filter(
                     lambda h: h.field == field,
-                    itertools.chain.from_iterable([c.items for c in issue.changelog.histories])
+                    itertools.chain.from_iterable([c.items for c in sorted(
+                        issue.changelog.histories, key=lambda c: dateutil.parser.parse(c.created))])
                 )).fromString
             except StopIteration:
                 pass
