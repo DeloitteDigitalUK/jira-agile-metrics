@@ -24,9 +24,9 @@ def jira(custom_fields):
             customfield_002=Value(None, 30),
             customfield_003=Value(None, ["R2", "R3", "R4"]),
             changes=[
+                Change("2018-01-03 01:01:01", [("resolution", None, "Closed",), ("status", "Next", "Done",)]),
                 Change("2018-01-02 01:01:01", [("status", "Backlog", "Next",)]),
                 Change("2018-01-02 01:01:01", [("Team", "Team 2", "Team 1",)]),
-                Change("2018-01-03 01:01:01", [("resolution", None, "Closed",), ("status", "Next", "Done",)]),
                 Change("2018-01-04 01:01:01", [("resolution", "Closed", None,), ("status", "Done", "QA",)]),
             ],
         )
