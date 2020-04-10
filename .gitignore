@@ -85,7 +85,6 @@ ENV/
 
 # VS Code
 .vscode
-.flake8
 .pytest_cache/
 
 # Mac files
