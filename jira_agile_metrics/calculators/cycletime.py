@@ -147,7 +147,7 @@ def calculate_cycle_times(
 
             item = {
                 "key": issue.key,
-                "url": "%s/browse/%s" % (query_manager.jira._options["server"], issue.key),
+                "url": "%s/browse/%s" % (query_manager.jira.client_info(), issue.key),
                 "issue_type": issue.fields.issuetype.name,
                 "summary": issue.fields.summary,
                 "status": issue.fields.status.name,

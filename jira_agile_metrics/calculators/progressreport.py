@@ -286,7 +286,7 @@ class ProgressReportCalculator(Calculator):
         with open(output_file, "w") as of:
             of.write(
                 template.render(
-                    jira_url=self.query_manager.jira._options["server"],
+                    jira_url=self.query_manager.jira.client_info(),
                     title=self.settings["progress_report_title"],
                     story_query_template=self.settings["progress_report_story_query_template"],
                     epic_deadline_field=self.settings["progress_report_epic_deadline_field"],

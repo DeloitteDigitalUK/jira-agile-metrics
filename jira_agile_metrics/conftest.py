@@ -69,8 +69,15 @@ class FauxJIRA(object):
         self._issues = issues
         self._filter = filter
 
+    def client_info(self):
+        """Get the server this client is connected to."""
+        return self._options["server"]
+
     def fields(self):
         return self._fields
+
+    def issues(self):
+        return self._issues
 
     def search_issues(self, jql, *args, **kwargs):
         return self._issues if self._filter is None else [i for i in self._issues if self._filter(i, jql)]

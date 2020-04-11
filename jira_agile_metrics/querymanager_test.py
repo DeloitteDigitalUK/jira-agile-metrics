@@ -50,7 +50,7 @@ def test_search(jira, settings):
     }
 
     issues = qm.find_issues("(filter=123)")
-    assert issues == jira._issues
+    assert issues == jira.issues()
 
 
 def test_resolve_attribute_value(jira, settings):
