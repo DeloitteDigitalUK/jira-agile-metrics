@@ -49,13 +49,13 @@ class ConfigError(Exception):
 
 
 # From http://stackoverflow.com/questions/5121931/in-python-how-can-you-load-yaml-mappings-as-ordereddicts
-def ordered_load(stream, Loader=yaml.Loader, object_pairs_hook=odicti):
-    class OrderedLoader(Loader):
+def ordered_load(stream, loader=yaml.Loader, object_pairs_hook=odicti):
+    class OrderedLoader(loader):
         pass
 
-    def construct_mapping(loader, node):
-        loader.flatten_mapping(node)
-        return object_pairs_hook(loader.construct_pairs(node))
+    def construct_mapping(loader_, node):
+        loader_.flatten_mapping(node)
+        return object_pairs_hook(loader_.construct_pairs(node))
 
     OrderedLoader.add_constructor(yaml.resolver.BaseResolver.DEFAULT_MAPPING_TAG, construct_mapping)
 

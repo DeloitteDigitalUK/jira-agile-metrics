@@ -127,7 +127,7 @@ def query_manager(fields, settings):
     return QueryManager(
         jira=JIRA(
             fields=fields,
-            filter=simple_ql,
+            filter_=simple_ql,
             issues=[
                 # Outcomes as tickets
                 Issue(
@@ -1448,7 +1448,7 @@ def test_with_large_dataset(fields, settings, results):
 
     stories = [make_story(i) for i in range(100, 300)]
 
-    query_manager = QueryManager(jira=JIRA(fields=fields, filter=simple_ql, issues=epics + stories), settings=settings)
+    query_manager = QueryManager(jira=JIRA(fields=fields, filter_=simple_ql, issues=epics + stories), settings=settings)
 
     calculator = ProgressReportCalculator(query_manager, settings, results)
 
@@ -1580,7 +1580,7 @@ def test_with_large_dataset_and_outcome_as_tickets(fields, settings, results):
     stories = [make_story(i) for i in range(100, 300)]
 
     query_manager = QueryManager(
-        jira=JIRA(fields=fields, filter=simple_ql, issues=outcomes + epics + stories), settings=settings
+        jira=JIRA(fields=fields, filter_=simple_ql, issues=outcomes + epics + stories), settings=settings
     )
 
     calculator = ProgressReportCalculator(query_manager, settings, results)
@@ -1712,7 +1712,7 @@ def test_with_large_dataset_and_outcome_as_tickets_no_forecast(fields, settings,
     stories = [make_story(i) for i in range(100, 300)]
 
     query_manager = QueryManager(
-        jira=JIRA(fields=fields, filter=simple_ql, issues=outcomes + epics + stories), settings=settings
+        jira=JIRA(fields=fields, filter_=simple_ql, issues=outcomes + epics + stories), settings=settings
     )
 
     calculator = ProgressReportCalculator(query_manager, settings, results)
@@ -1844,7 +1844,7 @@ def test_with_large_dataset_and_outcome_as_tickets_mixed_forecast(fields, settin
     stories = [make_story(i) for i in range(100, 300)]
 
     query_manager = QueryManager(
-        jira=JIRA(fields=fields, filter=simple_ql, issues=outcomes + epics + stories), settings=settings
+        jira=JIRA(fields=fields, filter_=simple_ql, issues=outcomes + epics + stories), settings=settings
     )
 
     calculator = ProgressReportCalculator(query_manager, settings, results)
@@ -1946,7 +1946,7 @@ def test_with_large_dataset_minimal(fields, settings, results):
 
     stories = [make_story(i) for i in range(100, 300)]
 
-    query_manager = QueryManager(jira=JIRA(fields=fields, filter=simple_ql, issues=epics + stories), settings=settings)
+    query_manager = QueryManager(jira=JIRA(fields=fields, filter_=simple_ql, issues=epics + stories), settings=settings)
 
     calculator = ProgressReportCalculator(query_manager, settings, results)
 
@@ -2045,7 +2045,7 @@ def test_with_large_dataset_minimal_no_forecast(fields, settings, results):
 
     stories = [make_story(i) for i in range(100, 300)]
 
-    query_manager = QueryManager(jira=JIRA(fields=fields, filter=simple_ql, issues=epics + stories), settings=settings)
+    query_manager = QueryManager(jira=JIRA(fields=fields, filter_=simple_ql, issues=epics + stories), settings=settings)
 
     calculator = ProgressReportCalculator(query_manager, settings, results)
 
@@ -2157,7 +2157,7 @@ def test_with_large_dataset_teams_no_outcomes(fields, settings, results):
 
     stories = [make_story(i) for i in range(100, 300)]
 
-    query_manager = QueryManager(jira=JIRA(fields=fields, filter=simple_ql, issues=epics + stories), settings=settings)
+    query_manager = QueryManager(jira=JIRA(fields=fields, filter_=simple_ql, issues=epics + stories), settings=settings)
 
     calculator = ProgressReportCalculator(query_manager, settings, results)
 
@@ -2268,7 +2268,7 @@ def test_with_large_dataset_no_teams(fields, settings, results):
     stories = [make_story(i) for i in range(100, 300)]
 
     query_manager = QueryManager(
-        jira=JIRA(fields=fields, filter=simple_ql, issues=outcomes + epics + stories), settings=settings
+        jira=JIRA(fields=fields, filter_=simple_ql, issues=outcomes + epics + stories), settings=settings
     )
 
     calculator = ProgressReportCalculator(query_manager, settings, results)
@@ -2383,7 +2383,7 @@ def test_with_large_dataset_dynamic_teams(fields, settings, results):
     stories = [make_story(i) for i in range(100, 300)]
 
     query_manager = QueryManager(
-        jira=JIRA(fields=fields, filter=simple_ql, issues=outcomes + epics + stories), settings=settings
+        jira=JIRA(fields=fields, filter_=simple_ql, issues=outcomes + epics + stories), settings=settings
     )
 
     calculator = ProgressReportCalculator(query_manager, settings, results)
@@ -2505,7 +2505,7 @@ def test_with_large_dataset_static_and_dynamic_teams(fields, settings, results):
     stories = [make_story(i) for i in range(100, 300)]
 
     query_manager = QueryManager(
-        jira=JIRA(fields=fields, filter=simple_ql, issues=outcomes + epics + stories), settings=settings
+        jira=JIRA(fields=fields, filter_=simple_ql, issues=outcomes + epics + stories), settings=settings
     )
 
     calculator = ProgressReportCalculator(query_manager, settings, results)

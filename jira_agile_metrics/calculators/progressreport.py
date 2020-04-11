@@ -305,7 +305,7 @@ class ProgressReportCalculator(Calculator):
                     color_code=lambda q: (
                         "primary" if q is None else "danger" if q <= 0.7 else "warning" if q <= 0.9 else "success"
                     ),
-                    percent_complete=lambda epic: (int(round(((epic.stories_done or 0) / epic.max_stories) * 100))),
+                    percent_complete=lambda epic_: (int(round(((epic_.stories_done or 0) / epic_.max_stories) * 100))),
                     outcome_charts={
                         outcome.key: {
                             "cfd": plot_cfd(
@@ -434,9 +434,9 @@ class Forecast(object):
         self.deadline_quantile = deadline_quantile
 
 
-def throughput_range_sampler(min, max):
+def throughput_range_sampler(min_, max_):
     def get_throughput_range_sample():
-        return random.randint(min, max)
+        return random.randint(min_, max_)
 
     return get_throughput_range_sample
 

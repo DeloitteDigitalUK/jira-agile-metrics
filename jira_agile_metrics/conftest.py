@@ -63,13 +63,13 @@ class FauxJIRA(object):
     by `search_issues()`.
     """
 
-    def __init__(self, fields, issues, options=None, filter=None):
+    def __init__(self, fields, issues, options=None, filter_=None):
         if options is None:
             options = {"server": "https://example.org"}
         self._options = options
         self._fields = fields  # [{ id, name }]
         self._issues = issues
-        self._filter = filter
+        self._filter = filter_
 
     def client_info(self):
         """Get the server this client is connected to."""
