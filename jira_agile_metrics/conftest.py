@@ -63,7 +63,9 @@ class FauxJIRA(object):
     by `search_issues()`.
     """
 
-    def __init__(self, fields, issues, options={"server": "https://example.org"}, filter=None):
+    def __init__(self, fields, issues, options=None, filter=None):
+        if options is None:
+            options = {"server": "https://example.org"}
         self._options = options
         self._fields = fields  # [{ id, name }]
         self._issues = issues
