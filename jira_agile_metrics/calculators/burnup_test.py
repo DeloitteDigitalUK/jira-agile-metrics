@@ -35,11 +35,16 @@ def test_columns(query_manager, settings, results):
     data = calculator.run()
 
     assert list(data.columns) == [
-        'Backlog',
+        'Committed',
         'Done'
     ]
 
 def test_calculate_burnup(query_manager, settings, results):
+    # beware: updating the settings here will circumvent the checks when loading the config
+    settings.update({
+        'committed_column': 'Backlog'
+    })
+
     calculator = BurnupCalculator(query_manager, settings, results)
 
     data = calculator.run()
@@ -64,7 +69,7 @@ def test_calculate_burnup(query_manager, settings, results):
 
 def test_calculate_burnup_with_different_columns(query_manager, settings, results):
     settings.update({
-        'backlog_column': 'Committed',
+        'committed_column': 'Committed',
         'done_column': 'Test'
     })
 

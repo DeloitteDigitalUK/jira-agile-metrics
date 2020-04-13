@@ -72,7 +72,7 @@ def test_calculate_forecast(query_manager, settings, results):
     assert len(data.index) > 0
     assert list(data.index)[0] == Timestamp('2018-01-09 00:00:00', freq='D')
     assert list(data.index)[1] == Timestamp('2018-01-10 00:00:00', freq='D')
-    
+
     for i in range(10):
         trial_values = data['Trial %d' % i]
 
@@ -92,7 +92,7 @@ def test_calculate_forecast(query_manager, settings, results):
 def test_calculate_forecast_settings(query_manager, settings, results):
 
     settings.update({
-        'backlog_column': 'Committed',
+        'committed_column': 'Committed',
         'done_column': 'Test',
         'burnup_forecast_chart_throughput_window_end': datetime.date(2018, 1, 6),
         'burnup_forecast_chart_throughput_window': 4,
@@ -115,7 +115,7 @@ def test_calculate_forecast_settings(query_manager, settings, results):
     assert len(data.index) > 0
     assert list(data.index)[0] == Timestamp('2018-01-09 00:00:00', freq='D')
     assert list(data.index)[1] == Timestamp('2018-01-10 00:00:00', freq='D')
-    
+
     for i in range(10):
         trial_values = data['Trial %d' % i]
 
