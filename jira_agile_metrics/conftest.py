@@ -83,18 +83,17 @@ def minimal_settings():
         'max_results': None,
         'verbose': False,
         'cycle': [
-            {'name': 'Backlog',   'statuses': ['Backlog'],           'type': 'backlog'},
-            {'name': 'Committed', 'statuses': ['Next'],              'type': 'accepted'},
-            {'name': 'Build',     'statuses': ['Build'],             'type': 'accepted'},
-            {'name': 'Test',      'statuses': ['Code review', 'QA'], 'type': 'accepted'},
-            {'name': 'Done',      'statuses': ['Done'],              'type': 'complete'}
+            {'name': 'Backlog',   'statuses': ['Backlog']},
+            {'name': 'Committed', 'statuses': ['Next']},
+            {'name': 'Build',     'statuses': ['Build']},
+            {'name': 'Test',      'statuses': ['Code review', 'QA']},
+            {'name': 'Done',      'statuses': ['Done']}
         ],
         'query_attribute': None,
         'queries': [{'jql': '(filter=123)', 'value': None}],
-        
+
         'backlog_column': 'Backlog',
         'committed_column': 'Committed',
-        'final_column': 'Test',
         'done_column': 'Done',
     }
 

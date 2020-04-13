@@ -135,7 +135,6 @@ def test_calculate_ageing_wip(query_manager, settings, results, today):
 def test_calculate_ageing_wip_with_different_columns(query_manager, settings, results, today):
     settings.update({
         'committed_column': 'Committed',
-        'final_column': 'Build',
         'done_column': 'Test',
     })
 
