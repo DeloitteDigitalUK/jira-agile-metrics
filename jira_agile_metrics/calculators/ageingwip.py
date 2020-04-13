@@ -53,7 +53,16 @@ class AgeingWIPChartCalculator(Calculator):
         def extract_age(row):
             if start_column not in row:
                 return np.NaN
-            started = row[start_column]
+            if pd.isna(row[start_column]):
+                # for all stages except backlog stage, get the first date and use it
+                # to compute age
+                dates = sorted(filter(pd.notna, row[start_column:end_column]))
+                if len(dates) > 0:
+                    started = dates[0]
+                else:
+                    return np.NaN
+            else:
+                started = row[start_column]
             if pd.isnull(started):
                 return np.NaN
             return (today - started.date()).days

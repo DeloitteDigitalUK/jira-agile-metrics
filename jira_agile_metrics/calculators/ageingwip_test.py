@@ -22,6 +22,10 @@ def results(large_cycle_time_results):
     return extend_dict(large_cycle_time_results, {})
 
 @pytest.fixture
+def ageing_skip_stage_results(skip_stage_results):
+    return extend_dict(skip_stage_results, {})
+
+@pytest.fixture
 def today():
     return datetime.date(2018, 1, 10)
 
@@ -75,6 +79,16 @@ def test_calculate_ageing_wip(query_manager, settings, results, today):
         {'key': 'A-10', 'status': 'Test', 'age': 8.0},
         {'key': 'A-11', 'status': 'Test', 'age': 8.0},
         {'key': 'A-12', 'status': 'Test', 'age': 8.0},
+    ]
+
+def test_calculate_ageing_wip_skip_stage(query_manager, settings, ageing_skip_stage_results, today):
+    calculator = AgeingWIPChartCalculator(query_manager, settings, ageing_skip_stage_results)
+
+    data = calculator.run(today)
+
+    assert data[['key', 'status', 'age']].to_dict('records') == [
+        {'key': 'A-2', 'status': 'Committed', 'age': 7.0},
+        {'key': 'A-4', 'status': 'Build', 'age': 4.0},
     ]
 
 def test_calculate_ageing_wip_with_different_columns(query_manager, settings, results, today):

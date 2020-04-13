@@ -235,6 +235,20 @@ def minimal_cycle_time_results(minimal_cycle_time_columns):
     }
 
 @pytest.fixture
+def skip_stage_results(minimal_cycle_time_columns):
+    """A results dict mimicing a minimal result from the CycleTimeCalculator.
+    """
+    return {
+        CycleTimeCalculator: DataFrame(_issues([
+            dict(Backlog=_ts('2018-01-01'), Committed=NaT,               Build=NaT,               Test=NaT,               Done=NaT),
+            dict(Backlog=_ts('2018-01-02'), Committed=_ts('2018-01-03'), Build=NaT,               Test=NaT,               Done=NaT),
+            # stage Committed is skipped here
+            dict(Backlog=_ts('2018-01-03'), Committed=NaT, Build=_ts('2018-01-04'), Test=_ts('2018-01-05'), Done=_ts('2018-01-06')),
+            dict(Backlog=_ts('2018-01-04'), Committed=NaT, Build=_ts('2018-01-06'),               Test=NaT,               Done=NaT),
+        ]), columns=minimal_cycle_time_columns)
+    }
+
+@pytest.fixture
 def large_cycle_time_results(minimal_cycle_time_columns):
     """A results dict mimicing a larger result from the CycleTimeCalculator.
     """
