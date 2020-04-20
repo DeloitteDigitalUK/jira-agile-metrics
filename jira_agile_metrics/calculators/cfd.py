@@ -27,7 +27,7 @@ class CFDCalculator(Calculator):
         cycle_names = [s['name'] for s in self.settings['cycle']]
 
         return calculate_cfd_data(cycle_data, cycle_names)
-    
+
     def write(self):
         data = self.get_result()
 
@@ -35,7 +35,7 @@ class CFDCalculator(Calculator):
             self.write_file(data, self.settings['cfd_data'])
         else:
             logger.debug("No output file specified for CFD file")
-        
+
         if self.settings['cfd_chart']:
             self.write_chart(data, self.settings['cfd_chart'])
         else:
@@ -52,24 +52,24 @@ class CFDCalculator(Calculator):
                 data.to_excel(output_file, 'CFD')
             else:
                 data.to_csv(output_file)
-    
+
     def write_chart(self, data, output_file):
         if len(data.index) == 0:
             logger.warning("Cannot draw CFD with no data")
             return
-        
+
         window = self.settings['cfd_window']
         if window:
             start = data.index.max() - pd.Timedelta(window, 'D')
             data = data[start:]
-        
+
             # Re-check after slicing
             if len(data.index) == 0:
                 logger.warning("Cannot draw CFD with no data")
                 return
 
         fig, ax = plt.subplots()
-        
+
         if self.settings['cfd_chart_title']:
             ax.set_title(self.settings['cfd_chart_title'])
 
@@ -79,11 +79,6 @@ class CFDCalculator(Calculator):
         ax.set_ylabel("Number of items")
 
         backlog_column = self.settings['backlog_column']
-
-        if backlog_column not in data.columns:
-            logger.error("Backlog column %s does not exist", backlog_column)
-            return None
-
         data = data.drop([backlog_column], axis=1)
         data.plot.area(ax=ax, stacked=False, legend=False)
 
