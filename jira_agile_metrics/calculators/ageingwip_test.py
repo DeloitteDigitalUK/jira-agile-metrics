@@ -59,6 +59,17 @@ def jira_with_skipped_columns(minimal_fields):
                 Change("2018-01-02 08:15:00", [("status", "Backlog", "Done",), ("resolution", None, "Withdrawn")]), # skipping columns Committed, Build and Test
             ],
         ),
+        Issue("A-16",
+            summary="Gap in first committed step",
+            issuetype=Value("Story", "story"),
+            status=Value("Build", "Build"),
+            resolution=None,
+            resolutiondate=None,
+            created="2018-01-01 08:15:00",
+            changes=[
+                Change("2018-01-03 08:15:00", [("status", "Backlog", "Build",)]), # skipping column Committed
+            ],
+        ),
     ])
 
 @pytest.fixture
@@ -162,4 +173,5 @@ def test_calculate_ageing_wip_with_skipped_columns(jira_with_skipped_columns, se
     assert data[['key', 'status', 'age']].to_dict('records') == [
         {'key': 'A-13', 'status': 'Build', 'age': 8.0},
         {'key': 'A-14', 'status': 'Build', 'age': 8.0},
+        {'key': 'A-16', 'status': 'Build', 'age': 7.0},
     ]
