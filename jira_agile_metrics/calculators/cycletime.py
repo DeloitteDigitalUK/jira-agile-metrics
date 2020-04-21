@@ -43,7 +43,7 @@ class CycleTimeCalculator(Calculator):
             self.query_manager,
             self.settings['cycle'],
             self.settings['attributes'],
-            self.settings['committed_column'],
+            self.settings['backlog_column'],
             self.settings['done_column'],
             self.settings['queries'],
             self.settings['query_attribute'],
@@ -52,7 +52,7 @@ class CycleTimeCalculator(Calculator):
 
     def write(self):
         output_files = self.settings['cycle_time_data']
-
+        
         if not output_files:
             logger.debug("No output file specified for cycle time data")
             return
@@ -83,7 +83,7 @@ def calculate_cycle_times(
     query_manager,
     cycle,                  # [{name:"", statuses:[""], type:""}]
     attributes,             # [{key:value}]
-    committed_column,       # "" in `cycle`
+    backlog_column,         # "" in `cycle`
     done_column,            # "" in `cycle`
     queries,                # [{jql:"", value:""}]
     query_attribute=None,   # ""
@@ -95,7 +95,8 @@ def calculate_cycle_times(
         now = datetime.datetime.utcnow()
 
     cycle_names = [s['name'] for s in cycle]
-    active_columns = cycle_names[cycle_names.index(committed_column):cycle_names.index(done_column)]
+    accepted_steps = set(s['name'] for s in cycle if s['type'] == StatusTypes.accepted)
+    completed_steps = set(s['name'] for s in cycle if s['type'] == StatusTypes.complete)
 
     cycle_lookup = {}
     for idx, cycle_step in enumerate(cycle):
@@ -103,6 +104,7 @@ def calculate_cycle_times(
             cycle_lookup[status.lower()] = dict(
                 index=idx,
                 name=cycle_step['name'],
+                type=cycle_step['type'],
             )
 
     unmapped_statuses = set()
@@ -167,7 +169,7 @@ def calculate_cycle_times(
                         logger.info("Issue %s transitioned to unknown JIRA status %s", issue.key, snapshot.to_string)
                         unmapped_statuses.add(snapshot.to_string)
                         continue
-
+                    
                     last_status = snapshot_cycle_step_name = snapshot_cycle_step['name']
 
                     # Keep the first time we entered a step
@@ -195,8 +197,8 @@ def calculate_cycle_times(
                         if impediment_start is None:
                             logger.warning("Issue %s had impediment flag cleared before being set. This should not happen.", issue.key)
                             continue
-
-                        if impediment_start_status in active_columns:
+                        
+                        if impediment_start_status not in (backlog_column, done_column):
                             item['blocked_days'] += (snapshot.date.date() - impediment_start).days
                         item['impediments'].append({
                             'start': impediment_start,
@@ -209,13 +211,13 @@ def calculate_cycle_times(
                         impediment_flag = None
                         impediment_start = None
                         impediment_start_status = None
-
+            
             # If an impediment flag was set but never cleared: treat as resolved on the ticket
             # resolution date if the ticket was resolved, else as still open until today.
             if impediment_start is not None:
                 if issue.fields.resolutiondate:
                     resolution_date = dateutil.parser.parse(issue.fields.resolutiondate).date()
-                    if impediment_start_status in active_columns:
+                    if impediment_start_status not in (backlog_column, done_column):
                         item['blocked_days'] += (resolution_date - impediment_start).days
                     item['impediments'].append({
                         'start': impediment_start,
@@ -224,7 +226,7 @@ def calculate_cycle_times(
                         'flag': impediment_flag,
                     })
                 else:
-                    if impediment_start_status in active_columns:
+                    if impediment_start_status not in (backlog_column, done_column):
                         item['blocked_days'] += (now.date() - impediment_start).days
                     item['impediments'].append({
                         'start': impediment_start,
@@ -235,28 +237,25 @@ def calculate_cycle_times(
                 impediment_flag = None
                 impediment_start = None
                 impediment_start_status = None
-
-            # calculate cycle time
+            
+            # Wipe timestamps if items have moved backwards; calculate cycle time
 
             previous_timestamp = None
-            committed_timestamp = None
-            done_timestamp = None
+            accepted_timestamp = None
+            completed_timestamp = None
 
-            for cycle_name in reversed(cycle_names):
+            for cycle_name in cycle_names:
                 if item[cycle_name] is not None:
                     previous_timestamp = item[cycle_name]
 
-                if previous_timestamp is not None:
-                    item[cycle_name] = previous_timestamp
-                    if cycle_name == done_column:
-                        done_timestamp = previous_timestamp
-                    if cycle_name == committed_column:
-                        committed_timestamp = previous_timestamp
+                    if accepted_timestamp is None and previous_timestamp is not None and cycle_name in accepted_steps:
+                        accepted_timestamp = previous_timestamp
+                    if completed_timestamp is None and previous_timestamp is not None and cycle_name in completed_steps:
+                        completed_timestamp = previous_timestamp
 
-            if committed_timestamp is not None and done_timestamp is not None:
-                item['cycle_time'] = done_timestamp - committed_timestamp
-                item['completed_timestamp'] = done_timestamp
-
+            if accepted_timestamp is not None and completed_timestamp is not None:
+                item['cycle_time'] = completed_timestamp - accepted_timestamp
+                item['completed_timestamp'] = completed_timestamp
 
             for k, v in item.items():
                 series[k]['data'].append(v)
