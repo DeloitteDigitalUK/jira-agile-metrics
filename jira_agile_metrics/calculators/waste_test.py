@@ -165,9 +165,9 @@ def test_query(jira, settings):
         {'key': 'A-7', 'last_status': None,        'resolution': 'Withdrawn', 'withdrawn_date': Timestamp('2018-01-06 02:02:02')},
     ]
 
-def test_different_committed_column(jira, settings):
+def test_different_backlog_column(jira, settings):
     settings = extend_dict(settings, {
-        'committed_column': 'Backlog'
+        'backlog_column': 'Committed'
     })
 
     query_manager = QueryManager(jira, settings)
@@ -178,7 +178,6 @@ def test_different_committed_column(jira, settings):
 
     assert data.to_dict('records') == [
         {'key': 'A-1', 'last_status': 'Test',      'resolution': 'Withdrawn', 'withdrawn_date': Timestamp('2018-01-06 02:02:02')},
-        {'key': 'A-2', 'last_status': 'Committed', 'resolution': 'Withdrawn', 'withdrawn_date': Timestamp('2018-01-07 02:02:02')},
         {'key': 'A-4', 'last_status': 'Backlog',   'resolution': 'Withdrawn', 'withdrawn_date': Timestamp('2018-01-09 02:02:02')},
         {'key': 'A-6', 'last_status': 'foobar',    'resolution': 'Withdrawn', 'withdrawn_date': Timestamp('2018-01-06 02:02:02')},
         {'key': 'A-7', 'last_status': None,        'resolution': 'Withdrawn', 'withdrawn_date': Timestamp('2018-01-06 02:02:02')},
@@ -197,6 +196,7 @@ def test_different_done_column(jira, settings):
 
     assert data.to_dict('records') == [
         {'key': 'A-2', 'last_status': 'Committed', 'resolution': 'Withdrawn', 'withdrawn_date': Timestamp('2018-01-07 02:02:02')},
+        {'key': 'A-3', 'last_status': 'Done',      'resolution': 'Withdrawn', 'withdrawn_date': Timestamp('2018-01-08 02:02:02')},
         {'key': 'A-6', 'last_status': 'foobar',    'resolution': 'Withdrawn', 'withdrawn_date': Timestamp('2018-01-06 02:02:02')},
         {'key': 'A-7', 'last_status': None,        'resolution': 'Withdrawn', 'withdrawn_date': Timestamp('2018-01-06 02:02:02')},
     ]

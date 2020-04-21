@@ -143,7 +143,7 @@ def query_manager(fields, settings):
                 customfield_202=None,
                 changes=[]
             ),
-
+            
             # Epics
             Issue("E-1",
                 summary="Epic 1",
@@ -219,7 +219,7 @@ def query_manager(fields, settings):
                 customfield_204=0,
                 changes=[]
             ),
-
+            
 
             # Stories for epic E-1
             Issue("A-1",
@@ -375,7 +375,7 @@ def test_throughput_range_sampler():
     sampler = throughput_range_sampler(5, 5)
     for i in range(10):
         assert sampler() == 5
-
+    
     sampler = throughput_range_sampler(5, 10)
     for i in range(10):
         assert 5 <= sampler() <= 10
@@ -393,7 +393,7 @@ def test_calculate_epic_target():
         deadline=None,
         stories_raised=None
     )) == 5
-
+    
     assert calculate_epic_target(Epic(
         key='E-1',
         summary='Epic 1',
@@ -406,7 +406,7 @@ def test_calculate_epic_target():
         deadline=None,
         stories_raised=None
     )) == 8
-
+    
     assert calculate_epic_target(Epic(
         key='E-1',
         summary='Epic 1',
@@ -421,7 +421,7 @@ def test_calculate_epic_target():
     )) <= 3
 
 def test_find_outcomes(query_manager):
-
+    
     outcomes = list(find_outcomes(
         query_manager=query_manager,
         query="issuetype=outcome",
@@ -430,7 +430,7 @@ def test_find_outcomes(query_manager):
     ))
 
     assert len(outcomes) == 2
-
+    
     assert outcomes[0].key == "O-1"
     assert outcomes[0].name == "Outcome ticket one"
     assert outcomes[0].deadline == datetime(2018, 5, 1, 0, 0, 0)
@@ -442,7 +442,7 @@ def test_find_outcomes(query_manager):
     assert outcomes[1].epic_query == 'issuetype=epic AND Outcome="O-2"'
 
 def test_find_outcomes_no_deadline_field(query_manager):
-
+    
     outcomes = list(find_outcomes(
         query_manager=query_manager,
         query="issuetype=outcome",
@@ -451,7 +451,7 @@ def test_find_outcomes_no_deadline_field(query_manager):
     ))
 
     assert len(outcomes) == 2
-
+    
     assert outcomes[0].key == "O-1"
     assert outcomes[0].name == "Outcome ticket one"
     assert outcomes[0].deadline is None
@@ -465,7 +465,7 @@ def test_find_outcomes_no_deadline_field(query_manager):
 def test_find_epics(query_manager):
 
     outcome = Outcome("Outcome one", "O1", None, 'issuetype=epic AND Outcome=O1')
-
+    
     epics = list(find_epics(
         query_manager=query_manager,
         epic_min_stories_field='customfield_203',
@@ -543,7 +543,7 @@ def test_find_epics_minimal_fields(query_manager):
 def test_find_epics_defaults_to_outcome_deadline(query_manager):
 
     outcome = Outcome("Outcome one", "O1", datetime(2019, 6, 1), 'issuetype=epic AND Outcome=O1')
-
+    
     epics = list(find_epics(
         query_manager=query_manager,
         epic_min_stories_field='customfield_203',
@@ -584,7 +584,7 @@ def test_find_epics_defaults_to_outcome_deadline(query_manager):
     assert epics[2].deadline == datetime(2019, 6, 1, 0, 0)
 
 def test_update_story_counts(query_manager, settings):
-
+    
     e1 = Epic(
         key="E-1",
         summary="Epic 1",
@@ -602,7 +602,7 @@ def test_update_story_counts(query_manager, settings):
         epic=e1,
         query_manager=query_manager,
         cycle=settings['cycle'],
-        committed_column=settings['committed_column'],
+        backlog_column=settings['backlog_column'],
         done_column=settings['done_column']
     )
 
@@ -633,7 +633,7 @@ def test_update_story_counts(query_manager, settings):
         epic=e2,
         query_manager=query_manager,
         cycle=settings['cycle'],
-        committed_column=settings['committed_column'],
+        backlog_column=settings['backlog_column'],
         done_column=settings['done_column']
     )
 
@@ -664,7 +664,7 @@ def test_update_story_counts(query_manager, settings):
         epic=e3,
         query_manager=query_manager,
         cycle=settings['cycle'],
-        committed_column=settings['committed_column'],
+        backlog_column=settings['backlog_column'],
         done_column=settings['done_column']
     )
 
@@ -693,7 +693,7 @@ def test_calculate_team_throughput(query_manager, settings):
         team=t,
         query_manager=query_manager,
         cycle=settings['cycle'],
-        committed_column=settings['committed_column'],
+        backlog_column=settings['backlog_column'],
         done_column=settings['done_column'],
         frequency='1D'
     )
@@ -723,7 +723,7 @@ def test_calculate_team_throughput(query_manager, settings):
         team=t,
         query_manager=query_manager,
         cycle=settings['cycle'],
-        committed_column=settings['committed_column'],
+        backlog_column=settings['backlog_column'],
         done_column=settings['done_column'],
         frequency='1D'
     )
@@ -751,7 +751,7 @@ def test_calculate_team_throughput(query_manager, settings):
         team=t,
         query_manager=query_manager,
         cycle=settings['cycle'],
-        committed_column=settings['committed_column'],
+        backlog_column=settings['backlog_column'],
         done_column=settings['done_column'],
         frequency='1D'
     )
@@ -773,7 +773,7 @@ def test_calculate_team_throughput(query_manager, settings):
     assert isinstance(t.throughput_samples_cycle_times, pd.DataFrame)
 
 def test_update_team_sampler(query_manager, settings):
-
+    
     # min/max only
 
     t = Team(
@@ -789,7 +789,7 @@ def test_update_team_sampler(query_manager, settings):
         team=t,
         query_manager=query_manager,
         cycle=settings['cycle'],
-        committed_column=settings['committed_column'],
+        backlog_column=settings['backlog_column'],
         done_column=settings['done_column'],
         frequency='1D'
     )
@@ -812,7 +812,7 @@ def test_update_team_sampler(query_manager, settings):
         team=t,
         query_manager=query_manager,
         cycle=settings['cycle'],
-        committed_column=settings['committed_column'],
+        backlog_column=settings['backlog_column'],
         done_column=settings['done_column'],
         frequency='1D'
     )
@@ -835,7 +835,7 @@ def test_update_team_sampler(query_manager, settings):
         team=t,
         query_manager=query_manager,
         cycle=settings['cycle'],
-        committed_column=settings['committed_column'],
+        backlog_column=settings['backlog_column'],
         done_column=settings['done_column'],
         frequency='1D'
     )
@@ -858,7 +858,7 @@ def test_update_team_sampler(query_manager, settings):
         team=t,
         query_manager=query_manager,
         cycle=settings['cycle'],
-        committed_column=settings['committed_column'],
+        backlog_column=settings['backlog_column'],
         done_column=settings['done_column'],
         frequency='1D'
     )
@@ -881,7 +881,7 @@ def test_update_team_sampler(query_manager, settings):
         team=t,
         query_manager=query_manager,
         cycle=settings['cycle'],
-        committed_column=settings['committed_column'],
+        backlog_column=settings['backlog_column'],
         done_column=settings['done_column'],
         frequency='1D'
     )
@@ -890,7 +890,7 @@ def test_update_team_sampler(query_manager, settings):
     assert isinstance(t.throughput_samples_cycle_times, pd.DataFrame)
 
 def test_forecast_to_complete_wip_1():
-
+    
     team = Team(
         name='Team 1',
         wip=1,
@@ -1052,7 +1052,7 @@ def test_forecast_to_complete_no_epics():
     assert len(epics) == 0
 
 def test_forecast_to_complete_with_randomness():
-
+    
     team = Team(
         name='Team 1',
         wip=2,
@@ -1126,7 +1126,7 @@ def test_forecast_to_complete_with_randomness():
     assert epics[2].forecast.deadline_quantile == 1  # deadline is after worst case scenario
 
 def test_calculator(query_manager, settings, results):
-
+    
     calculator = ProgressReportCalculator(query_manager, settings, results)
 
     data = calculator.run(trials=10, now=datetime(2018, 1, 10))
@@ -1161,7 +1161,7 @@ def test_calculator(query_manager, settings, results):
 
     # confirm teams
     assert len(data['teams']) == 2
-
+    
     assert data['teams'][0].name == 'Team 1'
     assert data['teams'][0].min_throughput == 5
     assert data['teams'][0].max_throughput == 10
@@ -1182,7 +1182,7 @@ def test_calculator_no_outcomes(query_manager, settings, results):
         'progress_report_epic_query_template': 'issuetype=epic AND Outcome="O1',
         'progress_report_outcomes': [],
     })
-
+    
     calculator = ProgressReportCalculator(query_manager, settings, results)
 
     data = calculator.run(trials=10, now=datetime(2018, 1, 10))
@@ -1213,7 +1213,7 @@ def test_calculator_no_outcomes(query_manager, settings, results):
 
     # confirm teams
     assert len(data['teams']) == 2
-
+    
     assert data['teams'][0].name == 'Team 1'
     assert data['teams'][0].min_throughput == 5
     assert data['teams'][0].max_throughput == 10
@@ -1281,7 +1281,7 @@ def test_calculator_no_fields(query_manager, settings, results):
 
     # confirm teams
     assert len(data['teams']) == 1
-
+    
     assert data['teams'][0].name == 'Team 1'
     assert data['teams'][0].min_throughput == 5
     assert data['teams'][0].max_throughput == 10
@@ -1308,7 +1308,7 @@ def test_with_large_dataset(fields, settings, results):
     def simple_ql(i, jql):
         clauses = [c.strip() for c in jql.split(' AND ') if "=" in c]
         return all([compare_value(i, c) for c in clauses])
-
+    
     settings = extend_dict(settings, {
         'quantiles': [0.75, 0.85, 0.95],
         'progress_report': 'progress-large.html',
@@ -1352,7 +1352,7 @@ def test_with_large_dataset(fields, settings, results):
 
     teams = [t['name'] for t in settings['progress_report_teams']]
     outcomes = [o['key'] for o in settings['progress_report_outcomes']]
-
+      
     epics = [Issue("E-%d" % i,
         summary="%s %s" % (random.choice(verbs).capitalize(), random.choice(nouns)),
         issuetype=Value('Epic', 'epic'),
@@ -1378,7 +1378,7 @@ def test_with_large_dataset(fields, settings, results):
             'from': None,
             'to': statuses[0]
         }]
-
+        
         for s in statuses[1:]:
             changes.append({
                 'date': random_date_future(changes[-1]['date'], 15),
@@ -1442,7 +1442,7 @@ def test_with_large_dataset_and_outcome_as_tickets(fields, settings, results):
     def simple_ql(i, jql):
         clauses = [c.strip() for c in jql.split(' AND ') if "=" in c]
         return all([compare_value(i, c) for c in clauses])
-
+    
     settings = extend_dict(settings, {
         'quantiles': [0.75, 0.85, 0.95],
         'progress_report': 'progress-outcome-tickets.html',
@@ -1470,7 +1470,7 @@ def test_with_large_dataset_and_outcome_as_tickets(fields, settings, results):
     })
 
     teams = [t['name'] for t in settings['progress_report_teams']]
-
+    
     outcomes = [Issue("O-%d" % i,
         summary="%s %s" % (random.choice(verbs).capitalize(), random.choice(nouns)),
         issuetype=Value('Outcome', 'outcome'),
@@ -1481,7 +1481,7 @@ def test_with_large_dataset_and_outcome_as_tickets(fields, settings, results):
         customfield_202="%s 00:00:00" % random_date_future(today + timedelta(days=55), 65).isoformat() if random.choice((True, True, False,)) else None,
         changes=[]
     ) for i in range(random.randint(2, 4))]
-
+        
     epics = [Issue("E-%d" % i,
         summary="%s %s" % (random.choice(verbs).capitalize(), random.choice(nouns)),
         issuetype=Value('Epic', 'epic'),
@@ -1507,7 +1507,7 @@ def test_with_large_dataset_and_outcome_as_tickets(fields, settings, results):
             'from': None,
             'to': statuses[0]
         }]
-
+        
         for s in statuses[1:]:
             changes.append({
                 'date': random_date_future(changes[-1]['date'], 15),
@@ -1570,7 +1570,7 @@ def test_with_large_dataset_and_outcome_as_tickets_no_forecast(fields, settings,
     def simple_ql(i, jql):
         clauses = [c.strip() for c in jql.split(' AND ') if "=" in c]
         return all([compare_value(i, c) for c in clauses])
-
+    
     settings = extend_dict(settings, {
         'quantiles': [0.75, 0.85, 0.95],
         'progress_report': 'progress-no-forecast.html',
@@ -1598,7 +1598,7 @@ def test_with_large_dataset_and_outcome_as_tickets_no_forecast(fields, settings,
     })
 
     teams = [t['name'] for t in settings['progress_report_teams']]
-
+    
     outcomes = [Issue("O-%d" % i,
         summary="%s %s" % (random.choice(verbs).capitalize(), random.choice(nouns)),
         issuetype=Value('Outcome', 'outcome'),
@@ -1609,7 +1609,7 @@ def test_with_large_dataset_and_outcome_as_tickets_no_forecast(fields, settings,
         customfield_202="%s 00:00:00" % random_date_future(today + timedelta(days=55), 65).isoformat() if random.choice((True, True, False,)) else None,
         changes=[]
     ) for i in range(random.randint(2, 4))]
-
+        
     epics = [Issue("E-%d" % i,
         summary="%s %s" % (random.choice(verbs).capitalize(), random.choice(nouns)),
         issuetype=Value('Epic', 'epic'),
@@ -1635,7 +1635,7 @@ def test_with_large_dataset_and_outcome_as_tickets_no_forecast(fields, settings,
             'from': None,
             'to': statuses[0]
         }]
-
+        
         for s in statuses[1:]:
             changes.append({
                 'date': random_date_future(changes[-1]['date'], 15),
@@ -1698,7 +1698,7 @@ def test_with_large_dataset_and_outcome_as_tickets_mixed_forecast(fields, settin
     def simple_ql(i, jql):
         clauses = [c.strip() for c in jql.split(' AND ') if "=" in c]
         return all([compare_value(i, c) for c in clauses])
-
+    
     settings = extend_dict(settings, {
         'quantiles': [0.75, 0.85, 0.95],
         'progress_report': 'progress-mixed-forecasts.html',
@@ -1726,7 +1726,7 @@ def test_with_large_dataset_and_outcome_as_tickets_mixed_forecast(fields, settin
     })
 
     teams = [t['name'] for t in settings['progress_report_teams']]
-
+    
     outcomes = [Issue("O-%d" % i,
         summary="%s %s" % (random.choice(verbs).capitalize(), random.choice(nouns)),
         issuetype=Value('Outcome', 'outcome'),
@@ -1737,7 +1737,7 @@ def test_with_large_dataset_and_outcome_as_tickets_mixed_forecast(fields, settin
         customfield_202="%s 00:00:00" % random_date_future(today + timedelta(days=55), 65).isoformat() if random.choice((True, True, False,)) else None,
         changes=[]
     ) for i in range(random.randint(2, 4))]
-
+        
     epics = [Issue("E-%d" % i,
         summary="%s %s" % (random.choice(verbs).capitalize(), random.choice(nouns)),
         issuetype=Value('Epic', 'epic'),
@@ -1763,7 +1763,7 @@ def test_with_large_dataset_and_outcome_as_tickets_mixed_forecast(fields, settin
             'from': None,
             'to': statuses[0]
         }]
-
+        
         for s in statuses[1:]:
             changes.append({
                 'date': random_date_future(changes[-1]['date'], 15),
@@ -1826,7 +1826,7 @@ def test_with_large_dataset_minimal(fields, settings, results):
     def simple_ql(i, jql):
         clauses = [c.strip() for c in jql.split(' AND ') if "=" in c]
         return all([compare_value(i, c) for c in clauses])
-
+    
     settings = extend_dict(settings, {
         'quantiles': [0.75, 0.85, 0.95],
         'progress_report_title': 'Acme Corp Websites',
@@ -1872,7 +1872,7 @@ def test_with_large_dataset_minimal(fields, settings, results):
             'from': None,
             'to': statuses[0]
         }]
-
+        
         for s in statuses[1:]:
             changes.append({
                 'date': random_date_future(changes[-1]['date'], 15),
@@ -1932,7 +1932,7 @@ def test_with_large_dataset_minimal_no_forecast(fields, settings, results):
     def simple_ql(i, jql):
         clauses = [c.strip() for c in jql.split(' AND ') if "=" in c]
         return all([compare_value(i, c) for c in clauses])
-
+    
     settings = extend_dict(settings, {
         'quantiles': [0.75, 0.85, 0.95],
         'progress_report': 'progress-minimal-no-forecast.html',
@@ -1957,7 +1957,7 @@ def test_with_large_dataset_minimal_no_forecast(fields, settings, results):
             },
         ],
     })
-
+        
     epics = [Issue("E-%d" % i,
         summary="%s %s" % (random.choice(verbs).capitalize(), random.choice(nouns)),
         issuetype=Value('Epic', 'epic'),
@@ -1978,7 +1978,7 @@ def test_with_large_dataset_minimal_no_forecast(fields, settings, results):
             'from': None,
             'to': statuses[0]
         }]
-
+        
         for s in statuses[1:]:
             changes.append({
                 'date': random_date_future(changes[-1]['date'], 15),
@@ -2038,7 +2038,7 @@ def test_with_large_dataset_teams_no_outcomes(fields, settings, results):
     def simple_ql(i, jql):
         clauses = [c.strip() for c in jql.split(' AND ') if "=" in c]
         return all([compare_value(i, c) for c in clauses])
-
+    
     settings = extend_dict(settings, {
         'quantiles': [0.75, 0.85, 0.95],
         'progress_report': 'progress-teams-no-outcomes.html',
@@ -2067,7 +2067,7 @@ def test_with_large_dataset_teams_no_outcomes(fields, settings, results):
     })
 
     teams = [t['name'] for t in settings['progress_report_teams']]
-
+    
     epics = [Issue("E-%d" % i,
         summary="%s %s" % (random.choice(verbs).capitalize(), random.choice(nouns)),
         issuetype=Value('Epic', 'epic'),
@@ -2093,7 +2093,7 @@ def test_with_large_dataset_teams_no_outcomes(fields, settings, results):
             'from': None,
             'to': statuses[0]
         }]
-
+        
         for s in statuses[1:]:
             changes.append({
                 'date': random_date_future(changes[-1]['date'], 15),
@@ -2156,7 +2156,7 @@ def test_with_large_dataset_no_teams(fields, settings, results):
     def simple_ql(i, jql):
         clauses = [c.strip() for c in jql.split(' AND ') if "=" in c]
         return all([compare_value(i, c) for c in clauses])
-
+    
     settings = extend_dict(settings, {
         'quantiles': [0.75, 0.85, 0.95],
         'progress_report': 'progress-no-teams.html',
@@ -2178,7 +2178,7 @@ def test_with_large_dataset_no_teams(fields, settings, results):
         customfield_202="%s 00:00:00" % random_date_future(today + timedelta(days=55), 65).isoformat() if random.choice((True, True, False,)) else None,
         changes=[]
     ) for i in range(random.randint(2, 4))]
-
+        
     epics = [Issue("E-%d" % i,
         summary="%s %s" % (random.choice(verbs).capitalize(), random.choice(nouns)),
         issuetype=Value('Epic', 'epic'),
@@ -2203,7 +2203,7 @@ def test_with_large_dataset_no_teams(fields, settings, results):
             'from': None,
             'to': statuses[0]
         }]
-
+        
         for s in statuses[1:]:
             changes.append({
                 'date': random_date_future(changes[-1]['date'], 15),
@@ -2265,7 +2265,7 @@ def test_with_large_dataset_dynamic_teams(fields, settings, results):
     def simple_ql(i, jql):
         clauses = [c.strip() for c in jql.split(' AND ') if "=" in c]
         return all([compare_value(i, c) for c in clauses])
-
+    
     settings = extend_dict(settings, {
         'quantiles': [0.75, 0.85, 0.95],
         'progress_report': 'progress-dynamic-teams.html',
@@ -2277,7 +2277,7 @@ def test_with_large_dataset_dynamic_teams(fields, settings, results):
     })
 
     teams = ["Alpha", "Beta", "Delta"]
-
+    
     outcomes = [Issue("O-%d" % i,
         summary="%s %s" % (random.choice(verbs).capitalize(), random.choice(nouns)),
         issuetype=Value('Outcome', 'outcome'),
@@ -2288,7 +2288,7 @@ def test_with_large_dataset_dynamic_teams(fields, settings, results):
         customfield_202="%s 00:00:00" % random_date_future(today + timedelta(days=55), 65).isoformat() if random.choice((True, True, False,)) else None,
         changes=[]
     ) for i in range(random.randint(2, 4))]
-
+        
     epics = [Issue("E-%d" % i,
         summary="%s %s" % (random.choice(verbs).capitalize(), random.choice(nouns)),
         issuetype=Value('Epic', 'epic'),
@@ -2314,7 +2314,7 @@ def test_with_large_dataset_dynamic_teams(fields, settings, results):
             'from': None,
             'to': statuses[0]
         }]
-
+        
         for s in statuses[1:]:
             changes.append({
                 'date': random_date_future(changes[-1]['date'], 15),
@@ -2375,7 +2375,7 @@ def test_with_large_dataset_static_and_dynamic_teams(fields, settings, results):
     def simple_ql(i, jql):
         clauses = [c.strip() for c in jql.split(' AND ') if "=" in c]
         return all([compare_value(i, c) for c in clauses])
-
+    
     settings = extend_dict(settings, {
         'quantiles': [0.75, 0.85, 0.95],
         'progress_report': 'progress-mixed-teams.html',
@@ -2396,7 +2396,7 @@ def test_with_large_dataset_static_and_dynamic_teams(fields, settings, results):
     })
 
     teams = [t['name'] for t in settings['progress_report_teams']] + ["Green", "Purple"]
-
+    
     outcomes = [Issue("O-%d" % i,
         summary="%s %s" % (random.choice(verbs).capitalize(), random.choice(nouns)),
         issuetype=Value('Outcome', 'outcome'),
@@ -2407,7 +2407,7 @@ def test_with_large_dataset_static_and_dynamic_teams(fields, settings, results):
         customfield_202="%s 00:00:00" % random_date_future(today + timedelta(days=55), 65).isoformat() if random.choice((True, True, False,)) else None,
         changes=[]
     ) for i in range(random.randint(2, 4))]
-
+        
     epics = [Issue("E-%d" % i,
         summary="%s %s" % (random.choice(verbs).capitalize(), random.choice(nouns)),
         issuetype=Value('Epic', 'epic'),
@@ -2433,7 +2433,7 @@ def test_with_large_dataset_static_and_dynamic_teams(fields, settings, results):
             'from': None,
             'to': statuses[0]
         }]
-
+        
         for s in statuses[1:]:
             changes.append({
                 'date': random_date_future(changes[-1]['date'], 15),

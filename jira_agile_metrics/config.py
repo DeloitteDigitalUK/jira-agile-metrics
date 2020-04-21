@@ -111,7 +111,7 @@ def config_to_options(data, cwd=None, extended=False):
         config = ordered_load(data, yaml.SafeLoader)
     except Exception:
         raise ConfigError("Unable to parse YAML configuration file.") from None
-
+    
     if config is None:
         raise ConfigError("Configuration file is empty") from None
 
@@ -133,11 +133,12 @@ def config_to_options(data, cwd=None, extended=False):
             'cycle': [],
             'max_results': None,
             'verbose': False,
-
+        
             'quantiles': [0.5, 0.85, 0.95],
 
             'backlog_column': None,
             'committed_column': None,
+            'final_column': None,
             'done_column': None,
 
             'cycle_time_data': None,
@@ -147,7 +148,7 @@ def config_to_options(data, cwd=None, extended=False):
             'scatterplot_data': None,
             'scatterplot_chart': None,
             'scatterplot_chart_title': None,
-
+            
             'histogram_window': None,
             'histogram_data': None,
             'histogram_chart': None,
@@ -157,13 +158,13 @@ def config_to_options(data, cwd=None, extended=False):
             'cfd_data': None,
             'cfd_chart': None,
             'cfd_chart_title': None,
-
+            
             'throughput_frequency': '1W-MON',
             'throughput_window': None,
             'throughput_data': None,
             'throughput_chart': None,
             'throughput_chart_title': None,
-
+            
             'burnup_window': None,
             'burnup_chart': None,
             'burnup_chart_title': None,
@@ -201,7 +202,7 @@ def config_to_options(data, cwd=None, extended=False):
             'impediments_status_chart_title': None,
             'impediments_status_days_chart': None,
             'impediments_status_days_chart_title': None,
-
+            
             'defects_query': None,
             'defects_window': None,
             'defects_priority_field': None,
@@ -217,7 +218,7 @@ def config_to_options(data, cwd=None, extended=False):
             'defects_by_type_chart_title': None,
             'defects_by_environment_chart': None,
             'defects_by_environment_chart_title': None,
-
+        
             'debt_query': None,
             'debt_window': None,
             'debt_priority_field': None,
@@ -259,7 +260,7 @@ def config_to_options(data, cwd=None, extended=False):
 
         if not os.path.exists(extends_filename):
             raise ConfigError("File `%s` referenced in `extends` not found." % extends_filename) from None
-
+        
         logger.debug("Extending file %s" % extends_filename)
         with open(extends_filename) as extends_file:
             options = config_to_options(extends_file.read(), cwd=os.path.dirname(extends_filename), extended=True)
@@ -276,10 +277,10 @@ def config_to_options(data, cwd=None, extended=False):
 
         if 'password' in config['connection']:
             options['connection']['password'] = config['connection']['password']
-
+        
         if 'http proxy' in config['connection']:
             options['connection']['http_proxy'] = config['connection']['http proxy']
-
+        
         if 'https proxy' in config['connection']:
             options['connection']['https_proxy'] = config['connection']['https proxy']
 
@@ -318,7 +319,7 @@ def config_to_options(data, cwd=None, extended=False):
         ]:
             if expand_key(key) in config['output']:
                 options['settings'][key] = force_int(key, config['output'][expand_key(key)])
-
+        
         # float values
         for key in [
             'burnup_forecast_chart_deadline_confidence',
@@ -333,7 +334,7 @@ def config_to_options(data, cwd=None, extended=False):
         ]:
             if expand_key(key) in config['output']:
                 options['settings'][key] = force_date(key, config['output'][expand_key(key)])
-
+        
         # file name values
         for key in [
             'scatterplot_chart',
@@ -359,7 +360,7 @@ def config_to_options(data, cwd=None, extended=False):
         ]:
             if expand_key(key) in config['output']:
                 options['settings'][key] = os.path.basename(config['output'][expand_key(key)])
-
+        
         # file name list values
         for key in [
             'cycle_time_data',
@@ -368,7 +369,7 @@ def config_to_options(data, cwd=None, extended=False):
             'histogram_data',
             'throughput_data',
             'percentiles_data',
-
+            
             'impediments_data',
         ]:
             if expand_key(key) in config['output']:
@@ -389,6 +390,7 @@ def config_to_options(data, cwd=None, extended=False):
         for key in [
             'backlog_column',
             'committed_column',
+            'final_column',
             'done_column',
             'throughput_frequency',
             'scatterplot_chart_title',
@@ -462,37 +464,24 @@ def config_to_options(data, cwd=None, extended=False):
     if 'workflow' in config:
         if len(config['workflow'].keys()) < 3:
             raise ConfigError("`Workflow` section must contain at least three statuses")
+        
+        options['settings']['cycle'] = [{
+            "name": name,
+            "type": StatusTypes.accepted,
+            "statuses": force_list(statuses)
+        } for name, statuses in config['workflow'].items()]
 
-        column_names = []
-        for name, statuses in config['workflow'].items():
-            statuses = force_list(statuses)
-            options['settings']['cycle'].append({
-                "name": name,
-                "statuses": statuses
-            })
-            column_names.append(name)
-
-        if options['settings']['done_column'] is None:
-            options['settings']['done_column'] = options['settings']['cycle'][-1]['name']
-        elif options['settings']['done_column'] not in column_names:
-            raise ConfigError("`Done column` (%s) must exist in `Workflow`: %s", options['settings']['done_column'], options['settings']['workflow'])
-
-        if options['settings']['committed_column'] is None:
-            options['settings']['committed_column'] = options['settings']['cycle'][1]['name']
-        elif options['settings']['committed_column'] not in column_names:
-            raise ConfigError("`Committed column` (%s) must exist in `Workflow`: %s", options['settings']['committed_column'], options['settings']['workflow'])
+        options['settings']['cycle'][0]['type'] = StatusTypes.backlog
+        options['settings']['cycle'][-1]['type'] = StatusTypes.complete
 
         if options['settings']['backlog_column'] is None:
             options['settings']['backlog_column'] = options['settings']['cycle'][0]['name']
-        elif options['settings']['backlog_column'] not in column_names:
-            raise ConfigError("`Backlog column` (%s) must exist in `Workflow`: %s", options['settings']['backlog_column'], options['settings']['workflow'])
-
-
-        if not column_names.index(options['settings']['committed_column']) < column_names.index(options['settings']['done_column']):
-            raise ConfigError("`Committed column` (%s) must come before `Done column` (%s) in `Workflow`", options['settings']['committed_column'], options['settings']['done_column'])
-
-        if not column_names.index(options['settings']['committed_column']) < column_names.index(options['settings']['done_column']):
-            raise ConfigError("`Backlog column` (%s) must come before `Committed column` (%s) in `Workflow`", options['settings']['backlog_column'], options['settings']['committed_column'])
+        if options['settings']['committed_column'] is None:
+            options['settings']['committed_column'] = options['settings']['cycle'][1]['name']
+        if options['settings']['final_column'] is None:
+            options['settings']['final_column'] = options['settings']['cycle'][-2]['name']
+        if options['settings']['done_column'] is None:
+            options['settings']['done_column'] = options['settings']['cycle'][-1]['name']
 
     # Make sure we have workflow (but only if this file is not being extended by another)
     if not extended and len(options['settings']['cycle']) == 0:

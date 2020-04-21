@@ -29,14 +29,14 @@ class BurnupForecastCalculator(Calculator):
             logger.debug("Not calculating burnup forecast chart data as no output file specified")
             return None
 
-        committed_column = self.settings['committed_column']
+        backlog_column = self.settings['backlog_column']
         done_column = self.settings['done_column']
 
-        if committed_column not in burnup_data.columns:
-            logger.error("Committed column %s does not exist", committed_column)
+        if backlog_column not in burnup_data.columns:
+            logger.error("Backlog column %s does not exist", backlog_column)
             return None
         if done_column not in burnup_data.columns:
-            logger.error("Done column %s does not exist", done_column)
+            logger.error("Backlog column %s does not exist", done_column)
             return None
 
         if cycle_data[done_column].max() is pd.NaT:
@@ -49,7 +49,7 @@ class BurnupForecastCalculator(Calculator):
         logger.info("Sampling throughput between %s and %s", throughput_window_start.isoformat(), throughput_window_end.isoformat())
 
         start_value = burnup_data[done_column].max()
-        target = self.settings['burnup_forecast_chart_target'] or burnup_data[committed_column].max()
+        target = self.settings['burnup_forecast_chart_target'] or burnup_data[backlog_column].max()
         logger.info("Running forecast to completion of %d items", target)
 
         trials = self.settings['burnup_forecast_chart_trials']
@@ -64,7 +64,7 @@ class BurnupForecastCalculator(Calculator):
         if throughput_data['count'].sum() <= 0:
             logger.warning("No throughput samples available, aborting forecast simulations")
             return None
-
+        
         return burnup_monte_carlo(
             start_value=start_value,
             target_value=target,
@@ -110,8 +110,8 @@ class BurnupForecastCalculator(Calculator):
         quantiles = self.settings['quantiles']
         logger.debug("Showing forecast at quantiles %s", ', '.join(['%.2f' % (q * 100.0) for q in quantiles]))
 
-        committed_column = self.settings['committed_column']
-        target = self.settings['burnup_forecast_chart_target'] or burnup_data[committed_column].max()
+        backlog_column = self.settings['backlog_column']
+        target = self.settings['burnup_forecast_chart_target'] or burnup_data[backlog_column].max()
 
         fig, ax = plt.subplots()
 
@@ -255,7 +255,7 @@ def throughput_sampler(throughput_data, start_value, target):
 
         sample_buffer['idx'] += 1
         return sample_buffer['buffer'].iloc[sample_buffer['idx'] - 1]
-
+    
     return get_throughput_sample
 
 def burnup_monte_carlo(
