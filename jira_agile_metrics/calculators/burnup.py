@@ -16,10 +16,10 @@ class BurnupCalculator(Calculator):
     def run(self):
         cfd_data = self.get_result(CFDCalculator)
 
-        committed_column = self.settings['committed_column']
+        backlog_column = self.settings['backlog_column']
         done_column = self.settings['done_column']
 
-        return cfd_data[[committed_column, done_column]]
+        return cfd_data[[backlog_column, done_column]]
 
     def write(self):
         output_file = self.settings['burnup_chart']

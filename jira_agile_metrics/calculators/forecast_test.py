@@ -92,7 +92,7 @@ def test_calculate_forecast(query_manager, settings, results):
 def test_calculate_forecast_settings(query_manager, settings, results):
 
     settings.update({
-        'committed_column': 'Committed',
+        'backlog_column': 'Committed',
         'done_column': 'Test',
         'burnup_forecast_chart_throughput_window_end': datetime.date(2018, 1, 6),
         'burnup_forecast_chart_throughput_window': 4,
