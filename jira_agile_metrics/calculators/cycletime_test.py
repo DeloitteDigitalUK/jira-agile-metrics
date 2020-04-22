@@ -107,6 +107,22 @@ def jira_with_skipped_columns(custom_fields):
                 Change("2018-01-04 01:01:01", [("status", "Next", "Done",), ("resolution", None, "done")]), # skipping columns Build and Test
             ],
         ),
+        Issue("A-11",
+            summary="More Gaps",
+            issuetype=Value("Story", "story"),
+            status=Value("Done", "done"),
+            resolution=Value("Done", "Done"),
+            resolutiondate="2018-01-04 01:01:01",
+            created="2018-01-01 01:01:01",
+            customfield_001="Team 1",
+            customfield_002=Value(None, 10),
+            customfield_003=Value(None, []),
+            customfield_100=None,
+            changes=[
+                Change("2018-01-02 01:05:01", [("status", "Backlog", "Build",)]),
+                Change("2018-01-04 01:01:01", [("status", "Build", "Done",), ("resolution", None, "done")]), # skipping columns Build and Test
+            ],
+        ),
     ])
 
 @pytest.fixture
@@ -282,6 +298,28 @@ def test_movement_skipped_columns(jira_with_skipped_columns, settings):
         'Backlog': Timestamp('2018-01-01 00:00:00'),
         'Committed': Timestamp('2018-01-02 00:00:00'),
         'Build': Timestamp('2018-01-04 00:00:00'),
+        'Test': Timestamp('2018-01-04 00:00:00'),
+        'Done': Timestamp('2018-01-04 00:00:00'),
+    }, {
+        'key': 'A-11',
+        'url': 'https://example.org/browse/A-11',
+        'issue_type': 'Story',
+        'summary': 'More Gaps',
+        'status': 'Done',
+        'resolution': 'Done',
+
+        'Estimate': 10,
+        'Release': 'None',
+        'Team': 'Team 1',
+
+        'completed_timestamp': Timestamp('2018-01-04 00:00:00'),
+        'cycle_time': Timedelta('2 days 00:00:00'),
+        'blocked_days': 0,
+        'impediments': [],
+
+        'Backlog': Timestamp('2018-01-01 00:00:00'),
+        'Committed': Timestamp('2018-01-02 00:00:00'),
+        'Build': Timestamp('2018-01-02 00:00:00'),
         'Test': Timestamp('2018-01-04 00:00:00'),
         'Done': Timestamp('2018-01-04 00:00:00'),
     }]
