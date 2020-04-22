@@ -183,7 +183,7 @@ def calculate_cycle_times(
                             found_cycle_name = True
                             continue
                         elif found_cycle_name and item[cycle_name] is not None:
-                            logger.info("Issue %s moved backwards to %s [JIRA: %s -> %s], wiping data for subsequent step %s", issue.key, snapshot_cycle_step_name, snapshot.from_string, snapshot.to_string, cycle_name)
+                            logger.debug("Issue %s moved backwards to %s [JIRA: %s -> %s], wiping data for subsequent step %s", issue.key, snapshot_cycle_step_name, snapshot.from_string, snapshot.to_string, cycle_name)
                             item[cycle_name] = None
                 elif snapshot.change == 'Flagged':
                     if snapshot.from_string == snapshot.to_string is None:

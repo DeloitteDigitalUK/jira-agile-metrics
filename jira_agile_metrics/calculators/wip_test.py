@@ -87,7 +87,7 @@ def test_calculate_wip(query_manager, settings, results):
 def test_calculate_wip_different_columns(query_manager, settings, results):
 
     settings.update({
-        'committed_column': 'Build',
+        'committed_column': 'Committed',
         'done_column': 'Test',
     })
 
@@ -107,14 +107,15 @@ def test_calculate_wip_different_columns(query_manager, settings, results):
         Timestamp('2018-01-09 00:00:00', freq='D')
     ]
 
+    print(data)
     assert data.to_dict('records') == [
         {'wip': 0.0},
-        {'wip': 0.0},
-        {'wip': 8.0},
+        {'wip': 9.0},
+        {'wip': 13.0},
+        {'wip': 11.0},
         {'wip': 7.0},
-        {'wip': 3.0},
-        {'wip': 4.0},
-        {'wip': 4.0},
-        {'wip': 3.0},
-        {'wip': 3.0},
+        {'wip': 7.0},
+        {'wip': 7.0},
+        {'wip': 6.0},
+        {'wip': 6.0},
     ]

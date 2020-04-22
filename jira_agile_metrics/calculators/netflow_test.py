@@ -88,7 +88,7 @@ def test_calculate_net_flow(query_manager, settings, results):
 def test_calculate_net_flow_different_columns(query_manager, settings, results):
 
     settings.update({
-        'committed_column': 'Build',
+        'committed_column': 'Committed',
         'done_column': 'Test',
     })
 
@@ -110,11 +110,11 @@ def test_calculate_net_flow_different_columns(query_manager, settings, results):
 
     assert data[['arrivals', 'departures', 'net_flow', 'positive']].to_dict('records') == [
         {'arrivals': 0.0, 'departures': 0.0, 'net_flow':  0.0, 'positive': True},
-        {'arrivals': 0.0, 'departures': 0.0, 'net_flow':  0.0, 'positive': True},
-        {'arrivals': 8.0, 'departures': 0.0, 'net_flow':  8.0, 'positive': True},
-        {'arrivals': 2.0, 'departures': 3.0, 'net_flow': -1.0, 'positive': False},
+        {'arrivals': 9.0, 'departures': 0.0, 'net_flow':  9.0, 'positive': True},
+        {'arrivals': 4.0, 'departures': 0.0, 'net_flow':  4.0, 'positive': True},
+        {'arrivals': 1.0, 'departures': 3.0, 'net_flow': -2.0, 'positive': False},
         {'arrivals': 1.0, 'departures': 5.0, 'net_flow': -4.0, 'positive': False},
-        {'arrivals': 1.0, 'departures': 0.0, 'net_flow':  1.0, 'positive': True},
+        {'arrivals': 0.0, 'departures': 0.0, 'net_flow':  0.0, 'positive': True},
         {'arrivals': 0.0, 'departures': 0.0, 'net_flow':  0.0, 'positive': True},
         {'arrivals': 0.0, 'departures': 1.0, 'net_flow': -1.0, 'positive': False},
         {'arrivals': 0.0, 'departures': 0.0, 'net_flow':  0.0, 'positive': True},

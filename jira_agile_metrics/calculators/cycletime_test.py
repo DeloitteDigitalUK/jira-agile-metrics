@@ -86,6 +86,25 @@ def jira(custom_fields):
                 Change("2018-01-10 10:01:01", [("Flagged", "Awaiting input", "")]),  # blocked 3 days
             ],
         ),
+        Issue("A-5",
+            summary="Moved back not Flagged",
+            issuetype=Value("Story", "story"),
+            status=Value("QA", "test"),
+            resolution=None,
+            resolutiondate=None,
+            created="2018-01-04 01:01:01",
+            customfield_001="Team 1",
+            customfield_002=Value(None, 30),
+            customfield_003=Value(None, []),
+            customfield_100=None,
+            changes=[
+                Change("2018-01-05 01:01:01", [("status", "Backlog", "Next",)]),
+                Change("2018-01-06 01:01:01", [("status", "Next", "Build",)]),
+                Change("2018-01-07 01:01:01", [("status", "Build", "Next",)]),
+                Change("2018-01-08 01:01:01", [("status", "Next", "Build",)]),
+                Change("2018-01-09 01:01:01", [("status", "Build", "QA",)]),
+            ],
+        ),
     ])
 
 @pytest.fixture
@@ -231,5 +250,27 @@ def test_movement(jira, settings):
         'Committed': Timestamp('2018-01-04 00:00:00'),
         'Build': NaT,
         'Test': NaT,
+        'Done': NaT,
+    }, {
+        'key': 'A-5',
+        'url': 'https://example.org/browse/A-5',
+        'summary': 'Moved back not Flagged',
+        'issue_type': 'Story',
+        'status': 'QA',
+        'resolution': None,
+
+        'Estimate': 30,
+        'Release': 'None',
+        'Team': 'Team 1',
+        
+        'completed_timestamp': NaT,
+        'cycle_time': NaT,
+        'blocked_days': 0,
+        'impediments': [],
+
+        'Backlog': Timestamp('2018-01-04 00:00:00'),
+        'Committed': Timestamp('2018-01-05 00:00:00'),
+        'Build': Timestamp('2018-01-08 00:00:00'),
+        'Test': Timestamp('2018-01-09 00:00:00'),
         'Done': NaT,
     }]

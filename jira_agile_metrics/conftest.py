@@ -265,7 +265,8 @@ def large_cycle_time_results(minimal_cycle_time_columns):
             dict(Backlog=_ts('2018-01-01'), Committed=_ts('2018-01-03'), Build=NaT,               Test=NaT,               Done=NaT),
 
             # three issues in build
-            dict(Backlog=_ts('2018-01-01'), Committed=_ts('2018-01-02'), Build=_ts('2018-01-03'), Test=NaT,               Done=NaT),
+            # first case we skipped the Committed state, direct to build
+            dict(Backlog=_ts('2018-01-01'), Committed=NaT, Build=_ts('2018-01-02'), Test=NaT,               Done=NaT),
             dict(Backlog=_ts('2018-01-01'), Committed=_ts('2018-01-02'), Build=_ts('2018-01-04'), Test=NaT,               Done=NaT),
             dict(Backlog=_ts('2018-01-01'), Committed=_ts('2018-01-02'), Build=_ts('2018-01-04'), Test=NaT,               Done=NaT),
 
