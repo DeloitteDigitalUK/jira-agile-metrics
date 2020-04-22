@@ -114,3 +114,10 @@ class AgeingWIPChartCalculator(Calculator):
         logger.info("Writing ageing WIP chart to %s", output_file)
         fig.savefig(output_file, bbox_inches='tight', dpi=300)
         plt.close(fig)
+
+        # Write csv data
+        csv_output_file = 'ageingwip.csv'
+        logger.info("Writing WIP data to %s", csv_output_file)
+        chart_data = chart_data.sort_values(by='age', ascending=False)
+        chart_data.to_csv(csv_output_file)
+        
