@@ -139,4 +139,5 @@ def get_jira_client(connection):
 
     options.update(jira_client_options)
 
-    return JIRA(options, basic_auth=(username, password), proxies=proxies, get_server_info=jira_server_version_check)
+    logger.info("Running with async request to run faster")
+    return JIRA(options, async_=True, basic_auth=(username, password), proxies=proxies, get_server_info=jira_server_version_check)

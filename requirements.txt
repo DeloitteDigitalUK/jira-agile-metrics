@@ -13,3 +13,4 @@ pydicti
 openpyxl
 flask
 Jinja2
+requests_futures
