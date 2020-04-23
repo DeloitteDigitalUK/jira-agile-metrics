@@ -89,10 +89,6 @@ class AgeingWIPChartCalculator(Calculator):
 
         chart_data = self.get_result()
 
-        if len(chart_data.index) == 0:
-            logger.warning("Unable to draw ageing WIP chart with zero completed items")
-            return
-
         fig, ax = plt.subplots()
         
         if self.settings['ageing_wip_chart_title']:
