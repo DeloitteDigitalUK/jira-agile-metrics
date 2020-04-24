@@ -107,7 +107,6 @@ def test_calculate_wip_different_columns(query_manager, settings, results):
         Timestamp('2018-01-09 00:00:00', freq='D')
     ]
 
-    print(data)
     assert data.to_dict('records') == [
         {'wip': 0.0},
         {'wip': 9.0},
