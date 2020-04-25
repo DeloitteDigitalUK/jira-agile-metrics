@@ -17,18 +17,11 @@ class WIPChartCalculator(Calculator):
         cfd_data = self.get_result(CFDCalculator)
         cycle_names = [s['name'] for s in self.settings['cycle']]
 
-        start_column = self.settings['committed_column']
+        committed_column = self.settings['committed_column']
         done_column = self.settings['done_column']
 
-        if start_column not in cycle_names:
-            logger.error("Committed column %s does not exist", start_column)
-            return None
-        if done_column not in cycle_names:
-            logger.error("Done column %s does not exist", done_column)
-            return None
-        
-        return pd.DataFrame({'wip': cfd_data[start_column] - cfd_data[done_column]}, index=cfd_data.index)
-    
+        return pd.DataFrame({'wip': cfd_data[committed_column] - cfd_data[done_column]}, index=cfd_data.index)
+
     def write(self):
         output_file = self.settings['wip_chart']
         if not output_file:
@@ -42,7 +35,7 @@ class WIPChartCalculator(Calculator):
             return
 
         fig, ax = plt.subplots()
-        
+
         if self.settings['wip_chart_title']:
             ax.set_title(self.settings['wip_chart_title'])
 

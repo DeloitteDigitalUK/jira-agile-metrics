@@ -24,19 +24,9 @@ class AgeingWIPChartCalculator(Calculator):
         cycle_data = self.get_result(CycleTimeCalculator)
         cycle_names = [s['name'] for s in self.settings['cycle']]
 
-        start_column = self.settings['committed_column']
-        end_column = self.settings['final_column']
+        committed_column = self.settings['committed_column']
         done_column = self.settings['done_column']
-        
-        if start_column not in cycle_names:
-            logger.error("Committed column %s does not exist", start_column)
-            return None
-        if end_column not in cycle_names:
-            logger.error("Final column %s does not exist", end_column)
-            return None
-        if done_column not in cycle_names:
-            logger.error("Done column %s does not exist", done_column)
-            return None
+        last_active_column = cycle_names[cycle_names.index(done_column)-1]
 
         today = pd.Timestamp.now().date() if today is None else today  # to allow testing
 
@@ -51,9 +41,9 @@ class AgeingWIPChartCalculator(Calculator):
             return last_valid
 
         def extract_age(row):
-            if start_column not in row:
+            if committed_column not in row:
                 return np.NaN
-            started = row[start_column]
+            started = row[committed_column]
             if pd.isnull(started):
                 return np.NaN
             return (today - started.date()).days
@@ -67,11 +57,11 @@ class AgeingWIPChartCalculator(Calculator):
         # reorder columns so we get key, summary, status, age, and then all the cycle stages
         ageing_wip_data = pd.concat((
             ageing_wip_data[['key', 'summary', 'status', 'age']],
-            ageing_wip_data.loc[:, start_column:end_column]
+            ageing_wip_data.loc[:, committed_column:last_active_column]
         ), axis=1)
 
         return ageing_wip_data
-    
+
     def write(self):
         output_file = self.settings['ageing_wip_chart']
         if not output_file:
@@ -85,7 +75,7 @@ class AgeingWIPChartCalculator(Calculator):
             return
 
         fig, ax = plt.subplots()
-        
+
         if self.settings['ageing_wip_chart_title']:
             ax.set_title(self.settings['ageing_wip_chart_title'])
 
