@@ -149,7 +149,7 @@ class DefectsCalculator(Calculator):
             ax.set_xlabel("Month", labelpad=20)
 
 
-        set_chart_style()
+        # set_chart_style()
 
         # Write file
         logger.info("Writing defects by priority chart to %s", output_file)
@@ -190,7 +190,7 @@ class DefectsCalculator(Calculator):
             ax.set_xticklabels(labels, rotation=90, size='small')
             ax.set_xlabel("Month", labelpad=20)
 
-        set_chart_style()
+        # set_chart_style()
 
         # Write file
         logger.info("Writing defects by type chart to %s", output_file)
@@ -230,7 +230,7 @@ class DefectsCalculator(Calculator):
             ax.set_xticklabels(labels, rotation=90, size='small')
             ax.set_xlabel("Month", labelpad=20)
 
-        set_chart_style()
+        # set_chart_style()
 
         # Write file
         logger.info("Writing defects by environment chart to %s", output_file)
@@ -273,7 +273,7 @@ class DefectsCalculator(Calculator):
         # labels = breakdown.index
         # ax.set_xticklabels(labels, rotation=90, size='small')
 
-        set_chart_style()
+        # set_chart_style()
         if team.find("/") !=-1:
             team=team.replace("/","_")
         # Write file
