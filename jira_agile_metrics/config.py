@@ -212,7 +212,7 @@ def config_to_options(data, cwd=None, extended=False):
             'defects_environment_field': None,
             'defects_environment_values': None,
             'defects_fixversion_field': None,
-            'defects_fixversion_label': None,
+            'defects_fixversion_label': 'Month',
             'defects_team_field': None,
             'defects_team_label': None,
 

@@ -5,7 +5,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 
 from ..calculator import Calculator
-from ..utils import breakdown_by_month
+from ..utils import breakdown_by_month, set_chart_style
 
 logger = logging.getLogger(__name__)
 
@@ -90,7 +90,8 @@ class DefectsCalculator(Calculator):
 
     def write(self):
         chart_data = self.get_result()
-        fixversion_field = self.settings['defects_fixversion_field']
+        # fixversion_field_choice = self.settings['defects_fixversion_label']
+        # print(fixversion_field_choice)
         x_label=self.settings['defects_fixversion_label']
         team_values = self.settings['defects_team_values']
         if chart_data is None:
@@ -101,24 +102,30 @@ class DefectsCalculator(Calculator):
             return
 
         if self.settings['defects_by_priority_chart']:
-            self.write_defects_by_priority_chart(chart_data, self.settings['defects_by_priority_chart'],fixversion_field,x_label)
+            self.write_defects_by_priority_chart(chart_data, self.settings['defects_by_priority_chart'],x_label)
 
         if self.settings['defects_by_type_chart']:
-            self.write_defects_by_type_chart(chart_data, self.settings['defects_by_type_chart'],fixversion_field,x_label)
+            self.write_defects_by_type_chart(chart_data, self.settings['defects_by_type_chart'],x_label)
 
         if self.settings['defects_by_environment_chart']:
-            self.write_defects_by_environment_chart(chart_data, self.settings['defects_by_environment_chart'],fixversion_field,x_label)
+            self.write_defects_by_environment_chart(chart_data, self.settings['defects_by_environment_chart'],x_label)
 
         if self.settings['defects_by_team_chart']:
             for team in team_values:
-                self.write_defects_by_team_chart(chart_data, self.settings['defects_by_team_chart'],fixversion_field,x_label,team)
+                sorted_df= chart_data.copy()
+                sorted_df.drop(sorted_df[sorted_df['team'] != team].index, inplace = True) 
+                # sc.sort_values("team", inplace = True)
+                # print(sc)
+                if sorted_df.empty:
+                    continue
+                self.write_defects_by_team_chart(sorted_df, self.settings['defects_by_team_chart'],x_label,team)
 
-    def write_defects_by_priority_chart(self, chart_data, output_file,fixversion_field,x_label):
+    def write_defects_by_priority_chart(self, chart_data, output_file,x_label):
         window = self.settings['defects_window']
         priority_values = self.settings['defects_priority_values']
 
 
-        if fixversion_field:
+        if x_label !='Month':
             breakdown = chart_data.pivot_table(index=['fixversion'],values='key',columns=['priority'],aggfunc='count')
         else:
             breakdown = breakdown_by_month(chart_data, 'created', 'resolved', 'key', 'priority', priority_values)
@@ -143,7 +150,7 @@ class DefectsCalculator(Calculator):
         ax.set_xlabel(x_label, labelpad=20)
         ax.set_ylabel("Number of Defects", labelpad=10)
 
-        if not fixversion_field:
+        if x_label =='Month':
             labels = [d.strftime("%b %y") for d in breakdown.index]
             ax.set_xticklabels(labels, rotation=90, size='small')
             ax.set_xlabel("Month", labelpad=20)
@@ -156,13 +163,11 @@ class DefectsCalculator(Calculator):
         fig.savefig(output_file, bbox_inches='tight', dpi=300)
         plt.close(fig)
 
-    def write_defects_by_type_chart(self, chart_data, output_file,fixversion_field,x_label):
+    def write_defects_by_type_chart(self, chart_data, output_file,x_label):
         window = self.settings['defects_window']
         type_values = self.settings['defects_type_values']
-        # print("Chart Data \n"+chart_data)
-        # breakdown = breakdown_by_month(chart_data, 'created', 'resolved', 'key', 'type', type_values)
-
-        if fixversion_field:
+       
+        if x_label !='Month':
             breakdown = chart_data.pivot_table(index=['fixversion'],values='key',columns=['type'],aggfunc='count')
         else:
             breakdown = breakdown_by_month(chart_data, 'created', 'resolved', 'key', 'type', type_values)
@@ -185,7 +190,7 @@ class DefectsCalculator(Calculator):
         ax.set_xlabel(x_label, labelpad=20)
         ax.set_ylabel("Number of Defects", labelpad=10)
 
-        if not fixversion_field:
+        if  x_label =='Month':
             labels = [d.strftime("%b %y") for d in breakdown.index]
             ax.set_xticklabels(labels, rotation=90, size='small')
             ax.set_xlabel("Month", labelpad=20)
@@ -197,12 +202,12 @@ class DefectsCalculator(Calculator):
         fig.savefig(output_file, bbox_inches='tight', dpi=300)
         plt.close(fig)
 
-    def write_defects_by_environment_chart(self, chart_data, output_file,fixversion_field,x_label):
+    def write_defects_by_environment_chart(self, chart_data, output_file,x_label):
         window = self.settings['defects_window']
         environment_values = self.settings['defects_environment_values']
 
 
-        if fixversion_field:
+        if x_label !='Month':
             breakdown = chart_data.pivot_table(index=['fixversion'],values='key',columns=['environment'],aggfunc='count')
         else:
             breakdown = breakdown_by_month(chart_data, 'created', 'resolved', 'key', 'environment', environment_values)
@@ -225,7 +230,7 @@ class DefectsCalculator(Calculator):
         ax.set_xlabel(x_label, labelpad=20)
         ax.set_ylabel("Number of Defects", labelpad=10)
 
-        if not fixversion_field:
+        if x_label =='Month':
             labels = [d.strftime("%b %y") for d in breakdown.index]
             ax.set_xticklabels(labels, rotation=90, size='small')
             ax.set_xlabel("Month", labelpad=20)
@@ -237,20 +242,17 @@ class DefectsCalculator(Calculator):
         fig.savefig(output_file, bbox_inches='tight', dpi=300)
         plt.close(fig)
 
-    def write_defects_by_team_chart(self, chart_data, output_file,fixversion_field,x_label,team):
+    def write_defects_by_team_chart(self, sorted_df, output_file,x_label,team):
         window = self.settings['defects_window']
-        sc= chart_data.copy()
-        sc.sort_values(by=['team'])
-        # sc = sc.loc['team']
-        # making boolean series for a team name
-        filter = sc['team']==team
-        # filtering data
-        sc.where(filter, inplace = True)
-        # sc.sort_values("team", inplace = True)
+        priority_values = self.settings['defects_priority_values']
+              
 
-        # breakdown = breakdown_by_fixversion(chart_data,'fixversion','key', 'priority' ,fixversion_values)
-        breakdown = sc.pivot_table(index=['fixversion'],values='key',columns=['priority'],aggfunc='count')
-        # print(breakdown)
+        if x_label !='Month':
+            breakdown = sorted_df.pivot_table(index=['fixversion'],values='key',columns=['priority'],aggfunc='count')
+        else:
+            breakdown = breakdown_by_month(sorted_df, 'created', 'resolved', 'key', 'priority', priority_values)
+
+        
         if window:
             breakdown = breakdown[-window:]
 
@@ -259,10 +261,8 @@ class DefectsCalculator(Calculator):
             return
 
         fig, ax = plt.subplots()
-        # y_pos = np.arange(len('fixversion'))
         breakdown.plot.bar(ax=ax, stacked=True)
-        # ax.barh(y_pos, performance, xerr=T, align='center')
-
+        
         if self.settings['defects_by_team_chart_title']:
             ax.set_title(self.settings['defects_by_team_chart_title']+"- "+team)
 
@@ -270,6 +270,10 @@ class DefectsCalculator(Calculator):
         ax.set_xlabel("Team - "+team, labelpad=20)
         ax.set_ylabel("Number of Defects", labelpad=10)
 
+        if  x_label =='Month':
+            labels = [d.strftime("%b %y") for d in breakdown.index]
+            ax.set_xticklabels(labels, rotation=90, size='small')
+            ax.set_xlabel("Month", labelpad=20)
         # labels = breakdown.index
         # ax.set_xticklabels(labels, rotation=90, size='small')
 
@@ -277,6 +281,7 @@ class DefectsCalculator(Calculator):
         if team.find("/") !=-1:
             team=team.replace("/","_")
         # Write file
+        output_file= output_file.format(team)
         logger.info("Writing defects by fix fixVersion chart to %s", output_file)
-        fig.savefig('defects-by-team-'+team+'.png', bbox_inches='tight', dpi=300)
+        fig.savefig(output_file, bbox_inches='tight', dpi=300)
         plt.close(fig)

@@ -18,6 +18,8 @@ def fields(minimal_fields):
         {'id': 'priority',  'name': 'Priority'},
         {'id': 'customfield_001',  'name': 'Environment'},
         {'id': 'customfield_002',  'name': 'Defect type'},
+        {'id': 'team',  'name': 'Team'},
+        {'id': 'fixversion',  'name': 'Fix version/s'},
     ]
 
 @pytest.fixture
@@ -31,6 +33,12 @@ def settings(minimal_settings):
         'defects_type_values': ['Config', 'Data', 'Code'],
         'defects_environment_field': 'Environment',
         'defects_environment_values': ['SIT', 'UAT', 'PROD'],
+        
+        'defects_team_field': 'Team',
+        'defects_team_label': 'Team',
+        'defects_team_values': ['Team 1','Team 2'] ,
+        'defects_fixversion_field': 'Fix version/s',
+        'defects_fixversion_label': 'Release',
 
         'defects_by_priority_chart': 'defects-by-priority.png',
         'defects_by_priority_chart_title': 'Defects by priority',
@@ -38,6 +46,8 @@ def settings(minimal_settings):
         'defects_by_type_chart_title': 'Defects by type',
         'defects_by_environment_chart': 'defects-by-environment.png',
         'defects_by_environment_chart_title': 'Defects by environment',
+        'defects_by_team_chart': 'defects-by-team.png',
+        'defects_by_team_chart_title': 'Defects by team',
     })
 
 @pytest.fixture
@@ -54,6 +64,8 @@ def jira(fields):
             customfield_001=Value(None, "PROD"),
             customfield_002=Value(None, "Config"),
             changes=[],
+            team=Value(None, "Team 1"),
+            fixversion=Value(None, "Sprint 1"),
         ),
         Issue("D-2",
             summary="Debt 2",
@@ -66,6 +78,8 @@ def jira(fields):
             customfield_001=Value(None, "SIT"),
             customfield_002=Value(None, "Config"),
             changes=[],
+            team=Value(None, "Team 1"),
+            fixversion=Value(None, "Sprint 1"),
         ),
         Issue("D-3",
             summary="Debt 3",
@@ -78,6 +92,8 @@ def jira(fields):
             customfield_001=Value(None, "UAT"),
             customfield_002=Value(None, "Config"),
             changes=[],
+            team=Value(None, "Team 2"),
+            fixversion=Value(None, "Sprint 2"),
         ),
         Issue("D-4",
             summary="Debt 4",
@@ -90,6 +106,8 @@ def jira(fields):
             customfield_001=Value(None, "PROD"),
             customfield_002=Value(None, "Data"),
             changes=[],
+            team=Value(None, "Team 2"),
+            fixversion=Value(None, "Sprint 2"),
         ),
         Issue("D-5",
             summary="Debt 5",
@@ -102,6 +120,8 @@ def jira(fields):
             customfield_001=Value(None, "SIT"),
             customfield_002=Value(None, "Data"),
             changes=[],
+            team=Value(None, "Team 1"),
+            fixversion=Value(None, "Sprint 1"),
         ),
         Issue("D-6",
             summary="Debt 6",
@@ -114,6 +134,8 @@ def jira(fields):
             customfield_001=Value(None, "UAT"),
             customfield_002=Value(None, "Data"),
             changes=[],
+            team=Value(None, "Team 2"),
+            fixversion=Value(None, "Sprint 2"),
         ),
     ])
 
@@ -135,7 +157,7 @@ def test_columns(jira, settings):
 
     data = calculator.run()
 
-    assert list(data.columns) == ['key', 'priority', 'type', 'environment', 'created', 'resolved']
+    assert list(data.columns) == ['key', 'priority', 'type', 'environment', 'created', 'resolved','fixversion','team']
 
 def test_empty(fields, settings):
     jira = JIRA(fields=fields, issues=[])
@@ -156,12 +178,12 @@ def test_breakdown(jira, settings):
     data = calculator.run()
 
     assert data.to_dict('records') == [
-        {'key': 'D-1', 'created': Timestamp('2018-01-01 01:01:01'), 'resolved': Timestamp('2018-03-20 02:02:02'), 'priority': 'High',   'environment': 'PROD', 'type': 'Config'},
-        {'key': 'D-2', 'created': Timestamp('2018-01-02 01:01:01'), 'resolved': Timestamp('2018-01-20 02:02:02'), 'priority': 'Medium', 'environment': 'SIT',  'type': 'Config'},
-        {'key': 'D-3', 'created': Timestamp('2018-02-03 01:01:01'), 'resolved': Timestamp('2018-03-20 02:02:02'), 'priority': 'High',   'environment': 'UAT',  'type': 'Config'},
-        {'key': 'D-4', 'created': Timestamp('2018-01-04 01:01:01'), 'resolved': NaT,                              'priority': 'Medium', 'environment': 'PROD', 'type': 'Data'},
-        {'key': 'D-5', 'created': Timestamp('2018-02-05 01:01:01'), 'resolved': Timestamp('2018-02-20 02:02:02'), 'priority': 'High',   'environment': 'SIT',  'type': 'Data'},
-        {'key': 'D-6', 'created': Timestamp('2018-03-06 01:01:01'), 'resolved': NaT,                              'priority': 'Medium', 'environment': 'UAT',  'type': 'Data'},
+        {'key': 'D-1', 'created': Timestamp('2018-01-01 01:01:01'), 'resolved': Timestamp('2018-03-20 02:02:02'), 'priority': 'High',   'environment': 'PROD', 'type': 'Config','team' : 'Team 1','fixversion' :'Sprint 1'},
+        {'key': 'D-2', 'created': Timestamp('2018-01-02 01:01:01'), 'resolved': Timestamp('2018-01-20 02:02:02'), 'priority': 'Medium', 'environment': 'SIT',  'type': 'Config','team' : 'Team 1','fixversion' : 'Sprint 1'},
+        {'key': 'D-3', 'created': Timestamp('2018-02-03 01:01:01'), 'resolved': Timestamp('2018-03-20 02:02:02'), 'priority': 'High',   'environment': 'UAT',  'type': 'Config','team' : 'Team 2','fixversion' : 'Sprint 2'},
+        {'key': 'D-4', 'created': Timestamp('2018-01-04 01:01:01'), 'resolved': NaT,                              'priority': 'Medium', 'environment': 'PROD', 'type': 'Data','team' : 'Team 2','fixversion' : 'Sprint 2'},
+        {'key': 'D-5', 'created': Timestamp('2018-02-05 01:01:01'), 'resolved': Timestamp('2018-02-20 02:02:02'), 'priority': 'High',   'environment': 'SIT',  'type': 'Data','team' : 'Team 1','fixversion' : 'Sprint 1'},
+        {'key': 'D-6', 'created': Timestamp('2018-03-06 01:01:01'), 'resolved': NaT,                              'priority': 'Medium', 'environment': 'UAT',  'type': 'Data','team' : 'Team 2','fixversion' : 'Sprint 2'},
     ]
 
 
@@ -177,12 +199,12 @@ def test_no_priority_field(jira, settings):
     data = calculator.run()
 
     assert data.to_dict('records') == [
-        {'key': 'D-1', 'created': Timestamp('2018-01-01 01:01:01'), 'resolved': Timestamp('2018-03-20 02:02:02'), 'priority': None, 'environment': 'PROD', 'type': 'Config'},
-        {'key': 'D-2', 'created': Timestamp('2018-01-02 01:01:01'), 'resolved': Timestamp('2018-01-20 02:02:02'), 'priority': None, 'environment': 'SIT',  'type': 'Config'},
-        {'key': 'D-3', 'created': Timestamp('2018-02-03 01:01:01'), 'resolved': Timestamp('2018-03-20 02:02:02'), 'priority': None, 'environment': 'UAT',  'type': 'Config'},
-        {'key': 'D-4', 'created': Timestamp('2018-01-04 01:01:01'), 'resolved': NaT,                              'priority': None, 'environment': 'PROD', 'type': 'Data'},
-        {'key': 'D-5', 'created': Timestamp('2018-02-05 01:01:01'), 'resolved': Timestamp('2018-02-20 02:02:02'), 'priority': None, 'environment': 'SIT',  'type': 'Data'},
-        {'key': 'D-6', 'created': Timestamp('2018-03-06 01:01:01'), 'resolved': NaT,                              'priority': None, 'environment': 'UAT',  'type': 'Data'},
+        {'key': 'D-1', 'created': Timestamp('2018-01-01 01:01:01'), 'resolved': Timestamp('2018-03-20 02:02:02'), 'priority': None, 'environment': 'PROD', 'type': 'Config','team' : 'Team 1','fixversion' : 'Sprint 1'},
+        {'key': 'D-2', 'created': Timestamp('2018-01-02 01:01:01'), 'resolved': Timestamp('2018-01-20 02:02:02'), 'priority': None, 'environment': 'SIT',  'type': 'Config','team' : 'Team 1','fixversion' : 'Sprint 1'},
+        {'key': 'D-3', 'created': Timestamp('2018-02-03 01:01:01'), 'resolved': Timestamp('2018-03-20 02:02:02'), 'priority': None, 'environment': 'UAT',  'type': 'Config','team' : 'Team 2','fixversion' : 'Sprint 2'},
+        {'key': 'D-4', 'created': Timestamp('2018-01-04 01:01:01'), 'resolved': NaT,                              'priority': None, 'environment': 'PROD', 'type': 'Data','team' : 'Team 2','fixversion' : 'Sprint 2'},
+        {'key': 'D-5', 'created': Timestamp('2018-02-05 01:01:01'), 'resolved': Timestamp('2018-02-20 02:02:02'), 'priority': None, 'environment': 'SIT',  'type': 'Data','team' : 'Team 1','fixversion' : 'Sprint 1'},
+        {'key': 'D-6', 'created': Timestamp('2018-03-06 01:01:01'), 'resolved': NaT,                              'priority': None, 'environment': 'UAT',  'type': 'Data','team' : 'Team 2','fixversion' : 'Sprint 2'},
     ]
 
 def test_no_type_field(jira, settings):
@@ -197,12 +219,12 @@ def test_no_type_field(jira, settings):
     data = calculator.run()
 
     assert data.to_dict('records') == [
-        {'key': 'D-1', 'created': Timestamp('2018-01-01 01:01:01'), 'resolved': Timestamp('2018-03-20 02:02:02'), 'priority': 'High',   'environment': 'PROD', 'type': None},
-        {'key': 'D-2', 'created': Timestamp('2018-01-02 01:01:01'), 'resolved': Timestamp('2018-01-20 02:02:02'), 'priority': 'Medium', 'environment': 'SIT',  'type': None},
-        {'key': 'D-3', 'created': Timestamp('2018-02-03 01:01:01'), 'resolved': Timestamp('2018-03-20 02:02:02'), 'priority': 'High',   'environment': 'UAT',  'type': None},
-        {'key': 'D-4', 'created': Timestamp('2018-01-04 01:01:01'), 'resolved': NaT,                              'priority': 'Medium', 'environment': 'PROD', 'type': None},
-        {'key': 'D-5', 'created': Timestamp('2018-02-05 01:01:01'), 'resolved': Timestamp('2018-02-20 02:02:02'), 'priority': 'High',   'environment': 'SIT',  'type': None},
-        {'key': 'D-6', 'created': Timestamp('2018-03-06 01:01:01'), 'resolved': NaT,                              'priority': 'Medium', 'environment': 'UAT',  'type': None},
+        {'key': 'D-1', 'created': Timestamp('2018-01-01 01:01:01'), 'resolved': Timestamp('2018-03-20 02:02:02'), 'priority': 'High',   'environment': 'PROD', 'type': None,'team' : 'Team 1','fixversion' : 'Sprint 1'},
+        {'key': 'D-2', 'created': Timestamp('2018-01-02 01:01:01'), 'resolved': Timestamp('2018-01-20 02:02:02'), 'priority': 'Medium', 'environment': 'SIT',  'type': None,'team' : 'Team 1','fixversion' : 'Sprint 1'},
+        {'key': 'D-3', 'created': Timestamp('2018-02-03 01:01:01'), 'resolved': Timestamp('2018-03-20 02:02:02'), 'priority': 'High',   'environment': 'UAT',  'type': None,'team' : 'Team 2','fixversion' : 'Sprint 2'},
+        {'key': 'D-4', 'created': Timestamp('2018-01-04 01:01:01'), 'resolved': NaT,                              'priority': 'Medium', 'environment': 'PROD', 'type': None,'team' : 'Team 2','fixversion' : 'Sprint 2'},
+        {'key': 'D-5', 'created': Timestamp('2018-02-05 01:01:01'), 'resolved': Timestamp('2018-02-20 02:02:02'), 'priority': 'High',   'environment': 'SIT',  'type': None,'team' : 'Team 1','fixversion' : 'Sprint 1'},
+        {'key': 'D-6', 'created': Timestamp('2018-03-06 01:01:01'), 'resolved': NaT,                              'priority': 'Medium', 'environment': 'UAT',  'type': None,'team' : 'Team 2','fixversion' : 'Sprint 2'},
     ]
 
 def test_no_environment_field(jira, settings):
@@ -217,10 +239,30 @@ def test_no_environment_field(jira, settings):
     data = calculator.run()
 
     assert data.to_dict('records') == [
-        {'key': 'D-1', 'created': Timestamp('2018-01-01 01:01:01'), 'resolved': Timestamp('2018-03-20 02:02:02'), 'priority': 'High',   'environment': None, 'type': 'Config'},
-        {'key': 'D-2', 'created': Timestamp('2018-01-02 01:01:01'), 'resolved': Timestamp('2018-01-20 02:02:02'), 'priority': 'Medium', 'environment': None, 'type': 'Config'},
-        {'key': 'D-3', 'created': Timestamp('2018-02-03 01:01:01'), 'resolved': Timestamp('2018-03-20 02:02:02'), 'priority': 'High',   'environment': None, 'type': 'Config'},
-        {'key': 'D-4', 'created': Timestamp('2018-01-04 01:01:01'), 'resolved': NaT,                              'priority': 'Medium', 'environment': None, 'type': 'Data'},
-        {'key': 'D-5', 'created': Timestamp('2018-02-05 01:01:01'), 'resolved': Timestamp('2018-02-20 02:02:02'), 'priority': 'High',   'environment': None, 'type': 'Data'},
-        {'key': 'D-6', 'created': Timestamp('2018-03-06 01:01:01'), 'resolved': NaT,                              'priority': 'Medium', 'environment': None, 'type': 'Data'},
+        {'key': 'D-1', 'created': Timestamp('2018-01-01 01:01:01'), 'resolved': Timestamp('2018-03-20 02:02:02'), 'priority': 'High',   'environment': None, 'type': 'Config','team' : 'Team 1','fixversion' : 'Sprint 1'},
+        {'key': 'D-2', 'created': Timestamp('2018-01-02 01:01:01'), 'resolved': Timestamp('2018-01-20 02:02:02'), 'priority': 'Medium', 'environment': None, 'type': 'Config','team' : 'Team 1','fixversion' : 'Sprint 1'},
+        {'key': 'D-3', 'created': Timestamp('2018-02-03 01:01:01'), 'resolved': Timestamp('2018-03-20 02:02:02'), 'priority': 'High',   'environment': None, 'type': 'Config','team' : 'Team 2','fixversion' : 'Sprint 2'},
+        {'key': 'D-4', 'created': Timestamp('2018-01-04 01:01:01'), 'resolved': NaT,                              'priority': 'Medium', 'environment': None, 'type': 'Data','team' : 'Team 2','fixversion' : 'Sprint 2'},
+        {'key': 'D-5', 'created': Timestamp('2018-02-05 01:01:01'), 'resolved': Timestamp('2018-02-20 02:02:02'), 'priority': 'High',   'environment': None, 'type': 'Data','team' : 'Team 1','fixversion' : 'Sprint 1'},
+        {'key': 'D-6', 'created': Timestamp('2018-03-06 01:01:01'), 'resolved': NaT,                              'priority': 'Medium', 'environment': None, 'type': 'Data','team' : 'Team 2','fixversion' : 'Sprint 2'},
+    ]
+
+def test_no_team_field(jira, settings):
+    settings = extend_dict(settings, {
+        'defects_team_field': None
+    })
+
+    query_manager = QueryManager(jira, settings)
+    results = {}
+    calculator = DefectsCalculator(query_manager, settings, results)
+
+    data = calculator.run()
+
+    assert data.to_dict('records') == [
+        {'key': 'D-1', 'created': Timestamp('2018-01-01 01:01:01'), 'resolved': Timestamp('2018-03-20 02:02:02'), 'priority': 'High',   'environment': None, 'type': 'Config','team' : None,'fixversion' : 'Sprint 1'},
+        {'key': 'D-2', 'created': Timestamp('2018-01-02 01:01:01'), 'resolved': Timestamp('2018-01-20 02:02:02'), 'priority': 'Medium', 'environment': None, 'type': 'Config','team' : None,'fixversion' : 'Sprint 1'},
+        {'key': 'D-3', 'created': Timestamp('2018-02-03 01:01:01'), 'resolved': Timestamp('2018-03-20 02:02:02'), 'priority': 'High',   'environment': None, 'type': 'Config','team' : None, 'fixversion' : 'Sprint 2'},
+        {'key': 'D-4', 'created': Timestamp('2018-01-04 01:01:01'), 'resolved': NaT,                              'priority': 'Medium', 'environment': None, 'type': 'Data','team' : None ,'fixversion' : 'Sprint 2'},
+        {'key': 'D-5', 'created': Timestamp('2018-02-05 01:01:01'), 'resolved': Timestamp('2018-02-20 02:02:02'), 'priority': 'High',   'environment': None, 'type': 'Data','team' : None ,'fixversion' : 'Sprint 1'},
+        {'key': 'D-6', 'created': Timestamp('2018-03-06 01:01:01'), 'resolved': NaT,                              'priority': 'Medium', 'environment': None, 'type': 'Data','team' : None,'fixversion' : 'Sprint 2'},
     ]

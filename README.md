@@ -698,13 +698,42 @@ showing the six most recent months in each:
         - SIT
         - UAT
         - PROD
+   
+   # Defect density  Segregated by Sprints
+   
+   Following are the configuraitons for creating defect report charts by Sprint.
+    
+    # Configuration for Defects charted on the basis of Sprints. 
+    # configuraiton take values like Fixversion, Sprint etc.Default is Fix Version/s
+    # Fixversion label acts as choice flag.
+    # Default is Monthly and other values like Sprint, Release acts as flag to chart using Release
+    
+    Defects fixversion field: Fix version/s
+    Defects fixversion label: Release
 
+    # Configuraiton for charting Defect density for individual team. 
+    #  Example team values are Team, Components/s etc
+    Defects team field: Component/s
+    Defects team label: Team
+
+  # Defect density  Segregated by team.
+
+    Defects team field: Component/s
+    Defects team label: Team
+    Defects team values:
+        - Team 1
+        - Team 2
+    
     Defects by priority chart: defects-by-priority.png
     Defects by priority chart title: Defects by priority
     Defects by type chart: defects-by-type.png
     Defects by type chart title: Defects by type
     Defects by environment chart: defects-by-environment.png
     Defects by environment chart title: Defects by environment
+    
+    #provide {} which would capture the team names provided in the configuration.
+    Defects by team chart: defects-by-team 
+    Defects by team chart title: Defects by team
 
 If you omit any of the chart names, the relevant chart will not be produced. If
 you omit any of the field names, the relevant chart will not be stacked. If you
