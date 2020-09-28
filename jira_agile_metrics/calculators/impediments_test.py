@@ -50,7 +50,7 @@ def cycle_time_results(minimal_cycle_time_columns):
             ]),
         ]), columns=minimal_cycle_time_columns)
     }
-    
+
 def test_only_runs_if_charts_set(query_manager, settings, cycle_time_results):
     test_settings = extend_dict(settings, {
         'impediments_data': None,
@@ -155,13 +155,13 @@ def test_calculate_impediments(query_manager, settings, cycle_time_results):
 def test_different_backlog_column(query_manager, settings, cycle_time_results):
     settings = extend_dict(settings, {
         'backlog_column': 'Committed',
+        'committed_column': 'Build',
     })
     calculator = ImpedimentsCalculator(query_manager, settings, cycle_time_results)
 
     data = calculator.run()
 
     assert data.to_dict('records') == [
-        {'key': 'A-2', 'status': 'Backlog', 'flag': 'Impediment', 'start': _ts('2018-01-05'), 'end': _ts('2018-01-07')},
         {'key': 'A-3', 'status': 'Build',   'flag': 'Impediment', 'start': _ts('2018-01-04'), 'end': _ts('2018-01-05')},
     ]
 
@@ -175,6 +175,5 @@ def test_different_done_column(query_manager, settings, cycle_time_results):
 
     assert data.to_dict('records') == [
         {'key': 'A-2', 'status': 'Committed', 'flag': 'Impediment',     'start': _ts('2018-01-10'), 'end': _ts('2018-01-12')},
-        {'key': 'A-3', 'status': 'Done',      'flag': 'Impediment',     'start': _ts('2018-01-07'), 'end': _ts('2018-01-10')},
         {'key': 'A-4', 'status': 'Committed', 'flag': 'Awaiting input', 'start': _ts('2018-01-05'), 'end': NaT},
     ]

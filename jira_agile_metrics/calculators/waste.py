@@ -24,8 +24,10 @@ class WasteCalculator(Calculator):
             logger.debug("Not calculating waste chart data as no query specified")
             return None
 
-        backlog_column = self.settings['backlog_column']
+        cycle_names = [s['name'] for s in self.settings['cycle']]
+        committed_column = self.settings['committed_column']
         done_column = self.settings['done_column']
+        active_columns = cycle_names[cycle_names.index(committed_column):cycle_names.index(done_column)]
 
         cycle_lookup = {}
         for idx, cycle_step in enumerate(self.settings['cycle']):
@@ -33,7 +35,6 @@ class WasteCalculator(Calculator):
                 cycle_lookup[status.lower()] = dict(
                     index=idx,
                     name=cycle_step['name'],
-                    type=cycle_step['type'],
                 )
 
         columns = ['key', 'last_status', 'resolution', 'withdrawn_date']
@@ -60,8 +61,8 @@ class WasteCalculator(Calculator):
             else:
                 logger.warning("Issue %s transitioned from unknown JIRA status %s", issue.key, last_status)
 
-            # Skip if last_status was the backlog or done column (not really withdrawn)
-            if last_status in (backlog_column, done_column):
+            # Skip if last_status was not in one of the active columns
+            if last_status not in active_columns:
                 continue
 
             series['key']['data'].append(issue.key)
@@ -93,17 +94,15 @@ class WasteCalculator(Calculator):
         window = self.settings['waste_window']
 
         cycle_names = [s['name'] for s in self.settings['cycle']]
-        backlog_column = self.settings['backlog_column']
+        committed_column = self.settings['committed_column']
         done_column = self.settings['done_column']
-
-        cycle_names.remove(backlog_column)
-        cycle_names.remove(done_column)
+        active_columns = cycle_names[cycle_names.index(committed_column):cycle_names.index(done_column)]
 
         breakdown = chart_data \
                     .pivot_table(index='withdrawn_date', columns='last_status', values='key', aggfunc='count') \
                     .groupby(pd.Grouper(freq=frequency, closed='left', label='left')) \
                     .sum() \
-                    .reindex(cycle_names, axis=1)
+                    .reindex(active_columns, axis=1)
 
         if window:
             breakdown = breakdown[-window:]
