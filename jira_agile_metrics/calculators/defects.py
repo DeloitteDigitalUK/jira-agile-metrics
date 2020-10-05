@@ -93,7 +93,6 @@ class DefectsCalculator(Calculator):
         # fixversion_field_choice = self.settings['defects_fixversion_label']
         # print(fixversion_field_choice)
         x_label=self.settings['defects_fixversion_label']
-        team_values = self.settings['defects_team_values']
         if chart_data is None:
             return
 
@@ -111,6 +110,7 @@ class DefectsCalculator(Calculator):
             self.write_defects_by_environment_chart(chart_data, self.settings['defects_by_environment_chart'],x_label)
 
         if self.settings['defects_by_team_chart']:
+            team_values = self.settings['defects_team_values']
             for team in team_values:
                 sorted_df= chart_data.copy()
                 sorted_df.drop(sorted_df[sorted_df['team'] != team].index, inplace = True) 
