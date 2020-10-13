@@ -119,28 +119,41 @@ host. To stop it, run:
 
 See the [Docker documentation](https://docs.docker.com) for more details.
 
-### An important note about passwords
+### An important note about authentication
 
 The tool uses a simple username/password combination to connect to JIRA. You
 need to ensure this user exists in the remote JIRA instance, and has the
-required permissions.
+required permissions. A JIRA API token can be used in the place of 
+a password.
 
 There are three ways to provide the credentials for JIRA -- in particular, the
 password, which should be kept scret. You should think carefully about which
 approach makes most sense for you.
 
+- Generate an API token for your user in 
+  [JIRA settings](https://confluence.atlassian.com/cloud/api-tokens-938839638.html)
+  and use this API token instead of password in your scripts
+- Creating API token is mandatory if your Atlassian account is based on
+  a single sign on like Google 
 - The safest option is to not set it in either the configuration file, or as
   a command line option. In this case, you will be prompted to input a
   password (and username, if you didn't set this either) each time the tool
   is run.
 - You can use the `--username` and/or `--password` command line options to set
-  credentails when you invoke the `jira-agile-metrics` command. This keeps
+  credentials when you invoke the `jira-agile-metrics` command. This keeps
   them out of the configuration file, but if you do this in an interactive
   shell that records command history (i.e. virtually all of them), your
   password will likely be stored in plain text in the command history!
 - If you are confident you can keep the configuration file secret, you can
   store them there, under the `Connection` section (see below).
+  
+Example how to connect with username and API token:
 
+```sh
+# Connects with an API token that is passed on --password argument
+jira-agile-metrics --username your-email@example.com --password CGI... config.yml
+```
+ 
 ### What issues should you include?
 
 The most common use case is to calculate metrics for a team using a JIRA issue
