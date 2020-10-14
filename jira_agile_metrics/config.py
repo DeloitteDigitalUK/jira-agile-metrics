@@ -133,6 +133,7 @@ def config_to_options(data, cwd=None, extended=False):
             'cycle': [],
             'max_results': None,
             'verbose': False,
+            'backwards_transitions': "reset",
 
             'quantiles': [0.5, 0.85, 0.95],
 
@@ -390,6 +391,7 @@ def config_to_options(data, cwd=None, extended=False):
             'backlog_column',
             'committed_column',
             'done_column',
+            'backwards_transitions',
             'throughput_frequency',
             'scatterplot_chart_title',
             'histogram_chart_title',
@@ -521,5 +523,8 @@ def config_to_options(data, cwd=None, extended=False):
     if 'known values' in config:
         for name, values in config['known values'].items():
             options['settings']['known_values'][name] = force_list(values)
+
+    if 'backwards_transitions' in config:
+        options['settings']['backwards_transitions'] = config['backwards_transitions']
 
     return options

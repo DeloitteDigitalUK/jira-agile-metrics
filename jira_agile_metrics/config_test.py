@@ -66,6 +66,8 @@ Attributes:
     Team: Team
     Release: Fix version/s
 
+Backwards transitions: accumulate
+
 Known values:
     Release:
         - "R01"
@@ -89,6 +91,8 @@ Output:
     Backlog column: Backlog
     Committed column: Committed
     Done column: Done
+
+    Backwards transitions: accumulate
 
     Cycle time data: cycletime.csv
     Percentiles data: percentiles.csv
@@ -256,6 +260,8 @@ Output:
         'backlog_column': 'Backlog',
         'committed_column': 'Committed',
         'done_column': 'Done',
+
+        'backwards_transitions': "accumulate",
 
         'quantiles': [0.1, 0.2],
 

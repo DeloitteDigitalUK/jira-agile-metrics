@@ -3,11 +3,25 @@ import logging
 import datetime
 import dateutil
 import pandas as pd
+from enum import Enum
 
 from ..calculator import Calculator
 from ..utils import get_extension, to_json_string, StatusTypes
 
 logger = logging.getLogger(__name__)
+
+
+class BackwardsTransitionHandling:
+    """How to handle backwards movement in the state graph."""
+
+    #: When an issue re-enters a state, the previous
+    #: calculated time is cleared
+    reset = "reset"
+
+    #: When an issue re-enters a state, the new
+    #: time spent on the
+    accumulate = "accumualate"
+
 
 class CycleTimeCalculator(Calculator):
     """Basic cycle time data, fetched from JIRA.
@@ -47,6 +61,7 @@ class CycleTimeCalculator(Calculator):
             self.settings['done_column'],
             self.settings['queries'],
             self.settings['query_attribute'],
+            BackwardsTransitionHandling(self.settings['backwards_transitions']),
             now=now
             )
 
@@ -86,6 +101,7 @@ def calculate_cycle_times(
     committed_column,       # "" in `cycle`
     done_column,            # "" in `cycle`
     queries,                # [{jql:"", value:""}]
+    backwards_transitions: BackwardsTransitionHandling=None,
     query_attribute=None,   # ""
     now=None
 ):
@@ -93,6 +109,10 @@ def calculate_cycle_times(
     # Allows unit testing to use a fixed date
     if now is None:
         now = datetime.datetime.utcnow()
+
+    # Default to reset cycle time on state transition loops
+    if backwards_transitions is None:
+        backwards_transitions = BackwardsTransitionHandling.reset
 
     cycle_names = [s['name'] for s in cycle]
     active_columns = cycle_names[cycle_names.index(committed_column):cycle_names.index(done_column)]
@@ -161,6 +181,9 @@ def calculate_cycle_times(
 
             # Record date of status and impediments flag changes
             for snapshot in query_manager.iter_changes(issue, ['status', 'Flagged']):
+
+                logger.debug("Moving issue %s to state %s", issue.key, snapshot.to_string)
+
                 if snapshot.change == 'status':
                     snapshot_cycle_step = cycle_lookup.get(snapshot.to_string.lower(), None)
                     if snapshot_cycle_step is None:
