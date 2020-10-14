@@ -109,8 +109,8 @@ def to_progress_report_outcomes_list(value):
 def config_to_options(data, cwd=None, extended=False):
     try:
         config = ordered_load(data, yaml.SafeLoader)
-    except Exception:
-        raise ConfigError("Unable to parse YAML configuration file.") from None
+    except Exception as e:
+        raise ConfigError("Unable to parse YAML configuration file.") from e
 
     if config is None:
         raise ConfigError("Configuration file is empty") from None
