@@ -11,7 +11,7 @@ from ..utils import get_extension, to_json_string, StatusTypes
 logger = logging.getLogger(__name__)
 
 
-class BackwardsTransitionHandling:
+class BackwardsTransitionHandling(Enum):
     """How to handle backwards movement in the state graph."""
 
     #: When an issue re-enters a state, the previous
@@ -20,7 +20,7 @@ class BackwardsTransitionHandling:
 
     #: When an issue re-enters a state, the new
     #: time spent on the
-    accumulate = "accumualate"
+    accumulate = "accumulate"
 
 
 class CycleTimeCalculator(Calculator):
@@ -61,8 +61,8 @@ class CycleTimeCalculator(Calculator):
             self.settings['done_column'],
             self.settings['queries'],
             self.settings['query_attribute'],
-            BackwardsTransitionHandling(self.settings['backwards_transitions']),
-            now=now
+            now=now,
+            backwards_transitions=BackwardsTransitionHandling(self.settings['backwards_transitions']),
             )
 
     def write(self):
@@ -101,9 +101,9 @@ def calculate_cycle_times(
     committed_column,       # "" in `cycle`
     done_column,            # "" in `cycle`
     queries,                # [{jql:"", value:""}]
-    backwards_transitions: BackwardsTransitionHandling=None,
     query_attribute=None,   # ""
-    now=None
+    now=None,
+    backwards_transitions: BackwardsTransitionHandling=None,
 ):
 
     # Allows unit testing to use a fixed date
