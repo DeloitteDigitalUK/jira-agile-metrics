@@ -73,12 +73,22 @@ class CycleTimeCalculator(Calculator):
             return
 
         cycle_data = self.get_result()
+
         cycle_names = [s['name'] for s in self.settings['cycle']]
+        cycle_duration_labels = [s['name'] + " duration" for s in self.settings['cycle']]
         attribute_names = sorted(self.settings['attributes'].keys())
         query_attribute_names = [self.settings['query_attribute']] if self.settings['query_attribute'] else []
 
-        header = ['ID', 'Link', 'Name'] + cycle_names + ['Type', 'Status', 'Resolution'] + attribute_names + query_attribute_names + ['Blocked Days']
-        columns = ['key', 'url', 'summary'] + cycle_names + ['issue_type', 'status', 'resolution'] + attribute_names + query_attribute_names + ['blocked_days']
+        header = ['ID', 'Link', 'Name'] + cycle_names + cycle_duration_labels + ['Type', 'Status', 'Resolution'] + attribute_names + query_attribute_names + ['Blocked Days']
+        columns = ['key', 'url', 'summary'] + cycle_names + cycle_duration_labels + ['issue_type', 'status', 'resolution'] + attribute_names + query_attribute_names + ['blocked_days']
+
+        def duration_as_days(val):
+            """Convert pd.Timedelta to float days"""
+            return val.total_seconds() / (24 * 3600)
+
+        # Format durations as days as float
+        for duration_col in cycle_duration_labels:
+            cycle_data[duration_col] = cycle_data[duration_col].apply(duration_as_days)
 
         for output_file in output_files:
 
