@@ -116,6 +116,7 @@ def calculate_cycle_times(
         backwards_transitions = BackwardsTransitionHandling.reset
 
     cycle_names = [s['name'] for s in cycle]
+    cycle_duration_names = [s['name'] + " duration" for s in cycle]  # For Pandas columns
     active_columns = cycle_names[cycle_names.index(committed_column):cycle_names.index(done_column)]
 
     cycle_lookup = {}
@@ -142,6 +143,8 @@ def calculate_cycle_times(
     }
 
     for cycle_name in cycle_names:
+        # In output Pandas data, describe how to map
+        # datetime and timedelta to Pandas columns
         series[cycle_name] = {'data': [], 'dtype': 'datetime64[ns]'}
         series[f'{cycle_name} duration'] = {'data': [], 'dtype': 'timedelta64[ns]'}
 
@@ -319,6 +322,7 @@ def calculate_cycle_times(
                 logger.debug("Calculated duration for state %s, with spans %s as %f days", workflow_state_name, timespans, days)
 
             for k, v in item.items():
+                # logger.debug("Adding %s %s", k, v)
                 series[k]['data'].append(v)
 
     if len(unmapped_statuses) > 0:
@@ -333,5 +337,7 @@ def calculate_cycle_times(
                 sorted(attributes.keys()) +
                 ([query_attribute] if query_attribute else []) +
                 ['cycle_time', 'completed_timestamp', 'blocked_days', 'impediments'] +
-                cycle_names
+                cycle_duration_names +
+                cycle_names   # Must be the last item due to legacy reasons
+
     )
