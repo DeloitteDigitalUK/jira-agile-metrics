@@ -149,6 +149,7 @@ def calculate_cycle_times(
         'cycle_time': {'data': [], 'dtype': 'timedelta64[ns]'},
         'completed_timestamp': {'data': [], 'dtype': 'datetime64[ns]'},
         'blocked_days': {'data': [], 'dtype': 'int'},
+        'estimation_days': {'data': [], 'dtype': 'float'},
         'impediments': {'data': [], 'dtype': 'object'},  # list of {'start', 'end', 'status', 'flag'}
     }
 
@@ -166,7 +167,6 @@ def calculate_cycle_times(
 
     for criteria in queries:
         for issue in query_manager.find_issues(criteria['jql']):
-
             item = {
                 'key': issue.key,
                 'url': "%s/browse/%s" % (query_manager.jira._options['server'], issue.key,),
@@ -174,6 +174,7 @@ def calculate_cycle_times(
                 'summary': issue.fields.summary,
                 'status': issue.fields.status.name,
                 'resolution': issue.fields.resolution.name if issue.fields.resolution else None,
+                'estimation_days': issue.fields.timeestimate / (24 * 3600) if issue.fields.timeestimate else 0,
                 'cycle_time': None,
                 'completed_timestamp': None,
                 'blocked_days': 0,
@@ -343,7 +344,7 @@ def calculate_cycle_times(
         data[k] = pd.Series(v['data'], dtype=v['dtype'])
 
     return pd.DataFrame(data,
-        columns=['key', 'url', 'issue_type', 'summary', 'status', 'resolution'] +
+        columns=['key', 'url', 'issue_type', 'summary', 'status', 'resolution', 'estimation_days'] +
                 sorted(attributes.keys()) +
                 ([query_attribute] if query_attribute else []) +
                 ['cycle_time', 'completed_timestamp', 'blocked_days', 'impediments'] +
