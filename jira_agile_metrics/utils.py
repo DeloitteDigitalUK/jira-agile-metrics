@@ -166,6 +166,10 @@ class Timespans:
 
         Like 2020-03-27 08:52 - 2020-03-28 20:50, 2020-04-01 13:37 - 2020-04-01 17:02, 2020-04-07 04:28 - 2020-04-10 03:26
         """
+
+        if not self.spans:
+            return "[no duration]"
+
         out = ""
         # https://stackoverflow.com/a/49486415/315168
         elems = list(self.spans)

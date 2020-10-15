@@ -181,6 +181,8 @@ def calculate_cycle_times(
                 'impediments': []
             }
 
+            logger.debug("Issue %s estimation is %f days", issue.key, item["estimation_days"])
+
             for name in attributes:
                 item[name] = query_manager.resolve_attribute_value(issue, name)
 

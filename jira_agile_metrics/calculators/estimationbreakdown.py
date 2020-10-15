@@ -33,15 +33,21 @@ class EstimationBreakdownCalculator(Calculator):
 
         output = []
 
+        def get_good_duration(val):
+            if pd.isnull(val):
+                return 0
+            else:
+                return val.total_seconds() / (24 * 3600)
+
         for idx, row in cycle_data.iterrows():
 
-            label = row["key"] + " " + row["summary"]
+            # Crop too long summaries
+            label = (row["key"] + " " + row["summary"])[0:45]
 
-            print(row["estimation_days"])
             estimation_row = {"estimation": row["estimation_days"]}
             estimation_row["label"] = label + " (est)"
 
-            actual_row = dict([(state, row[f"{state} duration"].total_seconds() / (24 * 3600)) for state in active_cycle_names])
+            actual_row = dict([(state, get_good_duration(row[f"{state} duration"])) for state in active_cycle_names])
             actual_row["label"] = label
 
             output.append(estimation_row)
@@ -80,17 +86,23 @@ class EstimationBreakdownCalculator(Calculator):
         for idx, row in chart_data.iterrows():
             xpos = 0
 
-            if "est" in row["label"]:
+            # print(row["label"])
+
+            if "(est)" in row["label"]:
                 # Estimation row
                 xpos = (row["estimation"] or 0) + 1
                 val = row["estimation"]
                 if val:
-                    label = "{:1.0f} days".format(val)
+                    if val <= 1:
+                        label = "< 1 day"
+                    else:
+                        label = "{:1.0f} days".format(val)
                 else:
                     label = "(missing)"
             else:
+                # Stacked cycle time row
                 total = sum([0 if pd.isnull(row[state]) else row[state] for state in active_cycle_names], 0)
-                parts = ["" if pd.isnull(row[state]) else "{:1.0f} ({})".format(row[state], state) for state in active_cycle_names]
+                parts = ["{:1.0f} ({})".format(row[state], state) for state in active_cycle_names if not pd.isnull(row[state])]
                 label = " + ".join(parts)
                 label += " = {:1.0f} days".format(total)
                 val = total
@@ -102,8 +114,8 @@ class EstimationBreakdownCalculator(Calculator):
 
         # Remove ticket name from the estimation label
         def friendly_label(label):
-            if "est" in label:
-                return "Est."
+            if "(est)" in label:
+                return "Estimation"
             return label
 
         ax.set_yticklabels(map(friendly_label, chart_data["label"].tolist()), minor=False)
