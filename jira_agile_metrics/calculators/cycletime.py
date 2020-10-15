@@ -301,10 +301,11 @@ def calculate_cycle_times(
                 committed_timestamp = timespans[committed_column].start
 
             if timespans[done_column].filled:
-                done_timestamp = timespans[done_column].start
+                done_timestamp = timespans[done_column].last_start
 
             if committed_timestamp is not None and done_timestamp is not None:
                 item['cycle_time'] = done_timestamp - committed_timestamp
+                assert(item['cycle_time'] >= datetime.timedelta(seconds=0))
                 item['completed_timestamp'] = done_timestamp
 
             # The legacy data handling assumes columns [state name: date] so we export these,

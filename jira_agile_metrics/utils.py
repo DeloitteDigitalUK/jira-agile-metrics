@@ -220,6 +220,12 @@ class Timespans:
         return self.spans[0][0]
 
     @property
+    def last_start(self):
+        """When the last timespans started if multiple timespans."""
+        assert self.spans
+        return self.spans[-1][0]
+
+    @property
     def end(self):
         """When timespans ended - last done date."""
         assert self.spans, "No spans"
