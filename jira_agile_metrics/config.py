@@ -524,7 +524,7 @@ def config_to_options(data, cwd=None, extended=False):
         for name, values in config['known values'].items():
             options['settings']['known_values'][name] = force_list(values)
 
-    if 'backwards_transitions' in config:
-        options['settings']['backwards_transitions'] = config['backwards_transitions']
+    if 'backwards transitions' in config:
+        options['settings']['backwards_transitions'] = config['backwards transitions']
 
     return options

@@ -143,6 +143,12 @@ class Timespans:
     - QA
     - QA fixes needed
     - QA (again)
+    - QA fixes needed (again)
+    - QA (third time)
+
+    Remarks:
+
+    - Spans can have zero duration, but not negative duration
     """
 
     def __init__(self):
@@ -151,20 +157,22 @@ class Timespans:
         # If the closing datetime is missing the item was never closed
         self.spans = []  #: List[List[datetime)]
 
-    def __str__(self):
-        """Produce a nice readable format of spans.
+    def reset(self):
+        """Used by state backwards transition tracking logic."""
+        self.spans = []
 
-        We assume this class is used to deal with dates, so we discard hours part."""
+    def __str__(self):
+        """Produce a nice readable format of spans."""
         out = ""
-        elems = list(self.spans)
         # https://stackoverflow.com/a/49486415/315168
+        elems = list(self.spans)
         while elems:
             s = elems.pop(0)
-            out += s[0].strftime("%Y-%m-%d")
+            out += s[0].strftime("%Y-%m-%d %H:%M")
             out += " - "
             if len(s) == 2:
                 # Span has end
-                out += s[1].strftime("%Y-%m-%d")
+                out += s[1].strftime("%Y-%m-%d %H:%M")
             if elems:
                 # Not last elements
                 out += ", "
@@ -183,8 +191,20 @@ class Timespans:
         assert self.spans, "Cannot exit without starting a span"
         last_span = self.spans[-1]
         assert len(last_span) == 1, "The latest span was already closed"
-        assert when > last_span[0], "Span cannot end sooner it has started"
+        assert when >= last_span[0], "Span cannot end sooner it has started"
         last_span.append(when)
+
+    @property
+    def filled(self):
+        """Does this timespan have any data"""
+        return True if self.spans else False
+
+    @property
+    def open_ended(self):
+        """Have we the last timespan closed or still going on?"""
+        if not self.spans:
+            return True
+        return len(self.spans[-1]) == 1
 
     @property
     def start(self):

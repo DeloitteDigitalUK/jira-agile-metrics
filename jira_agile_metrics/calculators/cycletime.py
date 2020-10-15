@@ -6,7 +6,7 @@ import pandas as pd
 from enum import Enum
 
 from ..calculator import Calculator
-from ..utils import get_extension, to_json_string, StatusTypes
+from ..utils import get_extension, to_json_string, StatusTypes, Timespans
 
 logger = logging.getLogger(__name__)
 
@@ -94,6 +94,7 @@ class CycleTimeCalculator(Calculator):
             else:
                 cycle_data.to_csv(output_file, columns=columns, header=header, date_format='%Y-%m-%d', index=False)
 
+
 def calculate_cycle_times(
     query_manager,
     cycle,                  # [{name:"", statuses:[""], type:""}]
@@ -103,7 +104,7 @@ def calculate_cycle_times(
     queries,                # [{jql:"", value:""}]
     query_attribute=None,   # ""
     now=None,
-    backwards_transitions: BackwardsTransitionHandling=None,
+    backwards_transitions: BackwardsTransitionHandling = None,
 ):
 
     # Allows unit testing to use a fixed date
@@ -142,6 +143,7 @@ def calculate_cycle_times(
 
     for cycle_name in cycle_names:
         series[cycle_name] = {'data': [], 'dtype': 'datetime64[ns]'}
+        series[f'{cycle_name} duration'] = {'data': [], 'dtype': 'timedelta64[ns]'}
 
     for name in attributes:
         series[name] = {'data': [], 'dtype': 'object'}
@@ -174,15 +176,17 @@ def calculate_cycle_times(
             for cycle_name in cycle_names:
                 item[cycle_name] = None
 
-            last_status = None
+            last_status = None # Name of the workflow state the last snapshot was in
             impediment_flag = None
             impediment_start_status = None
             impediment_start = None
 
+            # Initialze mapping of cycle name -> Timespans
+            # Each timespan tracks enters and exit dates of a cycle
+            timespans = dict([(name, Timespans()) for name in cycle_names])
+
             # Record date of status and impediments flag changes
             for snapshot in query_manager.iter_changes(issue, ['status', 'Flagged']):
-
-                logger.debug("Moving issue %s to state %s, item is %s", issue.key, snapshot.to_string, item)
 
                 if snapshot.change == 'status':
                     snapshot_cycle_step = cycle_lookup.get(snapshot.to_string.lower(), None)
@@ -191,21 +195,34 @@ def calculate_cycle_times(
                         unmapped_statuses.add(snapshot.to_string)
                         continue
 
+                    logger.debug("Issue state transition %s: %s -> %s (%s) at %s", issue.key, last_status, snapshot_cycle_step["name"], snapshot.to_string, snapshot.date)
+
+                    # Looks like JIRA lib dates can be both offset-naive and offset-aware
+                    # so we just normalise here to offset-naive
+                    # Issue state transition FB-4281: None -> Backlog (Product Backlog) at 2020-10-09 07:43:43.681000-05:00
+                    # Issue state transition FB-4281: Backlog -> Backlog (Ready for Dev) at 2020-10-09 07:43:56.041000
+                    timepoint = snapshot.date.replace(tzinfo=None)
+
+                    # Exit from the previous timespan if there was one:
+                    if last_status:
+                        timespans[last_status].leave(timepoint)
+
                     last_status = snapshot_cycle_step_name = snapshot_cycle_step['name']
 
-                    # Keep the first time we entered a step
-                    if item[snapshot_cycle_step_name] is None:
-                        item[snapshot_cycle_step_name] = snapshot.date.date()
+                    # Track enter of a new timespan for this cycle
+                    timespans[snapshot_cycle_step_name].enter(timepoint)
 
                     # Wipe any subsequent dates, in case this was a move backwards
-                    found_cycle_name = False
-                    for cycle_name in cycle_names:
-                        if not found_cycle_name and cycle_name == snapshot_cycle_step_name:
-                            found_cycle_name = True
-                            continue
-                        elif found_cycle_name and item[cycle_name] is not None:
-                            logger.info("Issue %s moved backwards to %s [JIRA: %s -> %s], wiping data for subsequent step %s", issue.key, snapshot_cycle_step_name, snapshot.from_string, snapshot.to_string, cycle_name)
-                            item[cycle_name] = None
+                    if backwards_transitions == BackwardsTransitionHandling.reset:
+                        found_cycle_name = False
+                        for cycle_name in cycle_names:
+                            if not found_cycle_name and cycle_name == snapshot_cycle_step_name:
+                                found_cycle_name = True
+                                continue
+                            elif found_cycle_name and item[cycle_name] is not None:
+                                logger.info("Issue %s moved backwards to %s [JIRA: %s -> %s], wiping data for subsequent step %s", issue.key, snapshot_cycle_step_name, snapshot.from_string, snapshot.to_string, cycle_name)
+                                timespans[cycle_name].reset()
+
                 elif snapshot.change == 'Flagged':
                     if snapshot.from_string == snapshot.to_string is None:
                         # Initial state from None -> None
@@ -261,25 +278,45 @@ def calculate_cycle_times(
 
             # calculate cycle time
 
-            previous_timestamp = None
             committed_timestamp = None
             done_timestamp = None
 
-            for cycle_name in reversed(cycle_names):
-                if item[cycle_name] is not None:
-                    previous_timestamp = item[cycle_name]
+            if timespans[committed_column].filled:
+                committed_timestamp = timespans[committed_column].start
 
-                if previous_timestamp is not None:
-                    item[cycle_name] = previous_timestamp
-                    if cycle_name == done_column:
-                        done_timestamp = previous_timestamp
-                    if cycle_name == committed_column:
-                        committed_timestamp = previous_timestamp
+            if timespans[done_column].filled:
+                done_timestamp = timespans[done_column].start
 
             if committed_timestamp is not None and done_timestamp is not None:
                 item['cycle_time'] = done_timestamp - committed_timestamp
                 item['completed_timestamp'] = done_timestamp
 
+            # The legacy data handling assumes columns [state name: date] so we export these,
+            # but we also export durations in another column.
+            # Raw Timespans object is not exported ATM,
+            # but could be added in the future if there is need for it.
+            for workflow_state_name, timespans in timespans.items():
+                start = None
+                duration = None
+
+                if timespans.filled:
+                    start = timespans.start.date()
+                    if not timespans.open_ended:
+                        duration = timespans.duration
+                else:
+                    start = None
+
+                item[workflow_state_name] = start
+                item[f'{workflow_state_name} duration'] = duration
+
+                if duration:
+                    days = duration.total_seconds() / (24 * 3600)
+                else:
+                    days = 0
+
+                # Try to be helpful with the logging output to
+                # allow effective diagnose of transition issues
+                logger.debug("Calculated duration for state %s, with spans %s as %f days", workflow_state_name, timespans, days)
 
             for k, v in item.items():
                 series[k]['data'].append(v)

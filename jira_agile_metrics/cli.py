@@ -24,7 +24,7 @@ def configure_argument_parser():
     parser.add_argument('-v', dest='verbose', action='store_true', help='Verbose output')
     parser.add_argument('-vv', dest='very_verbose', action='store_true', help='Even more verbose output')
     parser.add_argument('-n', metavar='N', dest='max_results', type=int, help='Only fetch N most recently updated issues')
-    
+
     parser.add_argument('--server', metavar='127.0.0.1:8080', help='Run as a web server instead of a command line tool, on the given host and/or port. The remaining options do not apply.')
 
     # Output directory
@@ -37,7 +37,7 @@ def configure_argument_parser():
     parser.add_argument('--http-proxy', metavar='https://proxy.local', help='URL to HTTP Proxy')
     parser.add_argument('--https-proxy', metavar='https://proxy.local', help='URL to HTTPS Proxy')
     parser.add_argument('--jira-server-version-check', type=bool, metavar='True', help='If true it will fetch JIRA server version info first to determine if some API calls are available')
-    
+
     return parser
 
 def main():
@@ -52,7 +52,7 @@ def main():
 def run_server(parser, args):
     host = None
     port = args.server
-    
+
     if ':' in args.server:
         (host, port) = args.server.split(':')
     port = int(port)
@@ -64,7 +64,7 @@ def run_command_line(parser, args):
     if not args.config:
         parser.print_usage()
         return
-    
+
     logging.basicConfig(
         format='[%(asctime)s %(levelname)s] %(message)s',
         datefmt='%Y-%m-%d %H:%M:%S',
