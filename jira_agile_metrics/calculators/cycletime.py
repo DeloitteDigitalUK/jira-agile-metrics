@@ -182,7 +182,7 @@ def calculate_cycle_times(
             # Record date of status and impediments flag changes
             for snapshot in query_manager.iter_changes(issue, ['status', 'Flagged']):
 
-                logger.debug("Moving issue %s to state %s", issue.key, snapshot.to_string)
+                logger.debug("Moving issue %s to state %s, item is %s", issue.key, snapshot.to_string, item)
 
                 if snapshot.change == 'status':
                     snapshot_cycle_step = cycle_lookup.get(snapshot.to_string.lower(), None)

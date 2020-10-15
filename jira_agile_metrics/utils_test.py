@@ -9,7 +9,8 @@ from .utils import (
     extend_dict,
     breakdown_by_month,
     breakdown_by_month_sum_days,
-    to_bin
+    to_bin,
+    Timespans
 )
 
 def test_extend_dict():
@@ -47,7 +48,7 @@ def test_breakdown_by_month():
 
     breakdown = breakdown_by_month(df, 'start', 'end', 'key', 'priority', ['low', 'med', 'high'])
     assert list(breakdown.columns) == ['med', 'high']
-    
+
     assert list(breakdown.index) == [
         pd.Timestamp(2018, 1, 1),
         pd.Timestamp(2018, 2, 1),
@@ -75,7 +76,7 @@ def test_breakdown_by_month_open_ended():
 
     # Note: We will get columns until the current month; assume this test is
     # run from June onwards ;)
-    
+
     assert list(breakdown.index)[:5] == [
         pd.Timestamp(2018, 1, 1),
         pd.Timestamp(2018, 2, 1),
@@ -104,7 +105,7 @@ def test_breakdown_by_month_no_column_spec():
 
     breakdown = breakdown_by_month(df, 'start', 'end', 'key', 'priority')
     assert list(breakdown.columns) == ['high', 'med']  # alphabetical
-    
+
     assert list(breakdown.index) == [
         pd.Timestamp(2018, 1, 1),
         pd.Timestamp(2018, 2, 1),
@@ -129,7 +130,7 @@ def test_breakdown_by_month_none_values():
 
     breakdown = breakdown_by_month(df, 'start', 'end', 'key', 'priority')
     assert list(breakdown.columns) == [None]
-    
+
     assert list(breakdown.index) == [
         pd.Timestamp(2018, 1, 1),
         pd.Timestamp(2018, 2, 1),
@@ -150,7 +151,7 @@ def test_breakdown_by_month_sum_days():
 
     breakdown = breakdown_by_month_sum_days(df, 'start', 'end', 'priority', ['low', 'med', 'high'])
     assert list(breakdown.columns) == ['med', 'high']
-    
+
     assert list(breakdown.index) == [
         pd.Timestamp(2018, 1, 1),
         pd.Timestamp(2018, 2, 1),
@@ -176,7 +177,7 @@ def test_breakdown_by_month_sum_days_no_column_spec():
 
     breakdown = breakdown_by_month_sum_days(df, 'start', 'end', 'priority')
     assert list(breakdown.columns) == ['high', 'med']  # alphabetical
-    
+
     assert list(breakdown.index) == [
         pd.Timestamp(2018, 1, 1),
         pd.Timestamp(2018, 2, 1),
@@ -205,7 +206,7 @@ def test_breakdown_by_month_sum_day_open_ended():
 
     # Note: We will get columns until the current month; assume this test is
     # run from June onwards ;)
-    
+
     assert list(breakdown.index)[:5] == [
         pd.Timestamp(2018, 1, 1),
         pd.Timestamp(2018, 2, 1),
@@ -234,7 +235,7 @@ def test_breakdown_by_month_sum_days_none_values():
 
     breakdown = breakdown_by_month_sum_days(df, 'start', 'end', 'priority')
     assert list(breakdown.columns) == [None, 'med']
-    
+
     assert list(breakdown.index) == [
         pd.Timestamp(2018, 1, 1),
         pd.Timestamp(2018, 2, 1),
@@ -257,5 +258,28 @@ def test_to_bin():
     assert to_bin(20, [10, 20, 30]) == (10, 20)
 
     assert to_bin(30, [10, 20, 30]) == (20, 30)
-    
+
     assert to_bin(31, [10, 20, 30]) == (30, None)
+
+
+def test_timespans_single():
+    t = Timespans()
+    t.enter(datetime.datetime(2020, 1, 1))
+    assert str(t) == "2020-01-01 - "
+    t.leave(datetime.datetime(2020, 2, 1))
+    assert str(t) == "2020-01-01 - 2020-02-01"
+    assert t.start == datetime.datetime(2020, 1, 1)
+    assert t.end == datetime.datetime(2020, 2, 1)
+    assert t.duration == datetime.timedelta(days=31)
+
+
+def test_timespans_multi():
+    t = Timespans()
+    t.enter(datetime.datetime(2020, 1, 1))
+    t.leave(datetime.datetime(2020, 2, 1))
+    t.enter(datetime.datetime(2020, 2, 14))
+    t.leave(datetime.datetime(2020, 2, 15))
+    assert str(t) == "2020-01-01 - 2020-02-01, 2020-02-14 - 2020-02-15"
+    assert t.start == datetime.datetime(2020, 1, 1)
+    assert t.end == datetime.datetime(2020, 2, 15)
+    assert t.duration == datetime.timedelta(days=32)
