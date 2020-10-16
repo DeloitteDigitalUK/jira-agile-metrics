@@ -19,6 +19,8 @@ from .calculators.netflow import NetFlowChartCalculator
 from .calculators.ageingwip import AgeingWIPChartCalculator
 from .calculators.ageinghistory import AgeingHistoryChartCalculator
 from .calculators.estimationbreakdown import EstimationBreakdownCalculator
+from .calculators.cycleflow import CycleFlowCalculator
+from .calculators.cycleflow100 import CycleFlow100Calculator
 from .calculators.forecast import BurnupForecastCalculator
 from .calculators.impediments import ImpedimentsCalculator
 from .calculators.debt import DebtCalculator
@@ -39,6 +41,8 @@ CALCULATORS = (
     AgeingWIPChartCalculator,
     AgeingHistoryChartCalculator,
     EstimationBreakdownCalculator,
+    CycleFlowCalculator,
+    CycleFlow100Calculator,
     BurnupForecastCalculator,
     ImpedimentsCalculator,
     DebtCalculator,
@@ -195,6 +199,8 @@ def config_to_options(data, cwd=None, extended=False):
             'ageing_history_chart_title': None,
 
             'estimation_breakdown_chart': None,
+            'cycle_flow_chart': None,
+            'cycle_flow_100_chart': None,
 
             'net_flow_frequency': '1W-MON',
             'net_flow_window': None,
@@ -356,7 +362,8 @@ def config_to_options(data, cwd=None, extended=False):
             'ageing_wip_chart',
             'ageing_history_chart',
             'estimation_breakdown_chart',
-            'net_flow_chart',
+            'cycle_flow_chart',
+            'cycle_flow_100_chart',
             'impediments_chart',
             'impediments_days_chart',
             'impediments_status_chart',
