@@ -48,10 +48,6 @@ class CycleFlowCalculator(Calculator):
 
         ax.legend(loc='center left', bbox_to_anchor=(1, 0.5))
 
-        # bottom = data[data.columns[-1]].min()
-        # top = data[data.columns[0]].max()
-        # ax.set_ylim(bottom=bottom, top=top)
-
         set_chart_style()
 
         # Write file
@@ -92,5 +88,15 @@ def calculate_cycle_flow_data(cycle_data, cycle_names, frequency="1M", resample_
 
     # Fill missing values with zero duration
     sampled = sampled.fillna(0)
+
+    # Make sure we always return stacked charts in the same order
+    # TODO: Not 100% sure if this is needed
+    sampled.columns = pd.CategoricalIndex(sampled.columns.values,
+                                    ordered=True,
+                                    categories=duration_cols)
+
+
+    # Sort the columns (axis=1) by the new categorical ordering
+    sampled = sampled.sort_index(axis=1)
 
     return sampled
