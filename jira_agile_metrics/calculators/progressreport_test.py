@@ -1,12 +1,12 @@
-import random
-import pytest
-import pandas as pd
 from datetime import datetime, date, timedelta
-from ..conftest import FauxJIRA as JIRA, FauxIssue as Issue, FauxChange as Change, FauxFieldValue as Value
+import random
 
+import pandas as pd
+import pytest
+
+from ..conftest import FauxJIRA as JIRA, FauxIssue as Issue, FauxChange as Change, FauxFieldValue as Value
 from ..querymanager import QueryManager
 from ..utils import extend_dict
-
 from .progressreport import (
     throughput_range_sampler,
     update_team_sampler,
@@ -21,6 +21,7 @@ from .progressreport import (
     Epic,
     ProgressReportCalculator,
 )
+
 
 # for debugging - leave off!
 WRITE_TEST_OUTPUTS = False

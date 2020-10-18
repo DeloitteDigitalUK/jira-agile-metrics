@@ -1,10 +1,9 @@
-import pytest
 from pandas import DataFrame, Timestamp
-
-from .cycletime import CycleTimeCalculator
-from .scatterplot import ScatterplotCalculator
+import pytest
 
 from ..utils import extend_dict
+from .cycletime import CycleTimeCalculator
+from .scatterplot import ScatterplotCalculator
 
 
 @pytest.fixture

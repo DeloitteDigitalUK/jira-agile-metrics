@@ -1,9 +1,9 @@
-import pytest
 import datetime
+
 from pandas import NaT, Timestamp, Timedelta
+import pytest
 
 from ..conftest import FauxJIRA as JIRA, FauxIssue as Issue, FauxChange as Change, FauxFieldValue as Value
-
 from ..querymanager import QueryManager
 from .cycletime import CycleTimeCalculator
 

@@ -1,29 +1,28 @@
-import io
-import logging
-import random
-import math
 import base64
 import datetime
-import dateutil
+import io
+import logging
+import math
+import random
 
+import dateutil
+import jinja2
+import matplotlib.dates as mdates
+import matplotlib.pyplot as plt
+import matplotlib.transforms
 import numpy as np
 import pandas as pd
 import scipy.stats
 import statsmodels.formula.api as sm
-import matplotlib.pyplot as plt
-import matplotlib.dates as mdates
-import matplotlib.transforms
-
-import jinja2
 
 from ..calculator import Calculator
 from ..utils import set_chart_style, to_days_since_epoch
-
-from .cycletime import calculate_cycle_times
-from .throughput import calculate_throughput
-from .forecast import throughput_sampler
 from .cfd import calculate_cfd_data
+from .cycletime import calculate_cycle_times
+from .forecast import throughput_sampler
 from .scatterplot import calculate_scatterplot_data
+from .throughput import calculate_throughput
+
 
 logger = logging.getLogger(__name__)
 

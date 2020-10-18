@@ -1,26 +1,27 @@
-import logging
-import yaml
 import datetime
+import logging
 import os.path
 
 from pydicti import odicti
+import yaml
 
-from .calculators.cycletime import CycleTimeCalculator
-from .calculators.cfd import CFDCalculator
-from .calculators.scatterplot import ScatterplotCalculator
-from .calculators.histogram import HistogramCalculator
-from .calculators.percentiles import PercentilesCalculator
-from .calculators.throughput import ThroughputCalculator
-from .calculators.burnup import BurnupCalculator
-from .calculators.wip import WIPChartCalculator
-from .calculators.netflow import NetFlowChartCalculator
 from .calculators.ageingwip import AgeingWIPChartCalculator
-from .calculators.forecast import BurnupForecastCalculator
-from .calculators.impediments import ImpedimentsCalculator
+from .calculators.burnup import BurnupCalculator
+from .calculators.cfd import CFDCalculator
+from .calculators.cycletime import CycleTimeCalculator
 from .calculators.debt import DebtCalculator
 from .calculators.defects import DefectsCalculator
-from .calculators.waste import WasteCalculator
+from .calculators.forecast import BurnupForecastCalculator
+from .calculators.histogram import HistogramCalculator
+from .calculators.impediments import ImpedimentsCalculator
+from .calculators.netflow import NetFlowChartCalculator
+from .calculators.percentiles import PercentilesCalculator
 from .calculators.progressreport import ProgressReportCalculator
+from .calculators.scatterplot import ScatterplotCalculator
+from .calculators.throughput import ThroughputCalculator
+from .calculators.waste import WasteCalculator
+from .calculators.wip import WIPChartCalculator
+
 
 CALCULATORS = (
     CycleTimeCalculator,  # should come first -- others depend on results from this one

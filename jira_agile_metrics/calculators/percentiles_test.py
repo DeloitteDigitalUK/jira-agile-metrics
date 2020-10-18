@@ -1,11 +1,11 @@
-import pytest
 import math
-from pandas import DataFrame, Timedelta
 
-from .cycletime import CycleTimeCalculator
-from .percentiles import PercentilesCalculator
+from pandas import DataFrame, Timedelta
+import pytest
 
 from ..utils import extend_dict
+from .cycletime import CycleTimeCalculator
+from .percentiles import PercentilesCalculator
 
 
 @pytest.fixture

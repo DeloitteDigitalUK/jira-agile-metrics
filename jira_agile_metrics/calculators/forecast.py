@@ -1,15 +1,15 @@
-import logging
 import datetime
+import logging
 
-import pandas as pd
 import matplotlib.pyplot as plt
 import matplotlib.transforms
+import pandas as pd
 
 from ..calculator import Calculator
 from ..utils import set_chart_style, to_days_since_epoch
-
-from .cycletime import CycleTimeCalculator
 from .burnup import BurnupCalculator
+from .cycletime import CycleTimeCalculator
+
 
 logger = logging.getLogger(__name__)
 

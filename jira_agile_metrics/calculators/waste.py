@@ -1,10 +1,12 @@
 import logging
+
 import dateutil
-import pandas as pd
 from matplotlib import pyplot as plt
+import pandas as pd
 
 from ..calculator import Calculator
 from ..utils import set_chart_style
+
 
 logger = logging.getLogger(__name__)
 

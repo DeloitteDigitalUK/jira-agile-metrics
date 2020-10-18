@@ -1,20 +1,21 @@
-import logging
+import base64
 import contextlib
 import io
+import logging
 import os
 import os.path
 import shutil
 import tempfile
-import base64
 import zipfile
-import jinja2
 
 from flask import Flask, render_template, request
+import jinja2
 from jira import JIRA, JIRAError
 
+from ..calculator import run_calculators
 from ..config import config_to_options, CALCULATORS, ConfigError
 from ..querymanager import QueryManager
-from ..calculator import run_calculators
+
 
 template_folder = os.path.join(os.path.dirname(__file__), "templates")
 static_folder = os.path.join(os.path.dirname(__file__), "static")

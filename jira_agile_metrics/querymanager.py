@@ -1,10 +1,12 @@
-import json
 import itertools
+import json
 import logging
+
 import dateutil.parser
 import dateutil.tz
 
 from .config import ConfigError
+
 
 logger = logging.getLogger(__name__)
 

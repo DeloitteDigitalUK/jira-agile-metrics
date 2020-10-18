@@ -1,11 +1,13 @@
+import datetime
 import json
 import logging
-import datetime
+
 import dateutil
 import pandas as pd
 
 from ..calculator import Calculator
 from ..utils import get_extension, to_json_string
+
 
 logger = logging.getLogger(__name__)
 

@@ -1,10 +1,9 @@
-import pytest
 from pandas import DataFrame
-
-from .cycletime import CycleTimeCalculator
-from .throughput import ThroughputCalculator
+import pytest
 
 from ..utils import extend_dict
+from .cycletime import CycleTimeCalculator
+from .throughput import ThroughputCalculator
 
 
 @pytest.fixture

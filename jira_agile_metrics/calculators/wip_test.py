@@ -1,11 +1,11 @@
-import pytest
 import datetime
-from pandas import DataFrame, Timestamp, date_range
 
-from .cfd import CFDCalculator
-from .wip import WIPChartCalculator
+from pandas import DataFrame, Timestamp, date_range
+import pytest
 
 from ..utils import extend_dict
+from .cfd import CFDCalculator
+from .wip import WIPChartCalculator
 
 
 @pytest.fixture

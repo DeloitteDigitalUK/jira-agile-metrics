@@ -1,13 +1,12 @@
-import pytest
 from datetime import date
+
 from pandas import DataFrame, NaT, Timestamp
-
-from .cycletime import CycleTimeCalculator
-from .impediments import ImpedimentsCalculator
-
-from ..utils import extend_dict
+import pytest
 
 from ..conftest import _issues
+from ..utils import extend_dict
+from .cycletime import CycleTimeCalculator
+from .impediments import ImpedimentsCalculator
 
 
 def _ts(datestring, timestring="00:00:00", freq=None):

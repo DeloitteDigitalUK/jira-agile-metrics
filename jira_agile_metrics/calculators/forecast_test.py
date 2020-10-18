@@ -1,14 +1,14 @@
-import pytest
 import datetime
+
 import numpy as np
 from pandas import DataFrame, Timestamp, date_range
-
-from .cycletime import CycleTimeCalculator
-from .cfd import CFDCalculator
-from .burnup import BurnupCalculator
-from .forecast import BurnupForecastCalculator
+import pytest
 
 from ..utils import extend_dict
+from .burnup import BurnupCalculator
+from .cfd import CFDCalculator
+from .cycletime import CycleTimeCalculator
+from .forecast import BurnupForecastCalculator
 
 
 @pytest.fixture

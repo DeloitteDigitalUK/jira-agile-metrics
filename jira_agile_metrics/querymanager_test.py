@@ -1,8 +1,8 @@
-import pytest
 import datetime
 
-from .conftest import FauxJIRA as JIRA, FauxIssue as Issue, FauxChange as Change, FauxFieldValue as Value
+import pytest
 
+from .conftest import FauxJIRA as JIRA, FauxIssue as Issue, FauxChange as Change, FauxFieldValue as Value
 from .querymanager import QueryManager, IssueSnapshot
 from .utils import extend_dict
 

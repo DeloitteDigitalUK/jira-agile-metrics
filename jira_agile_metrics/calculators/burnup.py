@@ -1,11 +1,12 @@
 import logging
-import pandas as pd
+
 import matplotlib.pyplot as plt
+import pandas as pd
 
 from ..calculator import Calculator
 from ..utils import set_chart_style
-
 from .cfd import CFDCalculator
+
 
 logger = logging.getLogger(__name__)
 

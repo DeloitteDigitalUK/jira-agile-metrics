@@ -1,12 +1,13 @@
 import logging
-import pandas as pd
+
 import matplotlib.pyplot as plt
+import pandas as pd
 import statsmodels.formula.api as sm
 
 from ..calculator import Calculator
 from ..utils import get_extension, set_chart_style
-
 from .cycletime import CycleTimeCalculator
+
 
 logger = logging.getLogger(__name__)
 

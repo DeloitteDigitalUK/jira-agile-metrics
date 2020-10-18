@@ -1,11 +1,11 @@
-import pytest
 from pandas import DataFrame, Timestamp, NaT
+import pytest
 
+from .calculators.cfd import CFDCalculator
+from .calculators.cycletime import CycleTimeCalculator
 from .querymanager import QueryManager
 from .utils import extend_dict
 
-from .calculators.cycletime import CycleTimeCalculator
-from .calculators.cfd import CFDCalculator
 
 # Fake a portion of the JIRA API
 

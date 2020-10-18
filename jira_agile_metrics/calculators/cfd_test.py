@@ -1,10 +1,9 @@
-import pytest
 from pandas import DataFrame, Timestamp
-
-from .cycletime import CycleTimeCalculator
-from .cfd import CFDCalculator
+import pytest
 
 from ..utils import extend_dict
+from .cfd import CFDCalculator
+from .cycletime import CycleTimeCalculator
 
 
 @pytest.fixture

@@ -1,12 +1,13 @@
-import logging
 import datetime
-import dateutil.parser
+import logging
 
-import pandas as pd
+import dateutil.parser
 import matplotlib.pyplot as plt
+import pandas as pd
 
 from ..calculator import Calculator
 from ..utils import breakdown_by_month, set_chart_style, to_bin
+
 
 logger = logging.getLogger(__name__)
 

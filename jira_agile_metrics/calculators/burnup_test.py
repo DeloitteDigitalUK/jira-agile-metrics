@@ -1,10 +1,9 @@
-import pytest
 from pandas import DataFrame, Timestamp
-
-from .cfd import CFDCalculator
-from .burnup import BurnupCalculator
+import pytest
 
 from ..utils import extend_dict
+from .burnup import BurnupCalculator
+from .cfd import CFDCalculator
 
 
 @pytest.fixture

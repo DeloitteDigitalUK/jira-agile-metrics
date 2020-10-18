@@ -1,6 +1,6 @@
 import datetime
-import tempfile
 import os.path
+import tempfile
 
 from .config import force_list, expand_key, config_to_options, ConfigError
 

@@ -1,14 +1,13 @@
-import pytest
 import datetime
+
 from pandas import DataFrame
+import pytest
 
 from ..conftest import FauxJIRA as JIRA, FauxIssue as Issue, FauxChange as Change, FauxFieldValue as Value
-
 from ..querymanager import QueryManager
-from .cycletime import CycleTimeCalculator
-from .ageingwip import AgeingWIPChartCalculator
-
 from ..utils import extend_dict
+from .ageingwip import AgeingWIPChartCalculator
+from .cycletime import CycleTimeCalculator
 
 
 @pytest.fixture

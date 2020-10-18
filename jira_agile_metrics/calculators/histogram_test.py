@@ -1,10 +1,9 @@
-import pytest
 from pandas import DataFrame
-
-from .cycletime import CycleTimeCalculator
-from .histogram import HistogramCalculator
+import pytest
 
 from ..utils import extend_dict
+from .cycletime import CycleTimeCalculator
+from .histogram import HistogramCalculator
 
 
 @pytest.fixture

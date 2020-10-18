@@ -1,15 +1,16 @@
-import os
 import argparse
 import getpass
 import logging
+import os
 
 from jira import JIRA
 
 from .config import config_to_options, CALCULATORS
-from .webapp.app import app as webapp
-from .querymanager import QueryManager
 from .calculator import run_calculators
+from .querymanager import QueryManager
 from .utils import set_chart_context
+from .webapp.app import app as webapp
+
 
 logger = logging.getLogger(__name__)
 
