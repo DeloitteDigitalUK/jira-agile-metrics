@@ -16,3 +16,6 @@ exclude = '''
   | venv
 )/
 '''
+
+[tool.pylint.'MESSAGES CONTROL']
+max-line-length = 120
