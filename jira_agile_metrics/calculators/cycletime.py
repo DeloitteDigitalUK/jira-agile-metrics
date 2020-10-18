@@ -292,7 +292,7 @@ def calculate_cycle_times(
                 series[k]["data"].append(v)
 
     if len(unmapped_statuses) > 0:
-        logger.warn(
+        logger.warning(
             "The following JIRA statuses were found, but not mapped to a workflow state, and have been ignored: %s",
             ", ".join(sorted(unmapped_statuses)),
         )
