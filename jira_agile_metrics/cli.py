@@ -106,7 +106,7 @@ def run_command_line(parser, args):
 
     # Set output directory if required
     if args.output_directory:
-        logger.info("Changing working directory to %s" % args.output_directory)
+        logger.info("Changing working directory to %s", args.output_directory)
         os.chdir(args.output_directory)
 
     # Query JIRA and run calculators

@@ -213,8 +213,9 @@ class ProgressReportCalculator(Calculator):
 
                     if epic.team is None:
                         logger.info(
-                            "Cannot find team `%s` for epic `%s`. Dynamically adding a non-forecasted team."
-                            % (epic_team_name, epic.key)
+                            "Cannot find team `%s` for epic `%s`. Dynamically adding a non-forecasted team.",
+                            epic_team_name,
+                            epic.key,
                         )
                         epic.team = Team(name=epic_team_name)
                         teams.append(epic.team)
@@ -458,7 +459,8 @@ def update_team_sampler(team, query_manager, cycle, backlog_column, done_column,
         if throughput is None:
             logger.error(
                 "No completed issues found by query `%s`. Unable to calculate throughput. "
-                "Will use min/max throughput if set." % team.throughput_samples
+                "Will use min/max throughput if set.",
+                team.throughput_samples,
             )
         else:
             team.sampler = throughput_sampler(throughput, 0, 10)  # we have to hardcode the buffer size
@@ -580,7 +582,7 @@ def forecast_to_complete(team, epics, quantiles, trials=1000, max_iterations=999
     epic_trials = {e.key: pd.Series([np.nan] * trials) for e in epics}
 
     if team.sampler is None:
-        logger.error("Team %s has no sampler. Unable to forecast." % team.name)
+        logger.error("Team %s has no sampler. Unable to forecast.", team.name)
         return
 
     # apply WIP limit to list of epics not yet completed
@@ -626,7 +628,7 @@ def forecast_to_complete(team, epics, quantiles, trials=1000, max_iterations=999
                 active_epics = filter_active_epics(trial_values)
 
         if steps == max_iterations:
-            logger.warning("Trial %d did not complete after %d weeks, aborted." % (trial, max_iterations))
+            logger.warning("Trial %d did not complete after %d weeks, aborted.", trial, max_iterations)
 
         # record this trial
         for ev in trial_values:

@@ -102,9 +102,7 @@ class QueryManager(object):
         except AttributeError:
             field_name = self.jira_fields_to_names.get(field_id, "Unknown name")
             logger.debug(
-                "Could not get field value for field {}. Probably this is a wrong workflow field mapping".format(
-                    field_name
-                )
+                "Could not get field value for field %s. Probably this is a wrong workflow field mapping", field_name
             )
             field_value = None
 

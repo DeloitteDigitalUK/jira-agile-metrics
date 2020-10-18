@@ -264,7 +264,7 @@ def config_to_options(data, cwd=None, extended=False):
         if not os.path.exists(extends_filename):
             raise ConfigError("File `%s` referenced in `extends` not found." % extends_filename) from None
 
-        logger.debug("Extending file %s" % extends_filename)
+        logger.debug("Extending file %s", extends_filename)
         with open(extends_filename) as extends_file:
             options = config_to_options(extends_file.read(), cwd=os.path.dirname(extends_filename), extended=True)
 
