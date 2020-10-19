@@ -288,8 +288,8 @@ def calculate_cycle_times(
                 item["cycle_time"] = done_timestamp - committed_timestamp
                 item["completed_timestamp"] = done_timestamp
 
-            for k, v in item.items():
-                series[k]["data"].append(v)
+            for key, value in item.items():
+                series[key]["data"].append(value)
 
     if len(unmapped_statuses) > 0:
         logger.warning(
@@ -298,8 +298,8 @@ def calculate_cycle_times(
         )
 
     data = {}
-    for k, v in series.items():
-        data[k] = pd.Series(v["data"], dtype=v["dtype"])
+    for key, value in series.items():
+        data[key] = pd.Series(value["data"], dtype=value["dtype"])
 
     return pd.DataFrame(
         data,

@@ -59,8 +59,8 @@ def run():
             query_manager = QueryManager(jira, options["settings"])
             zip_data = get_archive(CALCULATORS, query_manager, options["settings"])
             data = base64.b64encode(zip_data).decode("ascii")
-        except Exception as e:
-            logger.error("%s", e)
+        except Exception as ex:
+            logger.error("%s", ex)
             has_error = True
 
     return render_template("results.html", data=data, has_error=has_error, log=log_buffer.getvalue())
@@ -119,8 +119,8 @@ def get_jira_client(connection):
 
     try:
         return JIRA(jira_options, basic_auth=(username, password), get_server_info=jira_server_version_check)
-    except JIRAError as e:
-        if e.status_code == 401:
+    except JIRAError as ex:
+        if ex.status_code == 401:
             raise ConfigError(
                 "JIRA authentication failed. Check URL and credentials, and ensure the account is not locked."
             ) from None
@@ -141,11 +141,11 @@ def get_archive(calculators, query_manager, settings):
         os.chdir(temp_path)
         run_calculators(calculators, query_manager, settings)
 
-        with zipfile.ZipFile("metrics.zip", "w", zipfile.ZIP_STORED) as z:
+        with zipfile.ZipFile("metrics.zip", "w", zipfile.ZIP_STORED) as file:
             for root, _, files in os.walk(temp_path):
                 for file_name in files:
                     if file_name != "metrics.zip":
-                        z.write(os.path.join(root, file_name), os.path.join("metrics", file_name))
+                        file.write(os.path.join(root, file_name), os.path.join("metrics", file_name))
         with open("metrics.zip", "rb") as metrics_zip:
             zip_data = metrics_zip.read()
 

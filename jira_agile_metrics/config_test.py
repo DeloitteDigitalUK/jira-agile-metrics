@@ -420,9 +420,9 @@ Output:
 
 def test_config_to_options_extends():
     try:
-        with tempfile.NamedTemporaryFile(delete=False) as fp:
+        with tempfile.NamedTemporaryFile(delete=False) as config_file:
             # Base file
-            fp.write(
+            config_file.write(
                 b"""\
 Connection:
     Domain: https://foo.com
@@ -447,7 +447,7 @@ Output:
 """
             )
 
-            fp.seek(0)
+            config_file.seek(0)
 
             # Extend the file
 
@@ -472,11 +472,11 @@ Output:
 
     Cycle time data: cycletime.csv
 """
-                % fp.name,
-                cwd=os.path.abspath(fp.name),
+                % config_file.name,
+                cwd=os.path.abspath(config_file.name),
             )
     finally:
-        os.remove(fp.name)
+        os.remove(config_file.name)
 
     # overridden
     assert options["connection"]["domain"] == "https://bar.com"
@@ -502,10 +502,10 @@ Output:
 
 def test_config_to_options_extends_blocked_if_no_explicit_working_directory():
 
-    with tempfile.NamedTemporaryFile() as fp:
+    with tempfile.NamedTemporaryFile() as config_file:
 
         # Base file
-        fp.write(
+        config_file.write(
             b"""\
 Connection:
     Domain: https://foo.com
@@ -526,7 +526,7 @@ Output:
 """
         )
 
-        fp.seek(0)
+        config_file.seek(0)
 
         # Extend the file
 
@@ -548,7 +548,7 @@ Output:
 
     Cycle time data: cycletime.csv
 """
-                % fp.name,
+                % config_file.name,
                 cwd=None,
             )
 

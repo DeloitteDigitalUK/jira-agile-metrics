@@ -636,7 +636,7 @@ def test_find_epics_defaults_to_outcome_deadline(query_manager):
 
 def test_update_story_counts(query_manager, settings):
 
-    e1 = Epic(
+    epic_1 = Epic(
         key="E-1",
         summary="Epic 1",
         status="in-progress",
@@ -650,24 +650,24 @@ def test_update_story_counts(query_manager, settings):
     )
 
     update_story_counts(
-        epic=e1,
+        epic=epic_1,
         query_manager=query_manager,
         cycle=settings["cycle"],
         backlog_column=settings["backlog_column"],
         done_column=settings["done_column"],
     )
 
-    assert e1.stories_raised == 4
-    assert e1.stories_in_backlog == 1
-    assert e1.stories_in_progress == 2
-    assert e1.stories_done == 1
-    assert e1.first_story_started == date(2018, 1, 3)
-    assert e1.last_story_finished == date(2018, 1, 6)
-    assert e1.min_stories == 4
-    assert e1.max_stories == 5
-    assert isinstance(e1.story_cycle_times, pd.DataFrame)
+    assert epic_1.stories_raised == 4
+    assert epic_1.stories_in_backlog == 1
+    assert epic_1.stories_in_progress == 2
+    assert epic_1.stories_done == 1
+    assert epic_1.first_story_started == date(2018, 1, 3)
+    assert epic_1.last_story_finished == date(2018, 1, 6)
+    assert epic_1.min_stories == 4
+    assert epic_1.max_stories == 5
+    assert isinstance(epic_1.story_cycle_times, pd.DataFrame)
 
-    e2 = Epic(
+    epic_2 = Epic(
         key="E-2",
         summary="Epic 2",
         status="in-progress",
@@ -681,24 +681,24 @@ def test_update_story_counts(query_manager, settings):
     )
 
     update_story_counts(
-        epic=e2,
+        epic=epic_2,
         query_manager=query_manager,
         cycle=settings["cycle"],
         backlog_column=settings["backlog_column"],
         done_column=settings["done_column"],
     )
 
-    assert e2.stories_raised == 1
-    assert e2.stories_in_backlog == 1
-    assert e2.stories_in_progress == 0
-    assert e2.stories_done == 0
-    assert e2.first_story_started is None
-    assert e2.last_story_finished is None
-    assert e2.min_stories == 1
-    assert e2.max_stories == 1
-    assert isinstance(e2.story_cycle_times, pd.DataFrame)
+    assert epic_2.stories_raised == 1
+    assert epic_2.stories_in_backlog == 1
+    assert epic_2.stories_in_progress == 0
+    assert epic_2.stories_done == 0
+    assert epic_2.first_story_started is None
+    assert epic_2.last_story_finished is None
+    assert epic_2.min_stories == 1
+    assert epic_2.max_stories == 1
+    assert isinstance(epic_2.story_cycle_times, pd.DataFrame)
 
-    e3 = Epic(
+    epic_3 = Epic(
         key="E-3",
         summary="Epic 3",
         status="in-progress",
@@ -712,27 +712,27 @@ def test_update_story_counts(query_manager, settings):
     )
 
     update_story_counts(
-        epic=e3,
+        epic=epic_3,
         query_manager=query_manager,
         cycle=settings["cycle"],
         backlog_column=settings["backlog_column"],
         done_column=settings["done_column"],
     )
 
-    assert e3.stories_raised == 0
-    assert e3.stories_in_backlog == 0
-    assert e3.stories_in_progress == 0
-    assert e3.stories_done == 0
-    assert e3.first_story_started is None
-    assert e3.last_story_finished is None
-    assert e3.min_stories == 0
-    assert e3.max_stories == 1
-    assert isinstance(e3.story_cycle_times, pd.DataFrame)
+    assert epic_3.stories_raised == 0
+    assert epic_3.stories_in_backlog == 0
+    assert epic_3.stories_in_progress == 0
+    assert epic_3.stories_done == 0
+    assert epic_3.first_story_started is None
+    assert epic_3.last_story_finished is None
+    assert epic_3.min_stories == 0
+    assert epic_3.max_stories == 1
+    assert isinstance(epic_3.story_cycle_times, pd.DataFrame)
 
 
 def test_calculate_team_throughput(query_manager, settings):
 
-    t = Team(
+    team = Team(
         name="Team 1",
         wip=1,
         min_throughput=None,
@@ -742,7 +742,7 @@ def test_calculate_team_throughput(query_manager, settings):
     )
 
     throughput = calculate_team_throughput(
-        team=t,
+        team=team,
         query_manager=query_manager,
         cycle=settings["cycle"],
         backlog_column=settings["backlog_column"],
@@ -760,9 +760,9 @@ def test_calculate_team_throughput(query_manager, settings):
         {"count": 0},
         {"count": 1},
     ]
-    assert isinstance(t.throughput_samples_cycle_times, pd.DataFrame)
+    assert isinstance(team.throughput_samples_cycle_times, pd.DataFrame)
 
-    t = Team(
+    team = Team(
         name="Team 1",
         wip=1,
         min_throughput=None,
@@ -772,7 +772,7 @@ def test_calculate_team_throughput(query_manager, settings):
     )
 
     throughput = calculate_team_throughput(
-        team=t,
+        team=team,
         query_manager=query_manager,
         cycle=settings["cycle"],
         backlog_column=settings["backlog_column"],
@@ -788,9 +788,9 @@ def test_calculate_team_throughput(query_manager, settings):
         {"count": 0},
         {"count": 1},
     ]
-    assert isinstance(t.throughput_samples_cycle_times, pd.DataFrame)
+    assert isinstance(team.throughput_samples_cycle_times, pd.DataFrame)
 
-    t = Team(
+    team = Team(
         name="Team 1",
         wip=1,
         min_throughput=None,
@@ -800,7 +800,7 @@ def test_calculate_team_throughput(query_manager, settings):
     )
 
     throughput = calculate_team_throughput(
-        team=t,
+        team=team,
         query_manager=query_manager,
         cycle=settings["cycle"],
         backlog_column=settings["backlog_column"],
@@ -822,14 +822,14 @@ def test_calculate_team_throughput(query_manager, settings):
         {"count": 0},
         {"count": 1},
     ]
-    assert isinstance(t.throughput_samples_cycle_times, pd.DataFrame)
+    assert isinstance(team.throughput_samples_cycle_times, pd.DataFrame)
 
 
 def test_update_team_sampler(query_manager, settings):
 
     # min/max only
 
-    t = Team(
+    team = Team(
         name="Team 1",
         wip=1,
         min_throughput=5,
@@ -839,7 +839,7 @@ def test_update_team_sampler(query_manager, settings):
     )
 
     update_team_sampler(
-        team=t,
+        team=team,
         query_manager=query_manager,
         cycle=settings["cycle"],
         backlog_column=settings["backlog_column"],
@@ -847,12 +847,12 @@ def test_update_team_sampler(query_manager, settings):
         frequency="1D",
     )
 
-    assert t.sampler.__name__ == "get_throughput_range_sample"
-    assert t.throughput_samples_cycle_times is None
+    assert team.sampler.__name__ == "get_throughput_range_sample"
+    assert team.throughput_samples_cycle_times is None
 
     # query only - with completed stories
 
-    t = Team(
+    team = Team(
         name="Team 1",
         wip=1,
         min_throughput=None,
@@ -862,7 +862,7 @@ def test_update_team_sampler(query_manager, settings):
     )
 
     update_team_sampler(
-        team=t,
+        team=team,
         query_manager=query_manager,
         cycle=settings["cycle"],
         backlog_column=settings["backlog_column"],
@@ -870,12 +870,12 @@ def test_update_team_sampler(query_manager, settings):
         frequency="1D",
     )
 
-    assert t.sampler.__name__ == "get_throughput_sample"
-    assert isinstance(t.throughput_samples_cycle_times, pd.DataFrame)
+    assert team.sampler.__name__ == "get_throughput_sample"
+    assert isinstance(team.throughput_samples_cycle_times, pd.DataFrame)
 
     # query only - no completed stories
 
-    t = Team(
+    team = Team(
         name="Team 1",
         wip=1,
         min_throughput=None,
@@ -885,7 +885,7 @@ def test_update_team_sampler(query_manager, settings):
     )
 
     update_team_sampler(
-        team=t,
+        team=team,
         query_manager=query_manager,
         cycle=settings["cycle"],
         backlog_column=settings["backlog_column"],
@@ -893,12 +893,12 @@ def test_update_team_sampler(query_manager, settings):
         frequency="1D",
     )
 
-    assert t.sampler is None
-    assert isinstance(t.throughput_samples_cycle_times, pd.DataFrame)
+    assert team.sampler is None
+    assert isinstance(team.throughput_samples_cycle_times, pd.DataFrame)
 
     # query with no completed stories + min/max
 
-    t = Team(
+    team = Team(
         name="Team 1",
         wip=1,
         min_throughput=5,
@@ -908,7 +908,7 @@ def test_update_team_sampler(query_manager, settings):
     )
 
     update_team_sampler(
-        team=t,
+        team=team,
         query_manager=query_manager,
         cycle=settings["cycle"],
         backlog_column=settings["backlog_column"],
@@ -916,12 +916,12 @@ def test_update_team_sampler(query_manager, settings):
         frequency="1D",
     )
 
-    assert t.sampler.__name__ == "get_throughput_range_sample"
-    assert isinstance(t.throughput_samples_cycle_times, pd.DataFrame)
+    assert team.sampler.__name__ == "get_throughput_range_sample"
+    assert isinstance(team.throughput_samples_cycle_times, pd.DataFrame)
 
     # query with completed stories + min/max
 
-    t = Team(
+    team = Team(
         name="Team 1",
         wip=1,
         min_throughput=5,
@@ -931,7 +931,7 @@ def test_update_team_sampler(query_manager, settings):
     )
 
     update_team_sampler(
-        team=t,
+        team=team,
         query_manager=query_manager,
         cycle=settings["cycle"],
         backlog_column=settings["backlog_column"],
@@ -939,8 +939,8 @@ def test_update_team_sampler(query_manager, settings):
         frequency="1D",
     )
 
-    assert t.sampler.__name__ == "get_throughput_sample"
-    assert isinstance(t.throughput_samples_cycle_times, pd.DataFrame)
+    assert team.sampler.__name__ == "get_throughput_sample"
+    assert isinstance(team.throughput_samples_cycle_times, pd.DataFrame)
 
 
 def test_forecast_to_complete_wip_1():
@@ -1428,10 +1428,12 @@ def test_with_large_dataset(fields, settings, results):
         created = random_date_past(today, 15)
         changes = [{"date": created, "from": None, "to": statuses[0]}]
 
-        for s in statuses[1:]:
-            changes.append({"date": random_date_future(changes[-1]["date"], 15), "from": changes[-1]["to"], "to": s})
+        for status in statuses[1:]:
+            changes.append(
+                {"date": random_date_future(changes[-1]["date"], 15), "from": changes[-1]["to"], "to": status}
+            )
 
-            if s == current_status:
+            if status == current_status:
                 break
 
         return Issue(
@@ -1559,10 +1561,12 @@ def test_with_large_dataset_and_outcome_as_tickets(fields, settings, results):
         created = random_date_past(today, 15)
         changes = [{"date": created, "from": None, "to": statuses[0]}]
 
-        for s in statuses[1:]:
-            changes.append({"date": random_date_future(changes[-1]["date"], 15), "from": changes[-1]["to"], "to": s})
+        for status in statuses[1:]:
+            changes.append(
+                {"date": random_date_future(changes[-1]["date"], 15), "from": changes[-1]["to"], "to": status}
+            )
 
-            if s == current_status:
+            if status == current_status:
                 break
 
         return Issue(
@@ -1691,10 +1695,12 @@ def test_with_large_dataset_and_outcome_as_tickets_no_forecast(fields, settings,
         created = random_date_past(today, 15)
         changes = [{"date": created, "from": None, "to": statuses[0]}]
 
-        for s in statuses[1:]:
-            changes.append({"date": random_date_future(changes[-1]["date"], 15), "from": changes[-1]["to"], "to": s})
+        for status in statuses[1:]:
+            changes.append(
+                {"date": random_date_future(changes[-1]["date"], 15), "from": changes[-1]["to"], "to": status}
+            )
 
-            if s == current_status:
+            if status == current_status:
                 break
 
         return Issue(
@@ -1823,10 +1829,12 @@ def test_with_large_dataset_and_outcome_as_tickets_mixed_forecast(fields, settin
         created = random_date_past(today, 15)
         changes = [{"date": created, "from": None, "to": statuses[0]}]
 
-        for s in statuses[1:]:
-            changes.append({"date": random_date_future(changes[-1]["date"], 15), "from": changes[-1]["to"], "to": s})
+        for status in statuses[1:]:
+            changes.append(
+                {"date": random_date_future(changes[-1]["date"], 15), "from": changes[-1]["to"], "to": status}
+            )
 
-            if s == current_status:
+            if status == current_status:
                 break
 
         return Issue(
@@ -1927,10 +1935,12 @@ def test_with_large_dataset_minimal(fields, settings, results):
         created = random_date_past(today, 15)
         changes = [{"date": created, "from": None, "to": statuses[0]}]
 
-        for s in statuses[1:]:
-            changes.append({"date": random_date_future(changes[-1]["date"], 15), "from": changes[-1]["to"], "to": s})
+        for status in statuses[1:]:
+            changes.append(
+                {"date": random_date_future(changes[-1]["date"], 15), "from": changes[-1]["to"], "to": status}
+            )
 
-            if s == current_status:
+            if status == current_status:
                 break
 
         return Issue(
@@ -2026,10 +2036,12 @@ def test_with_large_dataset_minimal_no_forecast(fields, settings, results):
         created = random_date_past(today, 15)
         changes = [{"date": created, "from": None, "to": statuses[0]}]
 
-        for s in statuses[1:]:
-            changes.append({"date": random_date_future(changes[-1]["date"], 15), "from": changes[-1]["to"], "to": s})
+        for status in statuses[1:]:
+            changes.append(
+                {"date": random_date_future(changes[-1]["date"], 15), "from": changes[-1]["to"], "to": status}
+            )
 
-            if s == current_status:
+            if status == current_status:
                 break
 
         return Issue(
@@ -2137,10 +2149,12 @@ def test_with_large_dataset_teams_no_outcomes(fields, settings, results):
         created = random_date_past(today, 15)
         changes = [{"date": created, "from": None, "to": statuses[0]}]
 
-        for s in statuses[1:]:
-            changes.append({"date": random_date_future(changes[-1]["date"], 15), "from": changes[-1]["to"], "to": s})
+        for status in statuses[1:]:
+            changes.append(
+                {"date": random_date_future(changes[-1]["date"], 15), "from": changes[-1]["to"], "to": status}
+            )
 
-            if s == current_status:
+            if status == current_status:
                 break
 
         return Issue(
@@ -2248,10 +2262,12 @@ def test_with_large_dataset_no_teams(fields, settings, results):
         created = random_date_past(today, 15)
         changes = [{"date": created, "from": None, "to": statuses[0]}]
 
-        for s in statuses[1:]:
-            changes.append({"date": random_date_future(changes[-1]["date"], 15), "from": changes[-1]["to"], "to": s})
+        for status in statuses[1:]:
+            changes.append(
+                {"date": random_date_future(changes[-1]["date"], 15), "from": changes[-1]["to"], "to": status}
+            )
 
-            if s == current_status:
+            if status == current_status:
                 break
 
         return Issue(
@@ -2362,10 +2378,12 @@ def test_with_large_dataset_dynamic_teams(fields, settings, results):
         created = random_date_past(today, 15)
         changes = [{"date": created, "from": None, "to": statuses[0]}]
 
-        for s in statuses[1:]:
-            changes.append({"date": random_date_future(changes[-1]["date"], 15), "from": changes[-1]["to"], "to": s})
+        for status in statuses[1:]:
+            changes.append(
+                {"date": random_date_future(changes[-1]["date"], 15), "from": changes[-1]["to"], "to": status}
+            )
 
-            if s == current_status:
+            if status == current_status:
                 break
 
         return Issue(
@@ -2484,10 +2502,12 @@ def test_with_large_dataset_static_and_dynamic_teams(fields, settings, results):
         created = random_date_past(today, 15)
         changes = [{"date": created, "from": None, "to": statuses[0]}]
 
-        for s in statuses[1:]:
-            changes.append({"date": random_date_future(changes[-1]["date"], 15), "from": changes[-1]["to"], "to": s})
+        for status in statuses[1:]:
+            changes.append(
+                {"date": random_date_future(changes[-1]["date"], 15), "from": changes[-1]["to"], "to": status}
+            )
 
-            if s == current_status:
+            if status == current_status:
                 break
 
         return Issue(

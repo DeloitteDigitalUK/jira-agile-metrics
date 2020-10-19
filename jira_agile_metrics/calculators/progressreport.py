@@ -283,8 +283,8 @@ class ProgressReportCalculator(Calculator):
                         epics_by_team[epic.team.name] = []
                     epics_by_team[epic.team.name].append(epic)
 
-        with open(output_file, "w") as of:
-            of.write(
+        with open(output_file, "w") as output_file:
+            output_file.write(
                 template.render(
                     jira_url=self.query_manager.jira.client_info(),
                     title=self.settings["progress_report_title"],
@@ -602,9 +602,9 @@ def forecast_to_complete(team, epics, quantiles, trials=1000, max_iterations=999
             steps += 1
 
             # increment all epics that are not finished
-            for ev in trial_values:
-                if ev["value"] < ev["target"]:
-                    ev["weeks"] += 1
+            for trial_value in trial_values:
+                if trial_value["value"] < trial_value["target"]:
+                    trial_value["weeks"] += 1
 
             # draw a sample (throughput over a week) for the team and distribute
             # it over the active epics
@@ -612,8 +612,8 @@ def forecast_to_complete(team, epics, quantiles, trials=1000, max_iterations=999
             per_active_epic = int(sample / len(active_epics))
             remainder = sample % len(active_epics)
 
-            for ev in active_epics:
-                ev["value"] += per_active_epic
+            for active_epic in active_epics:
+                active_epic["value"] += per_active_epic
 
             # reset in case some have finished
             active_epics = filter_active_epics(trial_values)
@@ -630,8 +630,8 @@ def forecast_to_complete(team, epics, quantiles, trials=1000, max_iterations=999
             logger.warning("Trial %d did not complete after %d weeks, aborted.", trial, max_iterations)
 
         # record this trial
-        for ev in trial_values:
-            epic_trials[ev["epic"].key].iat[trial] = ev["weeks"]
+        for trial_value in trial_values:
+            epic_trials[trial_value["epic"].key].iat[trial] = trial_value["weeks"]
 
     for epic in epics:
         trials = epic_trials[epic.key].dropna()

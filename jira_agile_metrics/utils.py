@@ -12,10 +12,10 @@ class StatusTypes:
     complete = "complete"
 
 
-def extend_dict(d, e):
-    r = d.copy()
-    r.update(e)
-    return r
+def extend_dict(source_dict, dict_to_add):
+    extended_dict = source_dict.copy()
+    extended_dict.update(dict_to_add)
+    return extended_dict
 
 
 def to_json_string(value):
@@ -34,8 +34,8 @@ def get_extension(filename):
     return os.path.splitext(filename)[1].lower()
 
 
-def to_days_since_epoch(d):
-    return (d - datetime.date(1970, 1, 1)).days
+def to_days_since_epoch(date):
+    return (date - datetime.date(1970, 1, 1)).days
 
 
 def set_chart_context(context):
@@ -57,11 +57,11 @@ def breakdown_by_month(df, start_column, end_column, key_column, value_column, o
     (and order) the value columns, pass a list of valid values as `output_columns`.
     """
 
-    def build_df(t):
-        start_date = getattr(t, start_column)
-        end_date = getattr(t, end_column)
-        key = getattr(t, key_column)
-        value = getattr(t, value_column)
+    def build_df(row):
+        start_date = getattr(row, start_column)
+        end_date = getattr(row, end_column)
+        key = getattr(row, key_column)
+        value = getattr(row, value_column)
 
         if end_date is pd.NaT:
             end_date = pd.Timestamp.today()
@@ -73,7 +73,7 @@ def breakdown_by_month(df, start_column, end_column, key_column, value_column, o
 
         return pd.DataFrame(index=index, data=[[key]], columns=[value])
 
-    breakdown = pd.concat([build_df(t) for t in df.itertuples()], sort=True).resample("MS").agg(aggfunc)
+    breakdown = pd.concat([build_df(row) for row in df.itertuples()], sort=True).resample("MS").agg(aggfunc)
 
     if output_columns:
         breakdown = breakdown[[s for s in output_columns if s in breakdown.columns]]
@@ -90,10 +90,10 @@ def breakdown_by_month_sum_days(df, start_column, end_column, value_column, outp
     valid values as `output_columns`.
     """
 
-    def build_df(t):
-        start_date = getattr(t, start_column)
-        end_date = getattr(t, end_column)
-        value = getattr(t, value_column)
+    def build_df(row):
+        start_date = getattr(row, start_column)
+        end_date = getattr(row, end_column)
+        value = getattr(row, value_column)
 
         if end_date is pd.NaT:
             end_date = pd.Timestamp.today()
@@ -119,7 +119,7 @@ def breakdown_by_month_sum_days(df, start_column, end_column, value_column, outp
             columns=[value],
         )
 
-    breakdown = pd.concat([build_df(t) for t in df.itertuples()], sort=True).resample("MS").agg(aggfunc)
+    breakdown = pd.concat([build_df(row) for row in df.itertuples()], sort=True).resample("MS").agg(aggfunc)
 
     if output_columns:
         breakdown = breakdown[[s for s in output_columns if s in breakdown.columns]]
@@ -134,8 +134,8 @@ def to_bin(value, edges):
     """
 
     previous = 0
-    for v in edges:
-        if previous <= value <= v:
-            return (previous, v)
-        previous = v
+    for edge in edges:
+        if previous <= value <= edge:
+            return (previous, edge)
+        previous = edge
     return (previous, None)

@@ -7,8 +7,8 @@ def test_override_options():
     class FauxArgs:
         def __init__(self, opts):
             self.__dict__.update(opts)
-            for k, v in opts.items():
-                setattr(self, k, v)
+            for key, value in opts.items():
+                setattr(self, key, value)
 
     options = {"one": 1, "two": 2}
     override_options(options, FauxArgs({}))

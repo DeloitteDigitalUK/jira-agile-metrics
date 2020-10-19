@@ -281,7 +281,7 @@ def throughput_sampler(throughput_data, start_value, target):
 def burnup_monte_carlo(start_value, target_value, start_date, frequency, draw_sample, trials=100, max_iterations=9999):
 
     series = {}
-    for t in range(trials):
+    for trial in range(trials):
         current_date = start_date
         current_value = start_value
 
@@ -295,6 +295,6 @@ def burnup_monte_carlo(start_value, target_value, start_date, frequency, draw_sa
             dates.append(current_date)
             steps.append(min(current_value, target_value))  # don't overshoot the target
 
-        series["Trial %d" % t] = pd.Series(steps, index=dates, name="Trial %d" % t)
+        series["Trial %d" % trial] = pd.Series(steps, index=dates, name="Trial %d" % trial)
 
     return pd.DataFrame(series)

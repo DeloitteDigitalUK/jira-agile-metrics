@@ -71,8 +71,8 @@ class DebtCalculator(Calculator):
             )
 
         data = {}
-        for k, v in series.items():
-            data[k] = pd.Series(v["data"], dtype=v["dtype"])
+        for key, value in series.items():
+            data[key] = pd.Series(value["data"], dtype=value["dtype"])
 
         return pd.DataFrame(data, columns=columns)
 
@@ -125,8 +125,8 @@ class DebtCalculator(Calculator):
         priority_values = self.settings["debt_priority_values"]
         bins = self.settings["debt_age_chart_bins"]
 
-        def generate_bin_label(v):
-            low, high = to_bin(v, bins)
+        def generate_bin_label(value):
+            low, high = to_bin(value, bins)
             return "> %d days" % (low) if high is None else "%d-%d days" % (low, high)
 
         def day_grouper(value):

@@ -71,8 +71,8 @@ class WasteCalculator(Calculator):
             series["withdrawn_date"]["data"].append(dateutil.parser.parse(issue.fields.resolutiondate))
 
         data = {}
-        for k, v in series.items():
-            data[k] = pd.Series(v["data"], dtype=v["dtype"])
+        for key, value in series.items():
+            data[key] = pd.Series(value["data"], dtype=value["dtype"])
 
         return pd.DataFrame(data, columns=columns)
 

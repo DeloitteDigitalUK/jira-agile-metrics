@@ -42,39 +42,39 @@ def fixture_settings(custom_settings):
 
 
 def test_search(jira, settings):
-    qm = QueryManager(jira, settings)
-    assert qm.attributes_to_fields == {
+    query_manager = QueryManager(jira, settings)
+    assert query_manager.attributes_to_fields == {
         "Team": "customfield_001",
         "Estimate": "customfield_002",
         "Release": "customfield_003",
     }
 
-    issues = qm.find_issues("(filter=123)")
+    issues = query_manager.find_issues("(filter=123)")
     assert issues == jira.issues()
 
 
 def test_resolve_attribute_value(jira, settings):
-    qm = QueryManager(jira, settings)
-    issues = qm.find_issues("(filter=123)")
+    query_manager = QueryManager(jira, settings)
+    issues = query_manager.find_issues("(filter=123)")
 
-    assert qm.resolve_attribute_value(issues[0], "Team") == "Team 1"
-    assert qm.resolve_attribute_value(issues[0], "Estimate") == 30
-    assert qm.resolve_attribute_value(issues[0], "Release") == "R3"  # due to known_value
+    assert query_manager.resolve_attribute_value(issues[0], "Team") == "Team 1"
+    assert query_manager.resolve_attribute_value(issues[0], "Estimate") == 30
+    assert query_manager.resolve_attribute_value(issues[0], "Release") == "R3"  # due to known_value
 
 
 def test_resolve_field_value(jira, settings):
-    qm = QueryManager(jira, settings)
-    issues = qm.find_issues("(filter=123)")
+    query_manager = QueryManager(jira, settings)
+    issues = query_manager.find_issues("(filter=123)")
 
-    assert qm.resolve_field_value(issues[0], "customfield_001") == "Team 1"
-    assert qm.resolve_field_value(issues[0], "customfield_002") == 30
-    assert qm.resolve_field_value(issues[0], "customfield_003") == "R3"  # due to known_value
+    assert query_manager.resolve_field_value(issues[0], "customfield_001") == "Team 1"
+    assert query_manager.resolve_field_value(issues[0], "customfield_002") == 30
+    assert query_manager.resolve_field_value(issues[0], "customfield_003") == "R3"  # due to known_value
 
 
 def test_iter_changes(jira, settings):
-    qm = QueryManager(jira, settings)
-    issues = qm.find_issues("(filter=123)")
-    changes = list(qm.iter_changes(issues[0], ["status", "Team"]))
+    query_manager = QueryManager(jira, settings)
+    issues = query_manager.find_issues("(filter=123)")
+    changes = list(query_manager.iter_changes(issues[0], ["status", "Team"]))
 
     assert changes == [
         IssueSnapshot(
