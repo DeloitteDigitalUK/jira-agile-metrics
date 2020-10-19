@@ -37,7 +37,8 @@ class ScatterplotCalculator(Calculator):
         else:
             logger.debug("No output file specified for scatterplot chart")
 
-    def write_file(self, data, output_files):
+    @staticmethod
+    def write_file(data, output_files):
         file_data = data.copy()
         file_data["completed_date"] = file_data["completed_date"].map(pd.Timestamp.date)
 

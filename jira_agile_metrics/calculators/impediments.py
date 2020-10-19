@@ -84,7 +84,8 @@ class ImpedimentsCalculator(Calculator):
         if self.settings["impediments_status_days_chart"]:
             self.write_impediments_status_days_chart(data, self.settings["impediments_status_days_chart"])
 
-    def write_data(self, data, output_files):
+    @staticmethod
+    def write_data(data, output_files):
         for output_file in output_files:
             output_extension = get_extension(output_file)
 

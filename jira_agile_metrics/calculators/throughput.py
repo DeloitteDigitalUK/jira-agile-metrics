@@ -41,7 +41,8 @@ class ThroughputCalculator(Calculator):
         else:
             logger.debug("No output file specified for throughput chart")
 
-    def write_file(self, data, output_files):
+    @staticmethod
+    def write_file(data, output_files):
 
         for output_file in output_files:
             output_extension = get_extension(output_file)
