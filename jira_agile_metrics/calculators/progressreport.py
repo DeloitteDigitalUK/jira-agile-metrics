@@ -38,7 +38,7 @@ class ProgressReportCalculator(Calculator):
     def run(self, now=None, trials=1000):
 
         if self.settings["progress_report"] is None:
-            return
+            return None
 
         # Prepare and validate configuration options
 
@@ -64,7 +64,7 @@ class ProgressReportCalculator(Calculator):
         story_query_template = self.settings["progress_report_story_query_template"]
         if not story_query_template:
             logger.error("`Progress report story query template` is required")
-            return
+            return None
 
         # if not set, we only show forecast completion date, no RAG/deadline
         epic_deadline_field = self.settings["progress_report_epic_deadline_field"]

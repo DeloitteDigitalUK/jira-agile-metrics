@@ -85,7 +85,7 @@ class CFDCalculator(Calculator):
 
         if backlog_column not in data.columns:
             logger.error("Backlog column %s does not exist", backlog_column)
-            return None
+            return
 
         data = data.drop([backlog_column], axis=1)
         data.plot.area(ax=ax, stacked=False, legend=False)

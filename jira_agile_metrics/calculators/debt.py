@@ -132,6 +132,7 @@ class DebtCalculator(Calculator):
         def day_grouper(value):
             if isinstance(value, pd.Timedelta):
                 return generate_bin_label(value.days)
+            return None
 
         bin_labels = list(map(generate_bin_label, bins + [bins[-1] + 1]))
         breakdown = (
