@@ -11,7 +11,7 @@ from .config import ConfigError
 logger = logging.getLogger(__name__)
 
 
-class IssueSnapshot(object):
+class IssueSnapshot:
     """A snapshot of the key fields of an issue at a point in its change history"""
 
     def __init__(self, change, key, date, from_string, to_string):
@@ -42,7 +42,7 @@ class IssueSnapshot(object):
         )
 
 
-class QueryManager(object):
+class QueryManager:
     """Manage and execute queries"""
 
     settings = dict(attributes={}, known_values={}, max_results=False)

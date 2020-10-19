@@ -10,7 +10,7 @@ from .utils import extend_dict
 # Fake a portion of the JIRA API
 
 
-class FauxFieldValue(object):
+class FauxFieldValue:
     """A complex field value, with a name and a typed value"""
 
     def __init__(self, name, value):
@@ -18,14 +18,14 @@ class FauxFieldValue(object):
         self.value = value
 
 
-class FauxFields(object):
+class FauxFields:
     """Container for `issue.fields`"""
 
     def __init__(self, fields):
         self.__dict__.update(fields)
 
 
-class FauxChangeItem(object):
+class FauxChangeItem:
     """An item in a changelog change"""
 
     def __init__(self, field, fromString, toString):
@@ -34,7 +34,7 @@ class FauxChangeItem(object):
         self.to = self.toString = toString
 
 
-class FauxChange(object):
+class FauxChange:
     """A change in a changelog. Contains a list of change items."""
 
     def __init__(self, created, items):
@@ -42,14 +42,14 @@ class FauxChange(object):
         self.items = [FauxChangeItem(*i) for i in items]
 
 
-class FauxChangelog(object):
+class FauxChangelog:
     """A changelog. Contains a list of changes in `histories`."""
 
     def __init__(self, changes):
         self.histories = changes
 
 
-class FauxIssue(object):
+class FauxIssue:
     """An issue, with a key, change log, and set of fields"""
 
     def __init__(self, key, changes, **fields):
@@ -58,7 +58,7 @@ class FauxIssue(object):
         self.changelog = FauxChangelog(changes)
 
 
-class FauxJIRA(object):
+class FauxJIRA:
     """JIRA interface. Initialised with a set of issues, which will be returned
     by `search_issues()`.
     """

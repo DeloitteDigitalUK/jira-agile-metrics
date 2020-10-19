@@ -346,7 +346,7 @@ class ProgressReportCalculator(Calculator):
             )
 
 
-class Outcome(object):
+class Outcome:
     def __init__(self, name, key, deadline=None, epic_query=None, epics=None, is_jira=False):
         self.name = name
         self.key = key
@@ -356,7 +356,7 @@ class Outcome(object):
         self.is_jira = is_jira
 
 
-class Team(object):
+class Team:
     def __init__(
         self,
         name,
@@ -380,7 +380,7 @@ class Team(object):
         self.sampler = sampler
 
 
-class Epic(object):
+class Epic:
     def __init__(
         self,
         key,
@@ -428,7 +428,7 @@ class Epic(object):
         self.forecast = forecast
 
 
-class Forecast(object):
+class Forecast:
     def __init__(self, quantiles, deadline_quantile=None):
         self.quantiles = quantiles  # pairs of (quantile, weeks)
         self.deadline_quantile = deadline_quantile

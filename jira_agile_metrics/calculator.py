@@ -4,7 +4,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-class Calculator(object):
+class Calculator:
     """Base class for calculators."""
 
     def __init__(self, query_manager, settings, results):
