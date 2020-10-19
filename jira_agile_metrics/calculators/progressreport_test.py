@@ -392,11 +392,11 @@ def fixture_results():
 
 def test_throughput_range_sampler():
     sampler = throughput_range_sampler(5, 5)
-    for i in range(10):
+    for _ in range(10):
         assert sampler() == 5
 
     sampler = throughput_range_sampler(5, 10)
-    for i in range(10):
+    for _ in range(10):
         assert 5 <= sampler() <= 10
 
 

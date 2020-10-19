@@ -142,7 +142,7 @@ def get_archive(calculators, query_manager, settings):
         run_calculators(calculators, query_manager, settings)
 
         with zipfile.ZipFile("metrics.zip", "w", zipfile.ZIP_STORED) as z:
-            for root, dirs, files in os.walk(temp_path):
+            for root, _, files in os.walk(temp_path):
                 for file_name in files:
                     if file_name != "metrics.zip":
                         z.write(os.path.join(root, file_name), os.path.join("metrics", file_name))

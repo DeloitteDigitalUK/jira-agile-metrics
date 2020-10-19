@@ -46,7 +46,7 @@ class ImpedimentsCalculator(Calculator):
         active_columns = cycle_names[cycle_names.index(committed_column) : cycle_names.index(done_column)]
 
         for row in cycle_data.itertuples():
-            for idx, event in enumerate(row.impediments):
+            for _, event in enumerate(row.impediments):
                 # Ignore things that were impeded whilst in the backlog and/or done column
                 # (these are mostly nonsensical, and don't really indicate blocked/wasted time)
 
