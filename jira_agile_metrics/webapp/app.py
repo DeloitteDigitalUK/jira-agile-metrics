@@ -124,8 +124,7 @@ def get_jira_client(connection):
             raise ConfigError(
                 "JIRA authentication failed. Check URL and credentials, and ensure the account is not locked."
             ) from None
-        else:
-            raise
+        raise
 
 
 def get_archive(calculators, query_manager, settings):

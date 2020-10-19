@@ -488,7 +488,7 @@ def config_to_options(data, cwd=None, extended=False):
                         "`Committed column` (%s) must exist in `Workflow`: %s"
                         % (options["settings"]["committed_column"], column_names)
                     )
-                elif column_names.index(options["settings"]["committed_column"]) > 0:
+                if column_names.index(options["settings"]["committed_column"]) > 0:
                     options["settings"]["backlog_column"] = column_names[
                         column_names.index(options["settings"]["committed_column"]) - 1
                     ]
@@ -504,7 +504,7 @@ def config_to_options(data, cwd=None, extended=False):
                     "`Backlog column` (%s) must exist in `Workflow`: %s"
                     % (options["settings"]["backlog_column"], column_names)
                 )
-            elif column_names.index(options["settings"]["backlog_column"]) < (len(column_names) - 2):
+            if column_names.index(options["settings"]["backlog_column"]) < (len(column_names) - 2):
                 options["settings"]["committed_column"] = column_names[
                     column_names.index(options["settings"]["backlog_column"]) + 1
                 ]
