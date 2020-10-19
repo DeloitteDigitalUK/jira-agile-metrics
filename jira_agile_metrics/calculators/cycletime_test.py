@@ -8,8 +8,8 @@ from ..querymanager import QueryManager
 from .cycletime import CycleTimeCalculator
 
 
-@pytest.fixture
-def jira(custom_fields):
+@pytest.fixture(name="jira")
+def fixture_jira(custom_fields):
     return JIRA(
         fields=custom_fields,
         issues=[
@@ -96,8 +96,8 @@ def jira(custom_fields):
     )
 
 
-@pytest.fixture
-def jira_with_skipped_columns(custom_fields):
+@pytest.fixture(name="jira_with_skipped_columns")
+def fixture_jira_with_skipped_columns(custom_fields):
     return JIRA(
         fields=custom_fields,
         issues=[
@@ -143,8 +143,8 @@ def jira_with_skipped_columns(custom_fields):
     )
 
 
-@pytest.fixture
-def settings(custom_settings):
+@pytest.fixture(name="settings")
+def fixture_settings(custom_settings):
     return custom_settings
 
 

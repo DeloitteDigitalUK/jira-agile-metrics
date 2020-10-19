@@ -6,18 +6,18 @@ from .burnup import BurnupCalculator
 from .cfd import CFDCalculator
 
 
-@pytest.fixture
-def settings(minimal_settings):
+@pytest.fixture(name="settings")
+def fixture_settings(minimal_settings):
     return extend_dict(minimal_settings, {})
 
 
-@pytest.fixture
-def query_manager(minimal_query_manager):
+@pytest.fixture(name="query_manager")
+def fixture_query_manager(minimal_query_manager):
     return minimal_query_manager
 
 
-@pytest.fixture
-def results(minimal_cfd_results):
+@pytest.fixture(name="results")
+def fixture_results(minimal_cfd_results):
     return extend_dict(minimal_cfd_results, {})
 
 

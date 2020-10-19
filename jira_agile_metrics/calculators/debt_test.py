@@ -9,15 +9,15 @@ from ..utils import extend_dict
 from .debt import DebtCalculator
 
 
-@pytest.fixture
-def fields(minimal_fields):
+@pytest.fixture(name="fields")
+def fixture_fields(minimal_fields):
     return minimal_fields + [
         {"id": "priority", "name": "Priority"},
     ]
 
 
-@pytest.fixture
-def settings(minimal_settings):
+@pytest.fixture(name="settings")
+def fixture_settings(minimal_settings):
     return extend_dict(
         minimal_settings,
         {
@@ -34,8 +34,8 @@ def settings(minimal_settings):
     )
 
 
-@pytest.fixture
-def jira(fields):
+@pytest.fixture(name="jira")
+def fixture_jira(fields):
     return JIRA(
         fields=fields,
         issues=[

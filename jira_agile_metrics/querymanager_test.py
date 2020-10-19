@@ -7,8 +7,8 @@ from .querymanager import QueryManager, IssueSnapshot
 from .utils import extend_dict
 
 
-@pytest.fixture
-def jira(custom_fields):
+@pytest.fixture(name="jira")
+def fixture_jira(custom_fields):
     return JIRA(
         fields=custom_fields,
         issues=[
@@ -36,8 +36,8 @@ def jira(custom_fields):
     )
 
 
-@pytest.fixture
-def settings(custom_settings):
+@pytest.fixture(name="settings")
+def fixture_settings(custom_settings):
     return extend_dict(custom_settings, {})
 
 

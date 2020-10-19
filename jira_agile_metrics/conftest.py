@@ -88,8 +88,8 @@ class FauxJIRA:
 # Fixtures
 
 
-@pytest.fixture
-def minimal_settings():
+@pytest.fixture(name="minimal_settings")
+def fixture_minimal_settings():
     """The smallest `settings` required to build a query manager and cycle time
     calculation.
     """
@@ -113,8 +113,8 @@ def minimal_settings():
     }
 
 
-@pytest.fixture
-def custom_settings(minimal_settings):
+@pytest.fixture(name="custom_settings")
+def fixture_custom_settings(minimal_settings):
     """A `settings` dict that uses custom fields and attributes."""
     return extend_dict(
         minimal_settings,
@@ -128,8 +128,8 @@ def custom_settings(minimal_settings):
 # Fields + corresponding columns
 
 
-@pytest.fixture
-def minimal_fields():
+@pytest.fixture(name="minimal_fields")
+def fixture_minimal_fields():
     """A `fields` list for all basic fields, but no custom fields."""
     return [
         {"id": "summary", "name": "Summary"},
@@ -141,8 +141,8 @@ def minimal_fields():
     ]
 
 
-@pytest.fixture
-def custom_fields(minimal_fields):
+@pytest.fixture(name="custom_fields")
+def fixture_custom_fields(minimal_fields):
     """A `fields` list with the three custom fields used by `custom_settings`"""
     return minimal_fields + [
         {"id": "customfield_001", "name": "Team"},
@@ -151,8 +151,8 @@ def custom_fields(minimal_fields):
     ]
 
 
-@pytest.fixture
-def minimal_cycle_time_columns():
+@pytest.fixture(name="minimal_cycle_time_columns")
+def fixture_minimal_cycle_time_columns():
     """A columns list for the results of CycleTimeCalculator without any
     custom fields.
     """
@@ -175,8 +175,8 @@ def minimal_cycle_time_columns():
     ]
 
 
-@pytest.fixture
-def custom_cycle_time_columns(minimal_fields):
+@pytest.fixture(name="custom_cycle_time_columns")
+def fixture_custom_cycle_time_columns(minimal_fields):
     """A columns list for the results of CycleTimeCalculator with the three
     custom fields from `custom_settings`.
     """
@@ -202,8 +202,8 @@ def custom_cycle_time_columns(minimal_fields):
     ]
 
 
-@pytest.fixture
-def cfd_columns():
+@pytest.fixture(name="cfd_columns")
+def fixture_cfd_columns():
     """A columns list for the results of the CFDCalculator."""
     return ["Backlog", "Committed", "Build", "Test", "Done"]
 
@@ -211,15 +211,15 @@ def cfd_columns():
 # Query manager
 
 
-@pytest.fixture
-def minimal_query_manager(minimal_fields, minimal_settings):
+@pytest.fixture(name="minimal_query_manager")
+def fixture_minimal_query_manager(minimal_fields, minimal_settings):
     """A minimal query manager (no custom fields)"""
     jira = FauxJIRA(fields=minimal_fields, issues=[])
     return QueryManager(jira, minimal_settings)
 
 
-@pytest.fixture
-def custom_query_manager(custom_fields, custom_settings):
+@pytest.fixture(name="custom_query_manager")
+def fixture_custom_query_manager(custom_fields, custom_settings):
     """A query manager capable of returning values for custom fields"""
     jira = FauxJIRA(fields=custom_fields, issues=[])
     return QueryManager(jira, custom_settings)
@@ -267,8 +267,8 @@ def _ts(datestring, timestring="00:00:00", freq=None):
     return Timestamp("%s %s" % (datestring, timestring), freq=freq)
 
 
-@pytest.fixture
-def minimal_cycle_time_results(minimal_cycle_time_columns):
+@pytest.fixture(name="minimal_cycle_time_results")
+def fixture_minimal_cycle_time_results(minimal_cycle_time_columns):
     """A results dict mimicing a minimal result from the CycleTimeCalculator."""
     return {
         CycleTimeCalculator: DataFrame(
@@ -291,8 +291,8 @@ def minimal_cycle_time_results(minimal_cycle_time_columns):
     }
 
 
-@pytest.fixture
-def large_cycle_time_results(minimal_cycle_time_columns):
+@pytest.fixture(name="large_cycle_time_results")
+def fixture_large_cycle_time_results(minimal_cycle_time_columns):
     """A results dict mimicing a larger result from the CycleTimeCalculator."""
     return {
         CycleTimeCalculator: DataFrame(
@@ -400,8 +400,8 @@ def large_cycle_time_results(minimal_cycle_time_columns):
     }
 
 
-@pytest.fixture
-def minimal_cfd_results(minimal_cycle_time_results, cfd_columns):
+@pytest.fixture(name="minimal_cfd_results")
+def fixture_minimal_cfd_results(minimal_cycle_time_results, cfd_columns):
     """A results dict mimicing a minimal result from the CycleTimeCalculator."""
     return extend_dict(
         minimal_cycle_time_results,

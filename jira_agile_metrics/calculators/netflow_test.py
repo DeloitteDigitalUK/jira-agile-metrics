@@ -8,18 +8,18 @@ from .cfd import CFDCalculator
 from .netflow import NetFlowChartCalculator
 
 
-@pytest.fixture
-def settings(minimal_settings):
+@pytest.fixture(name="settings")
+def fixture_settings(minimal_settings):
     return extend_dict(minimal_settings, {"net_flow_frequency": "D"})
 
 
-@pytest.fixture
-def query_manager(minimal_query_manager):
+@pytest.fixture(name="query_manager")
+def fixture_query_manager(minimal_query_manager):
     return minimal_query_manager
 
 
-@pytest.fixture
-def results(query_manager, settings, large_cycle_time_results):
+@pytest.fixture(name="results")
+def fixture_results(query_manager, settings, large_cycle_time_results):
 
     # CFD data frame and net flow:
     #

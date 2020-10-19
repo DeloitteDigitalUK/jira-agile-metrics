@@ -6,18 +6,18 @@ from .cfd import CFDCalculator
 from .cycletime import CycleTimeCalculator
 
 
-@pytest.fixture
-def query_manager(minimal_query_manager):
+@pytest.fixture(name="query_manager")
+def fixture_query_manager(minimal_query_manager):
     return minimal_query_manager
 
 
-@pytest.fixture
-def settings(minimal_settings):
+@pytest.fixture(name="settings")
+def fixture_settings(minimal_settings):
     return extend_dict(minimal_settings, {})
 
 
-@pytest.fixture
-def columns(minimal_cycle_time_columns):
+@pytest.fixture(name="columns")
+def fixture_columns(minimal_cycle_time_columns):
     return minimal_cycle_time_columns
 
 

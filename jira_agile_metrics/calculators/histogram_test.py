@@ -6,18 +6,18 @@ from .cycletime import CycleTimeCalculator
 from .histogram import HistogramCalculator
 
 
-@pytest.fixture
-def settings(minimal_settings):
+@pytest.fixture(name="settings")
+def fixture_settings(minimal_settings):
     return extend_dict(minimal_settings, {})
 
 
-@pytest.fixture
-def query_manager(minimal_query_manager):
+@pytest.fixture(name="query_manager")
+def fixture_query_manager(minimal_query_manager):
     return minimal_query_manager
 
 
-@pytest.fixture
-def results(large_cycle_time_results):
+@pytest.fixture(name="results")
+def fixture_results(large_cycle_time_results):
     return extend_dict(large_cycle_time_results, {})
 
 

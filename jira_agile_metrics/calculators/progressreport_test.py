@@ -52,8 +52,8 @@ def random_date_future(start, max_days):
     return start + timedelta(days=random.randint(0, max_days))
 
 
-@pytest.fixture
-def fields(custom_fields):
+@pytest.fixture(name="fields")
+def fixture_fields(custom_fields):
     return custom_fields + [  # customfield_001 = Team
         {"id": "customfield_201", "name": "Outcome"},
         {"id": "customfield_202", "name": "Deadline"},
@@ -63,8 +63,8 @@ def fields(custom_fields):
     ]
 
 
-@pytest.fixture
-def settings(custom_settings):
+@pytest.fixture(name="settings")
+def fixture_settings(custom_settings):
     return extend_dict(
         custom_settings,
         {
@@ -110,8 +110,8 @@ def settings(custom_settings):
     )
 
 
-@pytest.fixture
-def query_manager(fields, settings):
+@pytest.fixture(name="query_manager")
+def fixture_query_manager(fields, settings):
 
     field_lookup = {v["name"].lower(): v["id"] for v in fields}
 
@@ -385,8 +385,8 @@ def query_manager(fields, settings):
     )
 
 
-@pytest.fixture
-def results():
+@pytest.fixture(name="results")
+def fixture_results():
     return {}
 
 

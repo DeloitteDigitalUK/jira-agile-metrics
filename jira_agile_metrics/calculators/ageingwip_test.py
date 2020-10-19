@@ -10,15 +10,15 @@ from .ageingwip import AgeingWIPChartCalculator
 from .cycletime import CycleTimeCalculator
 
 
-@pytest.fixture
-def settings(minimal_settings):
+@pytest.fixture(name="settings")
+def fixture_settings(minimal_settings):
     return extend_dict(
         minimal_settings, {"ageing_wip_chart": "ageingwip.png"}
     )  # without a file to write the calculator will stop
 
 
-@pytest.fixture
-def jira_with_skipped_columns(minimal_fields):
+@pytest.fixture(name="jira_with_skipped_columns")
+def fixture_jira_with_skipped_columns(minimal_fields):
     return JIRA(
         fields=minimal_fields,
         issues=[
@@ -73,23 +73,23 @@ def jira_with_skipped_columns(minimal_fields):
     )
 
 
-@pytest.fixture
-def query_manager(minimal_query_manager):
+@pytest.fixture(name="query_manager")
+def fixture_query_manager(minimal_query_manager):
     return minimal_query_manager
 
 
-@pytest.fixture
-def results(large_cycle_time_results):
+@pytest.fixture(name="results")
+def fixture_results(large_cycle_time_results):
     return extend_dict(large_cycle_time_results, {})
 
 
-@pytest.fixture
-def today():
+@pytest.fixture(name="today")
+def fixture_today():
     return datetime.date(2018, 1, 10)
 
 
-@pytest.fixture
-def now(today):
+@pytest.fixture(name="now")
+def fixture_now(today):
     return datetime.datetime.combine(today, datetime.time(8, 30, 00))
 
 
