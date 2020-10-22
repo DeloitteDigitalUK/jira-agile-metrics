@@ -33,7 +33,7 @@ class CycleFlowCalculator(Calculator):
         data = self.get_result()
 
         if self.settings['cycle_flow_chart']:
-            if data:
+            if data is not None:
                 self.write_chart(data, self.settings['cycle_flow_chart'])
             else:
                 logger.info("Did not match any entries for cycle flow chart")
@@ -79,12 +79,12 @@ def calculate_cycle_flow_data(cycle_data, cycle_names, frequency="1M", resample_
     duration_cols = [f"{cycle} duration" for cycle in cycle_names]
     cfd_data = cycle_data[[resample_on] + duration_cols]
 
-    # Zero out missing data, e.g. for tickets that were created and closed immediately
-    cfd_data = cfd_data.fillna(pd.Timedelta(seconds=0))
-
     # Remove issues that lack completion date
     # https://stackoverflow.com/a/55066805/315168
-    cfd_data = cfd_data[cfd_data[resample_on] != pd.Timedelta(seconds=0)]
+    cfd_data = cfd_data[cfd_data[resample_on].notnull()]
+
+    # Zero out missing data for cycles which issue skipped
+    cfd_data = cfd_data.fillna(pd.Timedelta(seconds=0))
 
     # We did not have any issues with completed_timestamp,
     # cannot do resample

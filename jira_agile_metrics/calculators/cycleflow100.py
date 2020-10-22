@@ -25,7 +25,7 @@ class CycleFlow100Calculator(Calculator):
         active_cycles = self.settings["cycle"][1:-1]
         cycle_names = [s['name'] for s in active_cycles]
         data = calculate_cycle_flow_data(cycle_data, cycle_names)
-        if data:
+        if data is not None:
             # Stack cols to 100%
             data = data.divide(data.sum(axis=1), axis=0)
         return data
@@ -34,7 +34,7 @@ class CycleFlow100Calculator(Calculator):
         data = self.get_result()
 
         if self.settings['cycle_flow_100_chart']:
-            if data:
+            if data is not None:
                 self.write_chart(data, self.settings['cycle_flow_100_chart'])
             else:
                 logger.info("Did not match any entries for Cycle flow 100% chart")
