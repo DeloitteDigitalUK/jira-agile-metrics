@@ -19,17 +19,24 @@ class CycleFlowCalculator(Calculator):
     """
 
     def run(self):
+
         cycle_data = self.get_result(CycleTimeCalculator)
+
         # Exclude backlog and done
         active_cycles = self.settings["cycle"][1:-1]
+
         cycle_names = [s['name'] for s in active_cycles]
+
         return calculate_cycle_flow_data(cycle_data, cycle_names)
 
     def write(self):
         data = self.get_result()
 
         if self.settings['cycle_flow_chart']:
-            self.write_chart(data, self.settings['cycle_flow_chart'])
+            if data:
+                self.write_chart(data, self.settings['cycle_flow_chart'])
+            else:
+                logger.info("Did not match any entries for cycle flow chart")
         else:
             logger.debug("No output file specified for cycle flow chart")
 
@@ -71,6 +78,19 @@ def calculate_cycle_flow_data(cycle_data, cycle_names, frequency="1M", resample_
     # Build a dataframe of just the "duration" columns
     duration_cols = [f"{cycle} duration" for cycle in cycle_names]
     cfd_data = cycle_data[[resample_on] + duration_cols]
+
+    # Zero out missing data, e.g. for tickets that were created and closed immediately
+    cfd_data = cfd_data.fillna(pd.Timedelta(seconds=0))
+
+    # Remove issues that lack completion date
+    # https://stackoverflow.com/a/55066805/315168
+    cfd_data = cfd_data[cfd_data[resample_on] != pd.Timedelta(seconds=0)]
+
+    # We did not have any issues with completed_timestamp,
+    # cannot do resample
+    if cfd_data.empty:
+        return None
+
     sampled = cfd_data.resample(frequency, on=resample_on).agg(np.sum)
 
     #
