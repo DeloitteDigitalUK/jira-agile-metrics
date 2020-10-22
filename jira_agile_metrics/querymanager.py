@@ -8,6 +8,12 @@ from .config import ConfigError
 
 logger = logging.getLogger(__name__)
 
+def _field_id_from_changelog_item(history_item):
+    if hasattr(history_item, 'fieldId'):
+        return history_item.fieldId
+    else:
+        return history_item.field
+
 class IssueSnapshot(object):
     """A snapshot of the key fields of an issue at a point in its change history
     """
@@ -132,12 +138,20 @@ class QueryManager(object):
         initial value. `fields` is a list of fields to monitor, e.g.
         `['status']`.
         """
+        
+        # Since the changelog history lists field ids and not names, we
+        # need to pre-cache the field ids of the fields to watch in the
+        # changelog
+        field_ids_to_names = {}
 
         for field in fields:
-            initial_value = self.resolve_field_value(issue, self.field_name_to_id(field))
+            field_id = self.field_name_to_id(field)
+            field_ids_to_names[field_id] = field
+            
+            initial_value = self.resolve_field_value(issue, field_id)
             try:
                 initial_value = next(filter(
-                    lambda h: h.field == field,
+                    lambda h: _field_id_from_changelog_item(h) == field_id,
                     itertools.chain.from_iterable([c.items for c in sorted(
                         issue.changelog.histories, key=lambda c: dateutil.parser.parse(c.created))])
                 )).fromString
@@ -156,9 +170,9 @@ class QueryManager(object):
             change_date = dateutil.parser.parse(change.created, ignoretz=True)
 
             for item in change.items:
-                if item.field in fields:
+                if _field_id_from_changelog_item(item) in field_ids_to_names:
                     yield IssueSnapshot(
-                        change=item.field,
+                        change=field_ids_to_names[item.fieldId],
                         key=issue.key,
                         date=change_date,
                         from_string=item.fromString,
