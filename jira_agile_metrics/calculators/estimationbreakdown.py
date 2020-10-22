@@ -44,7 +44,7 @@ class EstimationBreakdownCalculator(Calculator):
             # Crop too long summaries
             label = (row["key"] + " " + row["summary"])[0:45]
 
-            estimation_row = {"estimation": row["estimation_days"]}
+            estimation_row = {"Estimation": row["estimation_days"]}
             estimation_row["label"] = label + " (est)"
 
             actual_row = dict([(state, get_good_duration(row[f"{state} duration"])) for state in active_cycle_names])
@@ -53,7 +53,7 @@ class EstimationBreakdownCalculator(Calculator):
             output.append(estimation_row)
             output.append(actual_row)
 
-        return pd.DataFrame(output, columns=['label', 'estimation'] + active_cycle_names)
+        return pd.DataFrame(output, columns=['label', 'Estimation'] + active_cycle_names)
 
     def write(self):
         output_file = self.settings['estimation_breakdown_chart']
@@ -76,7 +76,7 @@ class EstimationBreakdownCalculator(Calculator):
         # https://stackoverflow.com/a/61741058/315168
         chart_data.pivot(
             index='label',
-            columns=['estimation'] + active_cycle_names)
+            columns=['Estimation'] + active_cycle_names)
 
         fig, ax = plt.subplots(figsize=(10, len(chart_data) / 2))
 
@@ -90,8 +90,8 @@ class EstimationBreakdownCalculator(Calculator):
 
             if "(est)" in row["label"]:
                 # Estimation row
-                xpos = (row["estimation"] or 0) + 1
-                val = row["estimation"]
+                xpos = (row["Estimation"] or 0) + 1
+                val = row["Estimation"]
                 if val:
                     if val <= 1:
                         label = "< 1 day"

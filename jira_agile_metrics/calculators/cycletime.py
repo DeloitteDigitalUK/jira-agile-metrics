@@ -313,15 +313,14 @@ def calculate_cycle_times(
             # Raw Timespans object is not exported ATM,
             # but could be added in the future if there is need for it.
             for workflow_state_name, timespans in timespans.items():
-                start = None
-                duration = None
 
                 if timespans.filled:
+                    # Did we have any cycles for this issue
                     start = timespans.start.date()
-                    if not timespans.open_ended:
-                        duration = timespans.duration
+                    duration = timespans.duration
                 else:
                     start = None
+                    duration = None
 
                 item[workflow_state_name] = start
                 item[f'{workflow_state_name} duration'] = duration

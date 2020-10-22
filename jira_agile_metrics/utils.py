@@ -235,8 +235,18 @@ class Timespans:
 
     @property
     def duration(self) -> datetime.timedelta:
-        """Duration of all timespans altogether."""
-        return sum([s[1] - s[0] for s in self.spans], datetime.timedelta())
+        """Duration of all timespans altogether.
+
+        TODO: Promote to a function and make now an argument to make this testable
+        """
+        def span_duration(s):
+            if len(s) == 2:
+                return s[1] - s[0]
+            else:
+                # Still ongoing
+                return datetime.datetime.now() - s[0]
+
+        return sum([span_duration(s) for s in self.spans], datetime.timedelta())
 
 
 
