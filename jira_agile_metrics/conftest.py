@@ -32,9 +32,9 @@ class FauxFields(object):
 class FauxChangeItem(object):
     """An item in a changelog change
     """
-    def __init__(self, field, fieldId, fromString, toString):
+    def __init__(self, field, fromString, toString, fieldId=None):
         self.field = field
-        self.fieldId = fieldId
+        self.fieldId = fieldId if fieldId is not None else field
         self.from_ = self.fromString = fromString
         self.to = self.toString = toString
 
