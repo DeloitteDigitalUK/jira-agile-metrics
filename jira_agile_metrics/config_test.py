@@ -9,6 +9,9 @@ from .config import (
     ConfigError
 )
 
+def temp_opener(name, flag, mode=0o777):
+      return os.open(name, flag | os.O_TEMPORARY, mode)
+
 def test_force_list():
     assert force_list(None) == [None]
     assert force_list("foo") == ["foo"]
@@ -424,8 +427,8 @@ Output:
 def test_config_to_options_extends():
     try:
         with tempfile.NamedTemporaryFile(delete=False) as fp:
-            # Base file
-            fp.write(b"""\
+        # Base file
+        fp.write(b"""\
 Connection:
     Domain: https://foo.com
 
@@ -448,11 +451,11 @@ Output:
     Done column: Done
 """)
 
-            fp.seek(0)
+        fp.seek(0)
 
-            # Extend the file
+        # Extend the file
 
-            options = config_to_options("""
+        options = config_to_options("""
 Extends: %s
 
 Connection:
@@ -471,30 +474,30 @@ Output:
         - 0.7
 
     Cycle time data: cycletime.csv
-""" % fp.name, cwd=os.path.abspath(fp.name))
+""" % fp.name, cwd=os.path.abspath(fp.name), extended_file_opener=temp_opener)
     finally:
         os.remove(fp.name)
 
-    # overridden
-    assert options['connection']['domain'] == 'https://bar.com'
+        # overridden
+        assert options['connection']['domain'] == 'https://bar.com'
 
-    # from extended base
-    assert options['settings']['backlog_column'] == 'Backlog'
-    assert options['settings']['committed_column'] == 'In progress'
-    assert options['settings']['done_column'] == 'Done'
+        # from extended base
+        assert options['settings']['backlog_column'] == 'Backlog'
+        assert options['settings']['committed_column'] == 'In progress'
+        assert options['settings']['done_column'] == 'Done'
 
-    # from extending file
-    assert options['settings']['cycle_time_data'] == ['cycletime.csv']
+        # from extending file
+        assert options['settings']['cycle_time_data'] == ['cycletime.csv']
 
-    # overridden
-    assert options['settings']['quantiles'] == [0.5, 0.7]
+        # overridden
+        assert options['settings']['quantiles'] == [0.5, 0.7]
 
-    # merged
-    assert options['settings']['attributes'] == {
-        'Release': 'Release number',
-        'Priority': 'Severity',
-        'Team': 'Assigned team'
-    }
+        # merged
+        assert options['settings']['attributes'] == {
+            'Release': 'Release number',
+            'Priority': 'Severity',
+            'Team': 'Assigned team'
+        }
 
 def test_config_to_options_extends_blocked_if_no_explicit_working_directory():
 
