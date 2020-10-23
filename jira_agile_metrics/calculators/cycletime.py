@@ -116,12 +116,12 @@ class CycleTimeCalculator(Calculator):
 
 def calculate_cycle_times(
     query_manager,
-    cycle,  # [{name:"", statuses:[""], type:""}]
-    attributes,  # [{key:value}]
-    committed_column,  # "" in `cycle`
-    done_column,  # "" in `cycle`
-    queries,  # [{jql:"", value:""}]
-    query_attribute=None,  # ""
+    cycle,                  # [{name:"", statuses:[""], type:""}]
+    attributes,             # [{key:value}]
+    committed_column,       # "" in `cycle`
+    done_column,            # "" in `cycle`
+    queries,                # [{jql:"", value:""}]
+    query_attribute=None,   # ""
     now=None,
 ):
 

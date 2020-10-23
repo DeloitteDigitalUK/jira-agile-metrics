@@ -152,50 +152,50 @@ def jira_with_skipped_columns(custom_fields):
         issues=[
             Issue(
                 "A-10",
-            summary="Gaps",
-            issuetype=Value("Story", "story"),
-            status=Value("Done", "done"),
-            resolution=Value("Done", "Done"),
-            resolutiondate="2018-01-04 01:01:01",
-            created="2018-01-01 01:01:01",
-            customfield_001="Team 1",
-            customfield_002=Value(None, 10),
-            customfield_003=Value(None, []),
-            customfield_100=None,
-            changes=[
-                Change(
-                    "2018-01-02 01:05:01",
-                    [("status", "Backlog", "Next",)]
-                ),
-                Change(
-                    "2018-01-04 01:01:01",
-                    [("status", "Next", "Done",), ("resolution", None, "done")]
-                ), # skipping columns Build and Test
-            ],
-        ),
+                summary="Gaps",
+                issuetype=Value("Story", "story"),
+                status=Value("Done", "done"),
+                resolution=Value("Done", "Done"),
+                resolutiondate="2018-01-04 01:01:01",
+                created="2018-01-01 01:01:01",
+                customfield_001="Team 1",
+                customfield_002=Value(None, 10),
+                customfield_003=Value(None, []),
+                customfield_100=None,
+                changes=[
+                    Change(
+                        "2018-01-02 01:05:01",
+                        [("status", "Backlog", "Next",)]
+                    ),
+                    Change(
+                        "2018-01-04 01:01:01",
+                        [("status", "Next", "Done",), ("resolution", None, "done")]
+                    ), # skipping columns Build and Test
+                ],
+            ),
             Issue(
                 "A-11",
-            summary="More Gaps",
-            issuetype=Value("Story", "story"),
-            status=Value("Done", "done"),
-            resolution=Value("Done", "Done"),
-            resolutiondate="2018-01-04 01:01:01",
-            created="2018-01-01 01:01:01",
-            customfield_001="Team 1",
-            customfield_002=Value(None, 10),
-            customfield_003=Value(None, []),
-            customfield_100=None,
-            changes=[
-                Change(
-                    "2018-01-02 01:05:01",
-                    [("status", "Backlog", "Build",)]
-                ),
-                Change(
-                    "2018-01-04 01:01:01",
-                    [("status", "Build", "Done",), ("resolution", None, "done")]
-                ), # skipping columns Build and Test
-            ],
-        ),
+                summary="More Gaps",
+                issuetype=Value("Story", "story"),
+                status=Value("Done", "done"),
+                resolution=Value("Done", "Done"),
+                resolutiondate="2018-01-04 01:01:01",
+                created="2018-01-01 01:01:01",
+                customfield_001="Team 1",
+                customfield_002=Value(None, 10),
+                customfield_003=Value(None, []),
+                customfield_100=None,
+                changes=[
+                    Change(
+                        "2018-01-02 01:05:01",
+                        [("status", "Backlog", "Build",)]
+                    ),
+                    Change(
+                        "2018-01-04 01:01:01",
+                        [("status", "Build", "Done",), ("resolution", None, "done")]
+                    ), # skipping columns Build and Test
+                ],
+            ),
         ],
     )
 
@@ -305,7 +305,7 @@ def test_movement(jira, settings):
                     "status": "Committed",
                     "flag": "Impediment",
                 },
-        ],
+            ],
             "Backlog": Timestamp("2018-01-02 00:00:00"),
             "Committed": Timestamp("2018-01-03 00:00:00"),
             "Build": NaT,

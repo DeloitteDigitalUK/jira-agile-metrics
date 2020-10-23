@@ -469,7 +469,7 @@ Output:
 def test_config_to_options_extends():
     try:
         with tempfile.NamedTemporaryFile(delete=False) as fp:
-        # Base file
+            # Base file
             fp.write(
                 b"""\
 Connection:
@@ -497,7 +497,7 @@ Output:
 
             fp.close()
 
-        # Extend the file
+            # Extend the file
 
             options = config_to_options(
                 """
@@ -526,26 +526,26 @@ Output:
     finally:
         os.remove(fp.name)
 
-        # overridden
+    # overridden
     assert options["connection"]["domain"] == "https://bar.com"
 
-        # from extended base
+    # from extended base
     assert options["settings"]["backlog_column"] == "Backlog"
     assert options["settings"]["committed_column"] == "In progress"
     assert options["settings"]["done_column"] == "Done"
 
-        # from extending file
+    # from extending file
     assert options["settings"]["cycle_time_data"] == ["cycletime.csv"]
 
-        # overridden
+    # overridden
     assert options["settings"]["quantiles"] == [0.5, 0.7]
 
-        # merged
+    # merged
     assert options["settings"]["attributes"] == {
         "Release": "Release number",
         "Priority": "Severity",
         "Team": "Assigned team",
-        }
+    }
 
 
 def test_config_to_options_extends_blocked_if_no_explicit_working_directory():
