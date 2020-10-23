@@ -38,54 +38,60 @@ def jira(custom_fields):
                         [
                             (
                                 "resolution",
+                                "resolution",
                                 None,
                                 "Closed",
                             ),
                             (
                                 "status",
+                                "status",
                                 "Next",
                                 "Done",
-                            ),
-                        ],
+                            )
+                        ]
                     ),
                     Change(
                         "2018-01-02 01:01:01",
                         [
                             (
                                 "status",
+                                "status",
                                 "Backlog",
                                 "Next",
                             )
-                        ],
+                        ]
                     ),
                     Change(
                         "2018-01-02 01:01:01",
                         [
                             (
                                 "Team",
+                                "customfield_001",
                                 "Team 2",
                                 "Team 1",
                             )
-                        ],
+                        ]
                     ),
                     Change(
                         "2018-01-04 01:01:01",
                         [
                             (
                                 "resolution",
+                                "resolution",
                                 "Closed",
                                 None,
                             ),
                             (
                                 "status",
+                                "status",
                                 "Done",
                                 "QA",
-                            ),
-                        ],
+                            )
+                        ]
                     ),
                 ],
             )
-        ],
+        ]
     )
 
 
