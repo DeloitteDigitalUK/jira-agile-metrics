@@ -176,7 +176,7 @@ def to_progress_report_outcomes_list(value):
     ]
 
 
-def config_to_options(data, cwd=None, extended=False):
+def config_to_options(data, cwd=None, extended=False, extended_file_opener=None):
     try:
         config = ordered_load(data, yaml.SafeLoader)
     except Exception as e:
@@ -325,7 +325,7 @@ def config_to_options(data, cwd=None, extended=False):
             ) from None
 
         logger.debug("Extending file %s" % extends_filename)
-        with open(extends_filename) as extends_file:
+        with open(extends_filename, opener=extended_file_opener) as extends_file:
             options = config_to_options(
                 extends_file.read(),
                 cwd=os.path.dirname(extends_filename),

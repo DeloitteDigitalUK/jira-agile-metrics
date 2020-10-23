@@ -4,6 +4,8 @@ import os.path
 
 from .config import force_list, expand_key, config_to_options, ConfigError
 
+def temp_opener(name, flag, mode=0o777):
+      return os.open(name, flag | os.O_TEMPORARY, mode)
 
 def test_force_list():
     assert force_list(None) == [None]
@@ -523,6 +525,7 @@ Output:
 """
                 % fp.name,
                 cwd=os.path.abspath(fp.name),
+                extended_file_opener=temp_opener
             )
     finally:
         os.remove(fp.name)
