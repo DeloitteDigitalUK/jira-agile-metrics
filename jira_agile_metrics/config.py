@@ -106,7 +106,7 @@ def to_progress_report_outcomes_list(value):
     } for val in value]
 
 
-def config_to_options(data, cwd=None, extended=False, extended_file_opener=None):
+def config_to_options(data, cwd=None, extended=False):
     try:
         config = ordered_load(data, yaml.SafeLoader)
     except Exception as e:
@@ -261,7 +261,7 @@ def config_to_options(data, cwd=None, extended=False, extended_file_opener=None)
             raise ConfigError("File `%s` referenced in `extends` not found." % extends_filename) from None
 
         logger.debug("Extending file %s" % extends_filename)
-        with open(extends_filename, opener=extended_file_opener) as extends_file:
+        with open(extends_filename, "r") as extends_file:
             options = config_to_options(extends_file.read(), cwd=os.path.dirname(extends_filename), extended=True)
 
     # Parse and validate Connection
