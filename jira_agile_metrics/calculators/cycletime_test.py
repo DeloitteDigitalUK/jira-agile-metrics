@@ -40,12 +40,12 @@ def jira(custom_fields):
             customfield_003=Value(None, []),
             customfield_100=None,
             changes=[
-                Change("2018-01-02 10:01:01", [("Flagged", None, "Impediment")]),
-                Change("2018-01-03 01:00:00", [("Flagged", "Impediment", "")]),  # blocked 1 day in the backlog (doesn't count towards blocked days)
-                Change("2018-01-03 01:01:01", [("status", "Backlog", "Next",)]),
-                Change("2018-01-04 10:01:01", [("Flagged", "", "Impediment")]),
-                Change("2018-01-05 08:01:01", [("Flagged", "Impediment", "")]),  # was blocked 1 day
-                Change("2018-01-08 10:01:01", [("Flagged", "", "Impediment")]),  # stays blocked until today
+                Change("2018-01-02 10:01:01", [("Flagged", "customfield_100", None, "Impediment")]),
+                Change("2018-01-03 01:00:00", [("Flagged", "customfield_100", "Impediment", "")]),  # blocked 1 day in the backlog (doesn't count towards blocked days)
+                Change("2018-01-03 01:01:01", [("status", "status", "Backlog", "Next",)]),
+                Change("2018-01-04 10:01:01", [("Flagged", "customfield_100", "", "Impediment")]),
+                Change("2018-01-05 08:01:01", [("Flagged", "customfield_100", "Impediment", "")]),  # was blocked 1 day
+                Change("2018-01-08 10:01:01", [("Flagged", "customfield_100", "", "Impediment")]),  # stays blocked until today
             ],
         ),
         Issue("A-3",
@@ -60,11 +60,11 @@ def jira(custom_fields):
             customfield_003=Value(None, []),
             customfield_100=None,
             changes=[
-                Change("2018-01-03 01:01:01", [("status", "Backlog", "Next",)]),
-                Change("2018-01-04 01:01:01", [("status", "Next", "Build",)]),
-                Change("2018-01-04 10:01:01", [("Flagged", None, "Impediment")]),  # should clear two days later when issue resolved
-                Change("2018-01-05 01:01:01", [("status", "Build", "QA",)]),
-                Change("2018-01-06 01:01:01", [("status", "QA", "Done",)]),
+                Change("2018-01-03 01:01:01", [("status", "status", "Backlog", "Next",)]),
+                Change("2018-01-04 01:01:01", [("status", "status", "Next", "Build",)]),
+                Change("2018-01-04 10:01:01", [("Flagged", "customfield_100", None, "Impediment")]),  # should clear two days later when issue resolved
+                Change("2018-01-05 01:01:01", [("status", "status", "Build", "QA",)]),
+                Change("2018-01-06 01:01:01", [("status", "status", "QA", "Done",)]),
             ],
         ),
         Issue("A-4",
@@ -79,11 +79,11 @@ def jira(custom_fields):
             customfield_003=Value(None, []),
             customfield_100=None,
             changes=[
-                Change("2018-01-04 01:01:01", [("status", "Backlog", "Next",)]),
-                Change("2018-01-05 01:01:01", [("status", "Next", "Build",)]),
-                Change("2018-01-06 01:01:01", [("status", "Build", "Next",)]),
-                Change("2018-01-07 01:01:01", [("Flagged", None, "Awaiting input")]),
-                Change("2018-01-10 10:01:01", [("Flagged", "Awaiting input", "")]),  # blocked 3 days
+                Change("2018-01-04 01:01:01", [("status", "status", "Backlog", "Next",)]),
+                Change("2018-01-05 01:01:01", [("status", "status", "Next", "Build",)]),
+                Change("2018-01-06 01:01:01", [("status", "status", "Build", "Next",)]),
+                Change("2018-01-07 01:01:01", [("Flagged", "customfield_100", None, "Awaiting input")]),
+                Change("2018-01-10 10:01:01", [("Flagged", "customfield_100", "Awaiting input", "")]),  # blocked 3 days
             ],
         ),
     ])
@@ -103,8 +103,8 @@ def jira_with_skipped_columns(custom_fields):
             customfield_003=Value(None, []),
             customfield_100=None,
             changes=[
-                Change("2018-01-02 01:05:01", [("status", "Backlog", "Next",)]),
-                Change("2018-01-04 01:01:01", [("status", "Next", "Done",), ("resolution", None, "done")]), # skipping columns Build and Test
+                Change("2018-01-02 01:05:01", [("status", "status", "Backlog", "Next",)]),
+                Change("2018-01-04 01:01:01", [("status", "status", "Next", "Done",), ("resolution", "resolution", None, "done")]), # skipping columns Build and Test
             ],
         ),
         Issue("A-11",
@@ -119,8 +119,8 @@ def jira_with_skipped_columns(custom_fields):
             customfield_003=Value(None, []),
             customfield_100=None,
             changes=[
-                Change("2018-01-02 01:05:01", [("status", "Backlog", "Build",)]),
-                Change("2018-01-04 01:01:01", [("status", "Build", "Done",), ("resolution", None, "done")]), # skipping columns Build and Test
+                Change("2018-01-02 01:05:01", [("status", "status", "Backlog", "Build",)]),
+                Change("2018-01-04 01:01:01", [("status", "status", "Build", "Done",), ("resolution", "resolution", None, "done")]), # skipping columns Build and Test
             ],
         ),
     ])

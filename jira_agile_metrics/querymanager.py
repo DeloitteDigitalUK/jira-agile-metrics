@@ -172,7 +172,7 @@ class QueryManager(object):
             for item in change.items:
                 if _field_id_from_changelog_item(item) in field_ids_to_names:
                     yield IssueSnapshot(
-                        change=field_ids_to_names[item.fieldId],
+                        change=field_ids_to_names[_field_id_from_changelog_item(item)],
                         key=issue.key,
                         date=change_date,
                         from_string=item.fromString,
