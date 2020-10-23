@@ -4,9 +4,6 @@ import os.path
 
 from .config import force_list, expand_key, config_to_options, ConfigError
 
-def temp_opener(name, flag, mode=0o777):
-      return os.open(name, flag | os.O_TEMPORARY, mode)
-
 def test_force_list():
     assert force_list(None) == [None]
     assert force_list("foo") == ["foo"]
@@ -472,7 +469,7 @@ Output:
 def test_config_to_options_extends():
     try:
         with tempfile.NamedTemporaryFile(delete=False) as fp:
-            # Base file
+        # Base file
             fp.write(
                 b"""\
 Connection:
@@ -498,9 +495,9 @@ Output:
 """
             )
 
-            fp.seek(0)
+            fp.close()
 
-            # Extend the file
+        # Extend the file
 
             options = config_to_options(
                 """
@@ -524,32 +521,31 @@ Output:
     Cycle time data: cycletime.csv
 """
                 % fp.name,
-                cwd=os.path.abspath(fp.name),
-                extended_file_opener=temp_opener
+                cwd=os.path.abspath(fp.name)
             )
     finally:
         os.remove(fp.name)
 
-    # overridden
+        # overridden
     assert options["connection"]["domain"] == "https://bar.com"
 
-    # from extended base
+        # from extended base
     assert options["settings"]["backlog_column"] == "Backlog"
     assert options["settings"]["committed_column"] == "In progress"
     assert options["settings"]["done_column"] == "Done"
 
-    # from extending file
+        # from extending file
     assert options["settings"]["cycle_time_data"] == ["cycletime.csv"]
 
-    # overridden
+        # overridden
     assert options["settings"]["quantiles"] == [0.5, 0.7]
 
-    # merged
+        # merged
     assert options["settings"]["attributes"] == {
         "Release": "Release number",
         "Priority": "Severity",
         "Team": "Assigned team",
-    }
+        }
 
 
 def test_config_to_options_extends_blocked_if_no_explicit_working_directory():
