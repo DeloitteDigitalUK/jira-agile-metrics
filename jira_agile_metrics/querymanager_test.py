@@ -17,7 +17,7 @@ def jira(custom_fields):
         Issue("A-1",
             summary="Issue A-1",
             issuetype=Value("Story", "story"),
-            status=Value("Backlotg", "backlog"),
+            status=Value("Backlog", "backlog"),
             resolution=None,
             created="2018-01-01 01:01:01",
             customfield_001="Team 1",
@@ -27,10 +27,10 @@ def jira(custom_fields):
                 # the changes are not in chrnological order, the first change is intentionally the third 
                 # status change. This is intended to test that we manage get the correct first status change as
                 # the transition from Backlog to Next
-                Change("2018-01-03 01:01:01", [("resolution", "resolution", None, "Closed",), ("status", "status", "Next", "Done",)]),
-                Change("2018-01-02 01:01:01", [("status", "status", "Backlog", "Next",)]),
-                Change("2018-01-02 01:01:01", [("Team", "customfield_001", "Team 2", "Team 1",)]),
-                Change("2018-01-04 01:01:01", [("resolution", "resolution", "Closed", None,), ("status", "status", "Done", "QA",)]),
+                Change("2018-01-03 01:01:01", [("resolution", "resolution", None, "Closed",), ("status", "Next", "Done",)]),
+                Change("2018-01-02 01:01:01", [("status", "Backlog", "Next",)]),
+                Change("2018-01-02 01:01:01", [("Team", "Team 2", "Team 1", "customfield_001")]),
+                Change("2018-01-04 01:01:01", [("resolution", "Closed", None,), ("status", "Done", "QA",)]),
             ],
         )
     ])
