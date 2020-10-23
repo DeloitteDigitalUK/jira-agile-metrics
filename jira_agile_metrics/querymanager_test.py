@@ -21,7 +21,7 @@ def jira(custom_fields):
                 "A-1",
                 summary="Issue A-1",
                 issuetype=Value("Story", "story"),
-                status=Value("Backlotg", "backlog"),
+                status=Value("Backlog", "backlog"),
                 resolution=None,
                 created="2018-01-01 01:01:01",
                 customfield_001="Team 1",
