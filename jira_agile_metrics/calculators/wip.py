@@ -15,7 +15,7 @@ class WIPChartCalculator(Calculator):
 
     def run(self):
         cfd_data = self.get_result(CFDCalculator)
-        cycle_names = [s['name'] for s in self.settings['cycle']]
+        # (unused) cycle_names = [s['name'] for s in self.settings['cycle']]
 
         committed_column = self.settings['committed_column']
         done_column = self.settings['done_column']

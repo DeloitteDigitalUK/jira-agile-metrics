@@ -44,11 +44,11 @@ class ProgressReportCalculator(Calculator):
         # Prepare and validate configuration options
 
         cycle = self.settings['cycle']
-        cycle_names = [s['name'] for s in cycle]
+        # (unused) cycle_names = [s['name'] for s in cycle]
         quantiles = self.settings['quantiles']
 
         backlog_column = self.settings['backlog_column']
-        committed_column = self.settings['committed_column']
+        # (unused) committed_column = self.settings['committed_column']
         done_column = self.settings['done_column']
 
         epic_query_template = self.settings['progress_report_epic_query_template']

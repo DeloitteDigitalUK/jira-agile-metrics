@@ -323,4 +323,3 @@ def test_movement_skipped_columns(jira_with_skipped_columns, settings):
         'Test': Timestamp('2018-01-04 00:00:00'),
         'Done': Timestamp('2018-01-04 00:00:00'),
     }]
-

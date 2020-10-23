@@ -5,8 +5,6 @@ import os.path
 
 from pydicti import odicti
 
-from .utils import StatusTypes
-
 from .calculators.cycletime import CycleTimeCalculator
 from .calculators.cfd import CFDCalculator
 from .calculators.scatterplot import ScatterplotCalculator
@@ -482,8 +480,8 @@ def config_to_options(data, cwd=None, extended=False):
                 if options['settings']['committed_column'] not in column_names:
                     raise ConfigError("`Committed column` (%s) must exist in `Workflow`: %s" % (options['settings']['committed_column'], column_names))
                 elif column_names.index(options['settings']['committed_column']) > 0:
-                     options['settings']['backlog_column'] = column_names[column_names.index(options['settings']['committed_column'])-1]
-                     logger.info("`Backlog column` automatically set to `%s`", options['settings']['backlog_column'])
+                    options['settings']['backlog_column'] = column_names[column_names.index(options['settings']['committed_column'])-1]
+                    logger.info("`Backlog column` automatically set to `%s`", options['settings']['backlog_column'])
                 else:
                     raise ConfigError("There must be at least 1 column before `Committed column` (%s) in `Workflow`: %s" % (options['settings']['committed_column'], column_names))
         else:

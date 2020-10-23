@@ -5,7 +5,7 @@ import dateutil
 import pandas as pd
 
 from ..calculator import Calculator
-from ..utils import get_extension, to_json_string, StatusTypes
+from ..utils import get_extension, to_json_string
 
 logger = logging.getLogger(__name__)
 
@@ -256,7 +256,6 @@ def calculate_cycle_times(
             if committed_timestamp is not None and done_timestamp is not None:
                 item['cycle_time'] = done_timestamp - committed_timestamp
                 item['completed_timestamp'] = done_timestamp
-
 
             for k, v in item.items():
                 series[k]['data'].append(v)

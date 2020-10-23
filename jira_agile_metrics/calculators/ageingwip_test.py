@@ -80,8 +80,6 @@ def query_manager(minimal_query_manager):
 def results(large_cycle_time_results):
     return extend_dict(large_cycle_time_results, {})
 
-
-
 @pytest.fixture
 def today():
     return datetime.date(2018, 1, 10)
