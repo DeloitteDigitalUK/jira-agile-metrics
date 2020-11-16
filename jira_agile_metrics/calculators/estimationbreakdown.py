@@ -46,6 +46,8 @@ class EstimationBreakdownCalculator(Calculator):
 
             estimation_row = {"Estimation": row["estimation_days"]}
             estimation_row["label"] = label + " (est)"
+            estimation_row["reporter"] = row["reporter"]
+            estimation_row["assignee"] = row["assignee"]
 
             actual_row = dict([(state, get_good_duration(row[f"{state} duration"])) for state in active_cycle_names])
             actual_row["label"] = label
@@ -53,7 +55,7 @@ class EstimationBreakdownCalculator(Calculator):
             output.append(estimation_row)
             output.append(actual_row)
 
-        return pd.DataFrame(output, columns=['label', 'Estimation'] + active_cycle_names)
+        return pd.DataFrame(output, columns=['label', 'reporter', 'assignee', 'Estimation'] + active_cycle_names)
 
     def write(self):
         output_file = self.settings['estimation_breakdown_chart']
@@ -99,6 +101,8 @@ class EstimationBreakdownCalculator(Calculator):
                         label = "{:1.0f} days".format(val)
                 else:
                     label = "(missing)"
+
+                label += ": {} (reported), {} (assignee)".format((row["reporter"] or "-").title(), (row["assignee"] or "-").title())
             else:
                 # Stacked cycle time row
                 total = sum([0 if pd.isnull(row[state]) else row[state] for state in active_cycle_names], 0)

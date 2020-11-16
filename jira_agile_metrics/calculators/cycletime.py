@@ -145,6 +145,8 @@ def calculate_cycle_times(
         'issue_type': {'data': [], 'dtype': 'str'},
         'summary': {'data': [], 'dtype': 'str'},
         'status': {'data': [], 'dtype': 'str'},
+        'reporter': {'data': [], 'dtype': 'str'},
+        'assignee': {'data': [], 'dtype': 'str'},
         'resolution': {'data': [], 'dtype': 'str'},
         'cycle_time': {'data': [], 'dtype': 'timedelta64[ns]'},
         'completed_timestamp': {'data': [], 'dtype': 'datetime64[ns]'},
@@ -175,6 +177,8 @@ def calculate_cycle_times(
                 'summary': issue.fields.summary,
                 'status': issue.fields.status.name,
                 'resolution': issue.fields.resolution.name if issue.fields.resolution else None,
+                'reporter': issue.fields.reporter,
+                'assignee': issue.fields.assignee,
                 # Note that a workign day is 8 hours, not 24 hours
                 'estimation_days': issue.fields.timeoriginalestimate / (8 * 3600) if issue.fields.timeoriginalestimate else 0,
                 'cycle_time': None,
@@ -183,7 +187,7 @@ def calculate_cycle_times(
                 'impediments': []
             }
 
-            logger.debug("Issue %s estimation is %f days", issue.key, item["estimation_days"])
+            logger.debug("Issue %s estimation is %f days, reported by %s and being worked on by %s", issue.key, item["estimation_days"], issue.fields.reporter, issue.fields.assignee)
 
             for name in attributes:
                 item[name] = query_manager.resolve_attribute_value(issue, name)
@@ -348,7 +352,7 @@ def calculate_cycle_times(
         data[k] = pd.Series(v['data'], dtype=v['dtype'])
 
     return pd.DataFrame(data,
-        columns=['key', 'url', 'issue_type', 'summary', 'status', 'resolution', 'estimation_days'] +
+        columns=['key', 'url', 'issue_type', 'summary', 'status', 'resolution', 'estimation_days', 'reporter', 'assignee'] +
                 sorted(attributes.keys()) +
                 ([query_attribute] if query_attribute else []) +
                 ['cycle_time', 'completed_timestamp', 'blocked_days', 'impediments'] +
