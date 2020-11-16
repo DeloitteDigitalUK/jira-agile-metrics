@@ -34,7 +34,8 @@ def configure_argument_parser():
     parser = argparse.ArgumentParser(description='Post JIRA Agile charts to slack.')
     parser.add_argument('--api-key', metavar='api_key', help='Slack API key', required=True)
     parser.add_argument('--channel', metavar='channel', help='Slack channel where to post', required=True)
-    parser.add_argument('--diagrams', metavar='diagram_list', help='Slack API key', nargs='+', required=True)
+    parser.add_argument('--diagrams', metavar='diagrams', help='Slack API key', nargs='+', required=True)
+    parser.add_argument('--message', metavar='message', help='Message', required=True)
     return parser
 
 
@@ -45,12 +46,14 @@ def main():
     # https://pypi.org/project/slack-sdk/
     client = WebClient(token=args.api_key)
 
-    try:
-        logger.info("Posting to %s", args.channel)
-        response = client.chat_postMessage(channel=args.channel, text="Hello world!")
-        assert response["message"]["text"] == "Hello world!"
-    except SlackApiError as e:
-        # You will get a SlackApiError if "ok" is False
-        assert e.response["ok"] is False
-        assert e.response["error"]  # str like 'invalid_auth', 'channel_not_found'
-        print(f"Got an error: {e.response['error']}")
+    for diagram in args.diagrams:
+        assert os.path.exists(diagram), f"Not found {diagram}"
+        try:
+            logger.info("Posting to %s", args.channel)
+            response = client.files_upload(channels=args.channel, initial_comment=args.message, file=diagram)
+            assert response["ok"] is True
+        except SlackApiError as e:
+            # You will get a SlackApiError if "ok" is False
+            assert e.response["ok"] is False
+            assert e.response["error"]  # str like 'invalid_auth', 'channel_not_found'
+            print(f"Got an error: {e.response['error']}")
