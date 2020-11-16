@@ -34,6 +34,7 @@ setup(
     entry_points={
         'console_scripts': [
             'jira-agile-metrics=jira_agile_metrics.cli:main',
+            'jira-agile-metrics-post-slack=jira_agile_metrics.slack:main',
         ],
     },
 )

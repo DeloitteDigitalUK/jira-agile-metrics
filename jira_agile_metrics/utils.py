@@ -1,5 +1,7 @@
 import datetime
 import os.path
+from typing import List
+from typing import Tuple
 
 import numpy as np
 import pandas as pd
@@ -124,3 +126,131 @@ def to_bin(value, edges):
             return (previous, v)
         previous = v
     return (previous, None)
+
+
+class Timespans:
+    """Track time span spent in a state.
+
+    Timespans class tracks (enter, exit) timestamps
+    for an item. One item can be re-entered multiple times.
+    Timespan can be open-ended.
+
+    Because some transitions may be backwards e.g.
+    in the case we have state transitions:
+
+    - In development
+    - Code review
+    - QA
+    - QA fixes needed
+    - QA (again)
+    - QA fixes needed (again)
+    - QA (third time)
+
+    Remarks:
+
+    - Spans can have zero duration, but not negative duration
+    """
+
+    def __init__(self):
+        # List of timespans for an issue state
+        # Each item is [datetime, datetime]
+        # If the closing datetime is missing the item was never closed
+        self.spans = []  #: List[List[datetime)]
+
+    def reset(self):
+        """Used by state backwards transition tracking logic."""
+        self.spans = []
+
+    def __str__(self):
+        """Produce a nice readable format of spans.
+
+        Like 2020-03-27 08:52 - 2020-03-28 20:50, 2020-04-01 13:37 - 2020-04-01 17:02, 2020-04-07 04:28 - 2020-04-10 03:26
+        """
+
+        if not self.spans:
+            return "[no duration]"
+
+        out = ""
+        # https://stackoverflow.com/a/49486415/315168
+        elems = list(self.spans)
+        while elems:
+            s = elems.pop(0)
+            out += s[0].strftime("%Y-%m-%d %H:%M")
+            out += " - "
+            if len(s) == 2:
+                # Span has end
+                out += s[1].strftime("%Y-%m-%d %H:%M")
+            if elems:
+                # Not last elements
+                out += ", "
+        return out
+
+    def enter(self, when: datetime.datetime):
+        assert isinstance(when, datetime.datetime)
+        # Check we have been closed
+        if self.spans:
+            last_span = self.spans[-1]
+            assert len(last_span) == 2, "The last timespan was not closed"
+        self.spans.append([when])
+
+    def leave(self, when: datetime.datetime):
+        assert isinstance(when, datetime.datetime)
+        assert self.spans, "Cannot exit without starting a span"
+        last_span = self.spans[-1]
+        assert len(last_span) == 1, "The latest span was already closed"
+        assert when >= last_span[0], "Span cannot end sooner it has started"
+        last_span.append(when)
+
+    @property
+    def filled(self):
+        """Does this timespan have any data"""
+        return True if self.spans else False
+
+    @property
+    def open_ended(self):
+        """Have we the last timespan closed or still going on?"""
+        if not self.spans:
+            return True
+        return len(self.spans[-1]) == 1
+
+    @property
+    def start(self):
+        """When timespans started - first date."""
+        assert self.spans
+        return self.spans[0][0]
+
+    @property
+    def last_start(self):
+        """When the last timespans started if multiple timespans."""
+        assert self.spans
+        return self.spans[-1][0]
+
+    @property
+    def end(self):
+        """When timespans ended - last done date."""
+        assert self.spans, "No spans"
+        last_span = self.spans[-1]
+        assert len(last_span) == 2, "Open-ended span"
+        return last_span[1]
+
+    @property
+    def duration(self) -> datetime.timedelta:
+        """Duration of all timespans altogether.
+
+        TODO: Promote to a function and make now an argument to make this testable
+        """
+        def span_duration(s):
+            if len(s) == 2:
+                return s[1] - s[0]
+            else:
+                # Still ongoing
+                return datetime.datetime.now() - s[0]
+
+        return sum([span_duration(s) for s in self.spans], datetime.timedelta())
+
+
+
+
+
+
+

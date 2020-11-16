@@ -95,6 +95,7 @@ def minimal_settings():
         'backlog_column': 'Backlog',
         'committed_column': 'Committed',
         'done_column': 'Done',
+        'backwards_transitions': 'reset',
     }
 
 
@@ -108,6 +109,7 @@ def custom_settings(minimal_settings):
             'Team': 'Team',
             'Estimate': 'Size'
         },
+        'backwards_transitions': 'reset',
         'known_values': {
             'Release': ['R1', 'R3']
         },

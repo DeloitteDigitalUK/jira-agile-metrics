@@ -55,11 +55,11 @@ class AgeingWIPChartCalculator(Calculator):
         ageing_wip_data.dropna(how='any', inplace=True, subset=['status', 'age'])
 
         # reorder columns so we get key, summary, status, age, and then all the cycle stages
+        logger.debug("Ageing WIP data is for columns %s-%s", committed_column, last_active_column)
         ageing_wip_data = pd.concat((
             ageing_wip_data[['key', 'summary', 'status', 'age']],
             ageing_wip_data.loc[:, committed_column:last_active_column]
         ), axis=1)
-
         return ageing_wip_data
 
     def write(self):

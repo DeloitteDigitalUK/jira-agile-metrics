@@ -36,7 +36,7 @@ class DebtCalculator(Calculator):
         if not query:
             logger.debug("Not calculating debt chart data as no query specified")
             return None
-        
+
         # Resolve field name to field id for later lookup
         priority_field = self.settings['debt_priority_field']
         priority_field_id = priority_field_id = self.query_manager.field_name_to_id(priority_field) if priority_field else None
@@ -75,26 +75,26 @@ class DebtCalculator(Calculator):
         if len(chart_data.index) == 0:
             logger.warning("Cannot draw debt chart with zero items")
             return
-        
+
         if self.settings['debt_chart']:
             self.write_debt_chart(chart_data, self.settings['debt_chart'])
-        
+
         if self.settings['debt_age_chart']:
             self.write_debt_age_chart(chart_data, self.settings['debt_age_chart'])
-    
+
     def write_debt_chart(self, chart_data, output_file):
         window = self.settings['debt_window']
         priority_values = self.settings['debt_priority_values']
 
         breakdown = breakdown_by_month(chart_data, 'created', 'resolved', 'key', 'priority', priority_values)
-        
+
         if window:
             breakdown = breakdown[-window:]
 
         fig, ax = plt.subplots()
-        
+
         breakdown.plot.bar(ax=ax, stacked=True)
-        
+
         if self.settings['debt_chart_title']:
             ax.set_title(self.settings['debt_chart_title'])
 
@@ -111,11 +111,11 @@ class DebtCalculator(Calculator):
         logger.info("Writing debt chart to %s", output_file)
         fig.savefig(output_file, bbox_inches='tight', dpi=300)
         plt.close(fig)
-    
+
     def write_debt_age_chart(self, chart_data, output_file):
         priority_values = self.settings['debt_priority_values']
         bins = self.settings['debt_age_chart_bins']
-        
+
         def generate_bin_label(v):
             low, high = to_bin(v, bins)
             return "> %d days" % (low,) if high is None else "%d-%d days" % (low, high,)
@@ -131,14 +131,14 @@ class DebtCalculator(Calculator):
             values='key',
             aggfunc='count'
         ).groupby(day_grouper).sum().reindex(bin_labels).T
-        
+
         if priority_values:
             breakdown = breakdown.reindex(priority_values)
 
         fig, ax = plt.subplots()
-        
+
         breakdown.plot.barh(ax=ax, stacked=True)
-        
+
         if self.settings['debt_age_chart_title']:
             ax.set_title(self.settings['debt_age_chart_title'])
 
