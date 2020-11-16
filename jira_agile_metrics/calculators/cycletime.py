@@ -167,6 +167,7 @@ def calculate_cycle_times(
 
     for criteria in queries:
         for issue in query_manager.find_issues(criteria['jql']):
+
             item = {
                 'key': issue.key,
                 'url': "%s/browse/%s" % (query_manager.jira._options['server'], issue.key,),
@@ -174,7 +175,8 @@ def calculate_cycle_times(
                 'summary': issue.fields.summary,
                 'status': issue.fields.status.name,
                 'resolution': issue.fields.resolution.name if issue.fields.resolution else None,
-                'estimation_days': issue.fields.timeestimate / (24 * 3600) if issue.fields.timeestimate else 0,
+                # Note that a workign day is 8 hours, not 24 hours
+                'estimation_days': issue.fields.timeoriginalestimate / (8 * 3600) if issue.fields.timeoriginalestimate else 0,
                 'cycle_time': None,
                 'completed_timestamp': None,
                 'blocked_days': 0,
