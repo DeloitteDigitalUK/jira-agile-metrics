@@ -54,7 +54,7 @@ class WIPChartCalculator(Calculator):
                 return
 
         groups = wip_data.groupby(pd.Grouper(freq=frequency, label='left', closed='left'))
-        labels = [x[0].strftime("%d/%m/%Y") for x in groups]
+        labels = [x[0].strftime(self.settings['date_format']) for x in groups]
 
         groups.boxplot(subplots=False, ax=ax, showmeans=True, return_type='axes')
         ax.set_xticklabels(labels, rotation=70, size='small')

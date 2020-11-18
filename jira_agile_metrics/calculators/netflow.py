@@ -65,7 +65,7 @@ class NetFlowChartCalculator(Calculator):
 
         net_flow_data['net_flow'].plot.bar(ax=ax, color=net_flow_data['positive'].map({True: 'r', False: 'b'}),)
 
-        labels = [d.strftime("%d/%m/%Y") for d in net_flow_data.index]
+        labels = [d.strftime(self.settings['date_format']) for d in net_flow_data.index]
         ax.set_xticklabels(labels, rotation=70, size='small')
 
         set_chart_style()
