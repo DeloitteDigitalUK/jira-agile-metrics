@@ -250,6 +250,7 @@ class ProgressReportCalculator(Calculator):
         cycle_names = [s['name'] for s in self.settings['cycle']]
         backlog_column = self.settings['backlog_column']
         quantiles = self.settings['quantiles']
+        date_format = self.settings['date_format']
 
         template = jinja_env.get_template('progressreport_template.html')
         today = datetime.date.today()
@@ -301,18 +302,19 @@ class ProgressReportCalculator(Calculator):
                         cycle_data=pd.concat([e.story_cycle_times for e in outcome.epics]),
                         cycle_names=cycle_names,
                         backlog_column=backlog_column,
+                        date_format=date_format,
                         target=sum([e.max_stories or 0 for e in outcome.epics]),
                         deadline=outcome.deadline
                     ) if len(outcome.epics) > 0 else None,
                 } for outcome in data['outcomes']},
                 team_charts={team.name: {
-                    'cfd': plot_cfd(team.throughput_samples_cycle_times, cycle_names, backlog_column),
-                    'throughput': plot_throughput(team.throughput_samples_cycle_times),
-                    'scatterplot': plot_scatterplot(team.throughput_samples_cycle_times, quantiles)
+                    'cfd': plot_cfd(team.throughput_samples_cycle_times, cycle_names, backlog_column, date_format=date_format),
+                    'throughput': plot_throughput(team.throughput_samples_cycle_times, date_format),
+                    'scatterplot': plot_scatterplot(team.throughput_samples_cycle_times, quantiles, date_format)
                 } for team in data['teams']},
                 epic_charts={epic.key: {
-                    'cfd': plot_cfd(epic.story_cycle_times, cycle_names, backlog_column, target=epic.max_stories, deadline=epic.deadline),
-                    'scatterplot': plot_scatterplot(epic.story_cycle_times, quantiles)
+                    'cfd': plot_cfd(epic.story_cycle_times, cycle_names, backlog_column, date_format=date_format, target=epic.max_stories, deadline=epic.deadline),
+                    'scatterplot': plot_scatterplot(epic.story_cycle_times, quantiles, date_format)
                 } for outcome in data['outcomes'] for epic in outcome.epics}
             ))
 
@@ -630,7 +632,7 @@ def calculate_epic_target(epic):
 def forward_weeks(date, weeks):
     return (date - datetime.timedelta(days=date.weekday())) + datetime.timedelta(weeks=weeks)
 
-def plot_cfd(cycle_data, cycle_names, backlog_column, target=None, deadline=None):
+def plot_cfd(cycle_data, cycle_names, backlog_column, date_format='%d/%m/%Y', target=None, deadline=None):
 
     # Prepare data
 
@@ -667,7 +669,7 @@ def plot_cfd(cycle_data, cycle_names, backlog_column, target=None, deadline=None
         deadline_dse = to_days_since_epoch(deadline.date())
 
         ax.vlines(deadline, bottom, target, color='r', linestyles='-', linewidths=0.5)
-        ax.annotate("Due: %s" % (deadline.strftime("%d/%m/%Y"),),
+        ax.annotate("Due: %s" % (deadline.strftime(date_format),),
             xy=(deadline, target),
             xytext=(0, 10),
             textcoords='offset points',
@@ -715,7 +717,7 @@ def plot_cfd(cycle_data, cycle_names, backlog_column, target=None, deadline=None
 
     return base64.b64encode(buffer.getvalue()).decode('utf-8')
 
-def plot_throughput(cycle_data, frequency='1W'):
+def plot_throughput(cycle_data, date_format, frequency='1W'):
 
     # Prepare data
 
@@ -740,7 +742,7 @@ def plot_throughput(cycle_data, frequency='1W'):
     ax.set_ylabel("Number of items")
 
     ax.plot(throughput_data.index, throughput_data['count'], marker='o')
-    plt.xticks(throughput_data.index, [d.date().strftime('%d/%m/%Y') for d in throughput_data.index], rotation=70, size='small')
+    plt.xticks(throughput_data.index, [d.date().strftime(date_format) for d in throughput_data.index], rotation=70, size='small')
 
     _, top = ax.get_ylim()
     ax.set_ylim(0, top + 1)
@@ -768,7 +770,7 @@ def plot_throughput(cycle_data, frequency='1W'):
 
     return base64.b64encode(buffer.getvalue()).decode('utf-8')
 
-def plot_scatterplot(cycle_data, quantiles):
+def plot_scatterplot(cycle_data, quantiles, date_format):
 
     # Prepare data
 
@@ -794,7 +796,7 @@ def plot_scatterplot(cycle_data, quantiles):
     ax.set_ylabel("Cycle time (days)")
 
     ax.plot_date(x=chart_data['completed_date'], y=chart_data['cycle_time'], ms=5)
-    ax.xaxis.set_major_formatter(mdates.DateFormatter('%d/%m/%Y'))
+    ax.xaxis.set_major_formatter(mdates.DateFormatter(date_format))
 
     _, top = ax.get_ylim()
     ax.set_ylim(0, top + 1)
