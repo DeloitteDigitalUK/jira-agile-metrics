@@ -259,6 +259,8 @@ Output:
 
         'quantiles': [0.1, 0.2],
 
+        'date_format': '%d/%m/%Y',
+
         'cycle_time_data': ['cycletime.csv'],
 
         'ageing_wip_chart': 'ageing-wip.png',
