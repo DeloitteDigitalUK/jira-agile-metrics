@@ -136,6 +136,8 @@ def config_to_options(data, cwd=None, extended=False):
 
             'quantiles': [0.5, 0.85, 0.95],
 
+            'date_format': '%d/%m/%Y',
+
             'backlog_column': None,
             'committed_column': None,
             'done_column': None,
@@ -387,6 +389,7 @@ def config_to_options(data, cwd=None, extended=False):
 
         # string values that copy straight over
         for key in [
+            'date_format',
             'backlog_column',
             'committed_column',
             'done_column',

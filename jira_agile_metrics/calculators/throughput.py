@@ -78,7 +78,7 @@ class ThroughputCalculator(Calculator):
         ax.set_ylabel("Number of items")
 
         ax.plot(chart_data.index, chart_data['count'], marker='o')
-        plt.xticks(chart_data.index, [d.date().strftime('%d/%m/%Y') for d in chart_data.index], rotation=70, size='small')
+        plt.xticks(chart_data.index, [d.date().strftime(self.settings['date_format']) for d in chart_data.index], rotation=70, size='small')
 
         _, top = ax.get_ylim()
         ax.set_ylim(0, top + 1)

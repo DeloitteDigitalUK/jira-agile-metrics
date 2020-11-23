@@ -148,7 +148,7 @@ class BurnupForecastCalculator(Calculator):
             bottom, top = ax.get_ylim()
             for percentile, value in finish_date_quantiles.iteritems():
                 ax.vlines(value, bottom, target, linestyles='--', linewidths=0.5)
-                ax.annotate("%.0f%% (%s)" % ((percentile * 100), value.strftime("%d/%m/%Y"),),
+                ax.annotate("%.0f%% (%s)" % ((percentile * 100), value.strftime(self.settings['date_format']),),
                     xy=(to_days_since_epoch(value.to_pydatetime().date()), 0.35),
                     xycoords=transform_vertical,
                     rotation="vertical",
@@ -166,7 +166,7 @@ class BurnupForecastCalculator(Calculator):
             deadline_dse = to_days_since_epoch(deadline)
 
             ax.vlines(deadline, bottom, target, color='r', linestyles='-', linewidths=0.5)
-            ax.annotate("Due: %s" % (deadline.strftime("%d/%m/%Y"),),
+            ax.annotate("Due: %s" % (deadline.strftime(self.settings['date_format']),),
                 xy=(deadline, target),
                 xytext=(0.95, 0.95),
                 textcoords='axes fraction',
@@ -192,9 +192,9 @@ class BurnupForecastCalculator(Calculator):
 
                 ax.text(0.02, 0.5,
                     "Deadline: %s\nForecast (%.0f%%): %s\nSlack: %d days" % (
-                        deadline.strftime("%d/%m/%Y"),
+                        deadline.strftime(self.settings['date_format']),
                         (deadline_confidence * 100),
-                        deadline_confidence_date.strftime("%d/%m/%Y"),
+                        deadline_confidence_date.strftime(self.settings['date_format']),
                         deadline_delta
                     ),
                     transform=ax.transAxes,

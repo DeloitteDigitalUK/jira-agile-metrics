@@ -81,7 +81,7 @@ class ScatterplotCalculator(Calculator):
             ax.set_title(self.settings['scatterplot_chart_title'])
 
         ax.plot_date(x=chart_data['completed_date'], y=chart_data['cycle_time'], ms=5)
-        ax.xaxis.set_major_formatter(mdates.DateFormatter('%d/%m/%Y'))
+        ax.xaxis.set_major_formatter(mdates.DateFormatter(self.settings['date_format']))
 
         # Add quantiles
         left, right = ax.get_xlim()
