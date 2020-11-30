@@ -3,7 +3,7 @@ import logging
 import datetime
 import dateutil
 import pandas as pd
-
+from ..trello import TrelloClient
 from ..calculator import Calculator
 from ..utils import get_extension, to_json_string, StatusTypes
 
@@ -131,10 +131,13 @@ def calculate_cycle_times(
 
     for criteria in queries:
         for issue in query_manager.find_issues(criteria['jql']):
-
+            if type(query_manager.jira) == TrelloClient:
+                issue_url = issue.url
+            else:
+                issue_url = "%s/browse/%s" % (query_manager.jira._options['server'], issue.key,)
             item = {
                 'key': issue.key,
-                'url': "%s/browse/%s" % (query_manager.jira._options['server'], issue.key,),
+                'url': issue_url,
                 'issue_type': issue.fields.issuetype.name,
                 'summary': issue.fields.summary,
                 'status': issue.fields.status.name,

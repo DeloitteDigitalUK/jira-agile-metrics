@@ -5,11 +5,12 @@ import logging
 
 from jira import JIRA
 
-from .config import config_to_options, CALCULATORS
+from .config import config_to_options, CALCULATORS, ConfigError
 from .webapp.app import app as webapp
 from .querymanager import QueryManager
 from .calculator import run_calculators
 from .utils import set_chart_context
+from .trello import TrelloClient
 
 logger = logging.getLogger(__name__)
 
@@ -32,8 +33,10 @@ def configure_argument_parser():
 
     # Connection options
     parser.add_argument('--domain', metavar='https://my.jira.com', help='JIRA domain name')
-    parser.add_argument('--username', metavar='user', help='JIRA user name')
+    parser.add_argument('--username', metavar='user', help='JIRA/Trello user name')
     parser.add_argument('--password', metavar='password', help='JIRA password')
+    parser.add_argument('--key', metavar='key', help='Trello API key')
+    parser.add_argument('--token', metavar='token', help='Trello API password')
     parser.add_argument('--http-proxy', metavar='https://proxy.local', help='URL to HTTP Proxy')
     parser.add_argument('--https-proxy', metavar='https://proxy.local', help='URL to HTTPS Proxy')
     parser.add_argument('--jira-server-version-check', type=bool, metavar='True', help='If true it will fetch JIRA server version info first to determine if some API calls are available')
@@ -93,10 +96,16 @@ def run_command_line(parser, args):
         logger.info("Changing working directory to %s" % args.output_directory)
         os.chdir(args.output_directory)
 
+    # Select data source
+    jira = None
+
+    if options['connection']['type'] == 'jira':
+        jira = get_jira_client(options['connection'])
+    elif options['connection']['type'] == 'trello':
+        jira = get_trello_client(options['connection'], options['settings']['type_mapping'])
+    else:
+        raise ConfigError("Unknown source")
     # Query JIRA and run calculators
-
-    jira = get_jira_client(options['connection'])
-
     logger.info("Running calculators")
     query_manager = QueryManager(jira, options['settings'])
     run_calculators(CALCULATORS, query_manager, options['settings'])
@@ -140,3 +149,19 @@ def get_jira_client(connection):
     options.update(jira_client_options)
 
     return JIRA(options, basic_auth=(username, password), proxies=proxies, get_server_info=jira_server_version_check)
+
+def get_trello_client(connection, type_mapping):
+    username = connection['username']
+    key = connection['key']
+    token = connection['token']
+
+    if not username:
+        username = input("Username: ")
+
+    if not key:
+        key = getpass.getpass("Key: ")
+
+    if not token:
+        token = getpass.getpass("Token: ")
+
+    return TrelloClient(username, key, token, type_mapping=type_mapping)

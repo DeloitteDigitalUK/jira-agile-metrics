@@ -1,6 +1,6 @@
 # JIRA Agile Metrics
 
-A tool to extract Agile metrics and charts from JIRA projects.
+A tool to extract Agile metrics and charts from JIRA projects and Trello Boards.
 
 ## Installation
 
@@ -66,15 +66,16 @@ command line above.
 The basic usage pattern is to run `jira-agile-metrics` with a configuration
 file, written in YAML format (see below), which describes:
 
-- how to connect to a remote JIRA instance (this can also be set using command
-  line options);
+- how to connect to a remote JIRA or Trello instance (this can also be set 
+  using command line options);
 - what metrics (spreadsheet-like data files, charts as images) to output;
 - various settings used to calculate those metrics; and
 - a description of the stages of the workflow the relevant JIRA tickets go
   through.
 
-The tool will then connect to JIRA using its web services API, run a query to
-the relevant tickets and their history, and calculate the requierd metrics.
+The tool will then connect to JIRA or Trello using its web services API, run a 
+query to the relevant tickets and their history, and calculate the required 
+metrics.
 
 The outputs are written to local filesystem files. Data files can be written in
 CSV, XLSX or JSON formats (depending on the extension of the desired output
@@ -101,8 +102,9 @@ whilst JIRA is queried and charts are produced, which can take a long time.
 During this time, the browser will wait, and threads will block.
 
 **Warning:** The web server does not encrypt requests, which means that by
-default JIRA credentials are transmitted in plain-text. You are strongly adviced
-to configure a reverse proxy (e.g. `nginx`) with SSL enabled in front of it.
+default JIRA/Trello credentials are transmitted in plain-text. You are strongly 
+advised to configure a reverse proxy (e.g. `nginx`) with SSL enabled in front 
+of it.
 
 #### Using Docker to run the web server
 
@@ -119,7 +121,7 @@ host. To stop it, run:
 
 See the [Docker documentation](https://docs.docker.com) for more details.
 
-### An important note about authentication
+### An important note about JIRA authentication
 
 The tool uses a simple username/password combination to connect to JIRA. You
 need to ensure this user exists in the remote JIRA instance, and has the
@@ -153,6 +155,18 @@ Example how to connect with username and API token:
 # Connects with an API token that is passed on --password argument
 jira-agile-metrics --username your-email@example.com --password CGI... config.yml
 ```
+
+For Trello the tool uses a username plus an [API Key/Token](https://trello.com/app-key)
+pair. You need to ensure this user exists in the remote Trello instance,
+and has the required permissions.
+
+Example how to connect with username and API token:
+
+```sh
+# Connects with an API token that is passed on --password argument
+jira-agile-metrics --username your-email@example.com --key 6d1658b... --token a7d6b34... config.yml
+```
+
  
 ### What issues should you include?
 
@@ -165,9 +179,9 @@ and allowing a set of resolutions like `Completed`, `Withdrawn`, and `Duplicate`
 are interested in. See the JIRA documentation for more details (or construct a
 search using the JIRA UI and then have JIRA show you the corresponding JQL).
 
-### Creating a configuration file
+### Creating a configuration file - JIRA
 
-Here is an example configuration file for a basic example using the workflow
+Here is an example JIRA configuration file for a basic example using the workflow
 above:
 
     # How to connect to JIRA. Can also include `Username` and `Password`
@@ -274,6 +288,17 @@ If you want more information about what's going on, use the `-v` flag:
 And if you are realy curious:
 
     $ jira-agile-metrics -vv config.yaml
+
+### Creating a configuration file - Trello
+
+If you are using Trello then your configuration file needs to look like this:
+
+    Connection:
+        type: trello
+
+    # Board to get data from
+    Query: Web Services
+
 
 ## Reusing elements of a config file
 
@@ -608,6 +633,8 @@ To only show the 30 most recent days in the chart:
 
 ## Impediments
 
+*Note this feature is not available in Trello.*
+
 If you use the "Flagged" feature in JIRA to mark (and unmark) tickets as impeded
 when they are blocked, you can produce charts showing the number of impediments
 raised, and the cumulative amount of time tickets have spent being impeded,
@@ -722,6 +749,22 @@ showing the six most recent months in each:
 If you omit any of the chart names, the relevant chart will not be produced. If
 you omit any of the field names, the relevant chart will not be stacked. If you
 omit the values list, all unique values will be shown.
+
+### Defects in Trello
+
+As Trello does not have different issue types you need to use a different way 
+of identifying failure demand. The tool allows you to map a Trello label to an
+issue type:
+
+    Type Mapping:
+        Defect:
+            - bug
+
+This allows you to analyse failure demand separately from value demand in
+ActionableAgile:
+
+![](./docs/images/trello-agile-actionable.png)
+![](./docs/images/trello-source.png)
 
 ## Technical debt
 
@@ -1407,6 +1450,10 @@ of filenames, or a single filename.
    deadline is set. Optional.
 
 ## Changelog
+
+### 0.25
+
+- Added suppport for Trello.
 
 ### 0.24
 

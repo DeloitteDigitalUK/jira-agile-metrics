@@ -118,8 +118,11 @@ def config_to_options(data, cwd=None, extended=False):
     options = {
         'connection': {
             'domain': None,
+            'type': 'jira',
             'username': None,
             'password': None,
+            'key': None,
+            'token': None,
             'http_proxy': None,
             'https_proxy': None,
             'jira_server_version_check': True,
@@ -130,6 +133,7 @@ def config_to_options(data, cwd=None, extended=False):
             'query_attribute': None,
             'attributes': {},
             'known_values': {},
+            'type_mapping': {},
             'cycle': [],
             'max_results': None,
             'verbose': False,
@@ -273,11 +277,20 @@ def config_to_options(data, cwd=None, extended=False):
         if 'domain' in config['connection']:
             options['connection']['domain'] = config['connection']['domain']
 
+        if 'type' in config['connection']:
+            options['connection']['type'] = config['connection']['type']
+
         if 'username' in config['connection']:
             options['connection']['username'] = config['connection']['username']
 
         if 'password' in config['connection']:
             options['connection']['password'] = config['connection']['password']
+
+        if 'key' in config['connection']:
+            options['connection']['key'] = config['connection']['key']
+
+        if 'token' in config['connection']:
+            options['connection']['token'] = config['connection']['token']
 
         if 'http proxy' in config['connection']:
             options['connection']['http_proxy'] = config['connection']['http proxy']
@@ -525,4 +538,9 @@ def config_to_options(data, cwd=None, extended=False):
         for name, values in config['known values'].items():
             options['settings']['known_values'][name] = force_list(values)
 
+    # Trello label to type mapping
+
+    if 'type mapping' in config:
+        for name, values in config['type mapping'].items():
+            options['settings']['type_mapping'][name] = force_list(values)
     return options

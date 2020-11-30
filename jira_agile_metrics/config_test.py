@@ -36,12 +36,13 @@ Workflow:
 """)
 
     assert options['connection']['domain'] == 'https://foo.com'
+    # Default to JIRA
+    assert options['connection']['type'] == 'jira'
     assert options['settings']['queries'][0] == {'value': None, 'jql': '(filter=123)'}
 
     assert options['settings']['backlog_column'] == 'Backlog'
     assert options['settings']['committed_column'] == 'In progress'
     assert options['settings']['done_column'] == 'Done'
-
 
 def test_config_to_options_maximal():
 
@@ -50,6 +51,9 @@ Connection:
     Domain: https://foo.com
     Username: user1
     Password: apassword
+    Key: mykey
+    Token: mytoken
+    Type: trello
     HTTP Proxy: https://proxy1.local
     HTTPS Proxy: https://proxy2.local
 
@@ -61,6 +65,10 @@ Queries:
 
         - Value: Team 2
           JQL: (filter=124)
+
+Type Mapping:
+    Defect:
+        - Bug
 
 Attributes:
     Team: Team
@@ -227,9 +235,12 @@ Output:
 
     assert options['connection'] == {
         'domain': 'https://foo.com',
+        'type': 'trello',
         'jira_client_options': {},
         'password': 'apassword',
         'username': 'user1',
+        'key': 'mykey',
+        'token': 'mytoken',
         'http_proxy': 'https://proxy1.local',
         'https_proxy': 'https://proxy2.local',
         'jira_server_version_check': True
@@ -248,7 +259,7 @@ Output:
         'known_values': {'Release': ['R01', 'R02', 'R03']},
         'max_results': None,
         'verbose': False,
-
+        'type_mapping': {'Defect': ['Bug']},
         'queries': [{'jql': '(filter=123)', 'value': 'Team 1'},
                     {'jql': '(filter=124)', 'value': 'Team 2'}],
         'query_attribute': 'Team',
