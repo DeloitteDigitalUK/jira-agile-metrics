@@ -25,7 +25,7 @@ setup(
     packages=find_packages(exclude=['contrib', 'docs', 'tests*']),
     install_requires=install_requires,
     setup_requires=['pytest-runner'],
-    tests_require=['pytest'],
+    tests_require=['pytest', 'mock', 'pytest-mock'],
     include_package_data=True,
     package_data={
         'jira_agile_metrics.webapp': ['templates/*.*', 'static/*.*'],
