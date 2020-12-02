@@ -11,6 +11,7 @@ import jinja2
 
 from flask import Flask, render_template, request
 from jira import JIRA
+from jira.exceptions import JIRAError
 
 from ..config import config_to_options, CALCULATORS, ConfigError
 from ..querymanager import QueryManager
@@ -141,7 +142,7 @@ def get_jira_client(connection):
             basic_auth=(username, password),
             get_server_info=jira_server_version_check,
         )
-    except Exception as e:
+    except JIRAError as e:
         if e.status_code == 401:
             raise ConfigError(
                 (
@@ -149,7 +150,7 @@ def get_jira_client(connection):
                     "Check URL and credentials, "
                     "and ensure the account is not locked."
                 )
-            ) from None
+            )
         else:
             raise
 
