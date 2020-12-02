@@ -58,7 +58,7 @@ Output:
 """
     mock_get_trello_client = mocker.patch('jira_agile_metrics.cli.get_trello_client')
     mocker.patch('jira_agile_metrics.cli.QueryManager')
-    with tempfile.NamedTemporaryFile(delete=False) as config_file:
+    with tempfile.NamedTemporaryFile(mode='w', delete=False) as config_file:
         config_file.write(config)
         config_file.flush()
         parser = configure_argument_parser()
