@@ -2,9 +2,9 @@ import logging
 
 logger = logging.getLogger(__name__)
 
+
 class Calculator(object):
-    """Base class for calculators.
-    """
+    """Base class for calculators."""
 
     def __init__(self, query_manager, settings, results):
         """Initialise with a `QueryManager`, a dict of `settings`,
@@ -35,6 +35,7 @@ class Calculator(object):
         target directory.
         """
 
+
 def run_calculators(calculators, query_manager, settings):
     """Run all calculators passed in, in the order listed.
     Returns the aggregated results.
@@ -54,8 +55,14 @@ def run_calculators(calculators, query_manager, settings):
         logger.info("Writing file for %s...", c.__class__.__name__)
         try:
             c.write()
-        except Exception as e:
-            logger.exception("Writing file for %s failed with a fatal error. Attempting to run subsequent writers regardless.", c.__class__.__name__)
+        except Exception:
+            logger.exception(
+                (
+                    "Writing file for %s failed with a fatal error. "
+                    "Attempting to run subsequent writers regardless."
+                ),
+                c.__class__.__name__,
+            )
         else:
             logger.info("%s completed\n", c.__class__.__name__)
 
