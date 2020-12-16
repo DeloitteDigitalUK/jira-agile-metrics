@@ -45,8 +45,8 @@ def jira(custom_fields):
                                 "status",
                                 "Next",
                                 "Done",
-                            )
-                        ]
+                            ),
+                        ],
                     ),
                     Change(
                         "2018-01-02 01:01:01",
@@ -56,7 +56,7 @@ def jira(custom_fields):
                                 "Backlog",
                                 "Next",
                             )
-                        ]
+                        ],
                     ),
                     Change(
                         "2018-01-02 01:01:01",
@@ -67,7 +67,7 @@ def jira(custom_fields):
                                 "Team 1",
                                 "customfield_001",
                             )
-                        ]
+                        ],
                     ),
                     Change(
                         "2018-01-04 01:01:01",
@@ -81,12 +81,12 @@ def jira(custom_fields):
                                 "status",
                                 "Done",
                                 "QA",
-                            )
-                        ]
+                            ),
+                        ],
                     ),
                 ],
             )
-        ]
+        ],
     )
 
 

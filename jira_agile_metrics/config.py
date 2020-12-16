@@ -304,7 +304,7 @@ def config_to_options(data, cwd=None, extended=False):
             "progress_report_outcome_query": None,
             "progress_report_outcome_deadline_field": None,
         },
-        }
+    }
 
     # Recursively parse an `extends` file but only if a base path is given,
     # otherwise we can plausible leak files in server mode.

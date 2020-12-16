@@ -4,6 +4,7 @@ import os.path
 
 from .config import force_list, expand_key, config_to_options, ConfigError
 
+
 def test_force_list():
     assert force_list(None) == [None]
     assert force_list("foo") == ["foo"]
@@ -521,7 +522,7 @@ Output:
     Cycle time data: cycletime.csv
 """
                 % fp.name,
-                cwd=os.path.abspath(fp.name)
+                cwd=os.path.abspath(fp.name),
             )
     finally:
         os.remove(fp.name)
