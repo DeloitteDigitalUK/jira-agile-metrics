@@ -50,7 +50,8 @@ def jira(custom_fields):
                     ),
                     Change(
                         "2018-01-03 01:00:00", [("Flagged", "Impediment", "", "customfield_100")]
-                    ),  # blocked 1 day in the backlog (doesn't count towards blocked days)
+                    ),  # blocked 1 day in the backlog
+                    # (doesn't count towards blocked days)
                     Change(
                         "2018-01-03 01:01:01",
                         [
@@ -59,7 +60,7 @@ def jira(custom_fields):
                                 "Backlog",
                                 "Next",
                             )
-                        ]
+                        ],
                     ),
                     Change(
                         "2018-01-04 10:01:01", [("Flagged", "", "Impediment", "customfield_100")]
@@ -93,7 +94,7 @@ def jira(custom_fields):
                                 "Backlog",
                                 "Next",
                             )
-                        ]
+                        ],
                     ),
                     Change(
                         "2018-01-04 01:01:01",
@@ -103,7 +104,7 @@ def jira(custom_fields):
                                 "Next",
                                 "Build",
                             )
-                        ]
+                        ],
                     ),
                     Change(
                         "2018-01-04 10:01:01", [("Flagged", None, "Impediment", "customfield_100")]
@@ -116,7 +117,7 @@ def jira(custom_fields):
                                 "Build",
                                 "QA",
                             )
-                        ]
+                        ],
                     ),
                     Change(
                         "2018-01-06 01:01:01",
@@ -126,7 +127,7 @@ def jira(custom_fields):
                                 "QA",
                                 "Done",
                             )
-                        ]
+                        ],
                     ),
                 ],
             ),
@@ -151,7 +152,7 @@ def jira(custom_fields):
                                 "Backlog",
                                 "Next",
                             )
-                        ]
+                        ],
                     ),
                     Change(
                         "2018-01-05 01:01:01",
@@ -161,7 +162,7 @@ def jira(custom_fields):
                                 "Next",
                                 "Build",
                             )
-                        ]
+                        ],
                     ),
                     Change(
                         "2018-01-06 01:01:01",
@@ -171,15 +172,15 @@ def jira(custom_fields):
                                 "Build",
                                 "Next",
                             )
-                        ]
+                        ],
                     ),
                     Change(
                         "2018-01-07 01:01:01",
-                        [("Flagged", None, "Awaiting input", "customfield_100")]
+                        [("Flagged", None, "Awaiting input", "customfield_100")],
                     ),
                     Change(
                         "2018-01-10 10:01:01",
-                        [("Flagged", "Awaiting input", "", "customfield_100")]
+                        [("Flagged", "Awaiting input", "", "customfield_100")],
                     ),  # blocked 3 days
                 ],
             ),
@@ -213,7 +214,7 @@ def jira_with_skipped_columns(custom_fields):
                                 "Backlog",
                                 "Next",
                             )
-                        ]
+                        ],
                     ),
                     Change(
                         "2018-01-04 01:01:01",
@@ -223,9 +224,9 @@ def jira_with_skipped_columns(custom_fields):
                                 "Next",
                                 "Done",
                             ),
-                            ("resolution", None, "done")
-                        ]
-                    ), # skipping columns Build and Test
+                            ("resolution", None, "done"),
+                        ],
+                    ),  # skipping columns Build and Test
                 ],
             ),
             Issue(
@@ -249,7 +250,7 @@ def jira_with_skipped_columns(custom_fields):
                                 "Backlog",
                                 "Build",
                             )
-                        ]
+                        ],
                     ),
                     Change(
                         "2018-01-04 01:01:01",
@@ -259,9 +260,9 @@ def jira_with_skipped_columns(custom_fields):
                                 "Build",
                                 "Done",
                             ),
-                            ("resolution", None, "done")
-                        ]
-                    ), # skipping columns Build and Test
+                            ("resolution", None, "done"),
+                        ],
+                    ),  # skipping columns Build and Test
                 ],
             ),
         ],
