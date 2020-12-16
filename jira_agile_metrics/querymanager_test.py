@@ -38,12 +38,10 @@ def jira(custom_fields):
                         [
                             (
                                 "resolution",
-                                "resolution",
                                 None,
                                 "Closed",
                             ),
                             (
-                                "status",
                                 "status",
                                 "Next",
                                 "Done",
@@ -55,7 +53,6 @@ def jira(custom_fields):
                         [
                             (
                                 "status",
-                                "status",
                                 "Backlog",
                                 "Next",
                             )
@@ -66,9 +63,9 @@ def jira(custom_fields):
                         [
                             (
                                 "Team",
-                                "customfield_001",
                                 "Team 2",
                                 "Team 1",
+                                "customfield_001",
                             )
                         ]
                     ),
@@ -77,12 +74,10 @@ def jira(custom_fields):
                         [
                             (
                                 "resolution",
-                                "resolution",
                                 "Closed",
                                 None,
                             ),
                             (
-                                "status",
                                 "status",
                                 "Done",
                                 "QA",
