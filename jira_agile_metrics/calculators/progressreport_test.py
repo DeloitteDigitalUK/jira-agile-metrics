@@ -280,7 +280,14 @@ def query_manager(fields, settings):
                     changes=[
                         Change(
                             "2018-01-02 10:01:01",
-                            [("Flagged", None, "Impediment", "customfield_100")],
+                            [
+                                (
+                                    "Flagged",
+                                    None,
+                                    "Impediment",
+                                    "customfield_100",
+                                )
+                            ],
                         ),
                         Change(
                             "2018-01-03 01:00:00",
@@ -343,7 +350,14 @@ def query_manager(fields, settings):
                         ),
                         Change(
                             "2018-01-04 10:01:01",
-                            [("Flagged", None, "Impediment", "customfield_100")],
+                            [
+                                (
+                                    "Flagged",
+                                    None,
+                                    "Impediment",
+                                    "customfield_100",
+                                )
+                            ],
                         ),  # should clear two days later when issue resolved
                         Change(
                             "2018-01-05 01:01:01",
@@ -409,11 +423,25 @@ def query_manager(fields, settings):
                         ),
                         Change(
                             "2018-01-07 01:01:01",
-                            [("Flagged", None, "Awaiting input", "customfield_100")],
+                            [
+                                (
+                                    "Flagged",
+                                    None,
+                                    "Awaiting input",
+                                    "customfield_100",
+                                )
+                            ],
                         ),
                         Change(
                             "2018-01-10 10:01:01",
-                            [("Flagged", "Awaiting input", "", "customfield_100")],
+                            [
+                                (
+                                    "Flagged",
+                                    "Awaiting input",
+                                    "",
+                                    "customfield_100",
+                                )
+                            ],
                         ),  # blocked 3 days
                     ],
                 ),

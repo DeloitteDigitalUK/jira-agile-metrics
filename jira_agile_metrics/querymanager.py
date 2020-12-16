@@ -8,11 +8,13 @@ from .config import ConfigError
 
 logger = logging.getLogger(__name__)
 
+
 def _field_id_from_changelog_item(history_item):
-    if hasattr(history_item, 'fieldId'):
+    if hasattr(history_item, "fieldId"):
         return history_item.fieldId
     else:
         return history_item.field
+
 
 class IssueSnapshot(object):
     """A snapshot of the key fields of an issue
@@ -188,7 +190,7 @@ class QueryManager(object):
 
             field_id = self.field_name_to_id(field)
             field_ids_to_names[field_id] = field
-            
+
             initial_value = self.resolve_field_value(issue, field_id)
             try:
                 initial_value = next(
@@ -227,7 +229,9 @@ class QueryManager(object):
             for item in change.items:
                 if _field_id_from_changelog_item(item) in field_ids_to_names:
                     yield IssueSnapshot(
-                        change=field_ids_to_names[_field_id_from_changelog_item(item)],
+                        change=field_ids_to_names[
+                            _field_id_from_changelog_item(item)
+                        ],
                         key=issue.key,
                         date=change_date,
                         from_string=item.fromString,
