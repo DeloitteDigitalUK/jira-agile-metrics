@@ -13,3 +13,6 @@ pydicti
 openpyxl
 flask
 Jinja2
+pytest-mock
+mock
+trello
