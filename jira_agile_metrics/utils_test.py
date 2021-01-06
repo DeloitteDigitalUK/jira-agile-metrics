@@ -493,7 +493,7 @@ def test_breakdown_by_month_sum_days_none_values():
     )
 
     breakdown = breakdown_by_month_sum_days(df, "start", "end", "priority")
-    assert list(breakdown.columns) == [None, "med"]
+    assert set(breakdown.columns) == set([None, "med"])
 
     assert list(breakdown.index) == [
         pd.Timestamp(2018, 1, 1),
