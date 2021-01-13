@@ -1047,7 +1047,7 @@ def plot_throughput(cycle_data, date_format, frequency="1W"):
             continue
         ax.annotate(
             "%.0f" % y,
-            xy=(x.toordinal(), y + 0.2),
+            xy=(x, y + 0.2),
             ha="center",
             va="bottom",
             fontsize="x-small",
