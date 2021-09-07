@@ -127,32 +127,59 @@ def override_options(options, form):
 def get_jira_client(connection):
     """Create a JIRA client with the given connection options"""
 
-    url = connection["domain"]
-    username = connection["username"]
-    password = connection["password"]
-    jira_client_options = connection["jira_client_options"]
-    jira_server_version_check = connection["jira_server_version_check"]
+    if connection["jwt"] != "":
+        url = connection["domain"]
+        token = connection["jwt"]
+        jira_client_options = connection["jira_client_options"]
+        jira_server_version_check = connection["jira_server_version_check"]
 
-    jira_options = {"server": url}
-    jira_options.update(jira_client_options)
+        jira_options = {"server": url}
+        jira_options.update(jira_client_options)
 
-    try:
-        return JIRA(
-            jira_options,
-            basic_auth=(username, password),
-            get_server_info=jira_server_version_check,
-        )
-    except JIRAError as e:
-        if e.status_code == 401:
-            raise ConfigError(
-                (
-                    "JIRA authentication failed. "
-                    "Check URL and credentials, "
-                    "and ensure the account is not locked."
-                )
+        try:
+            return JIRA(
+                jira_options,
+                jwt=token,
+                get_server_info=jira_server_version_check,
             )
-        else:
-            raise
+        except JIRAError as e:
+            if e.status_code == 401:
+                raise ConfigError(
+                    (
+                        "JIRA authentication failed. "
+                        "Check URL and credentials, "
+                        "and ensure the account is not locked."
+                    )
+                )
+            else:
+                raise
+    else:    
+        url = connection["domain"]
+        username = connection["username"]
+        password = connection["password"]
+        jira_client_options = connection["jira_client_options"]
+        jira_server_version_check = connection["jira_server_version_check"]
+
+        jira_options = {"server": url}
+        jira_options.update(jira_client_options)
+
+        try:
+            return JIRA(
+                jira_options,
+                basic_auth=(username, password),
+                get_server_info=jira_server_version_check,
+            )
+        except JIRAError as e:
+            if e.status_code == 401:
+                raise ConfigError(
+                    (
+                        "JIRA authentication failed. "
+                        "Check URL and credentials, "
+                        "and ensure the account is not locked."
+                    )
+                )
+            else:
+                raise
 
 
 def get_archive(calculators, query_manager, settings):
