@@ -124,7 +124,7 @@ class HistogramCalculator(Calculator):
 
         # Add quantiles
         bottom, top = ax.get_ylim()
-        for quantile, value in ct_days.quantile(quantiles).iteritems():
+        for quantile, value in ct_days.quantile(quantiles).items():
             ax.vlines(
                 value, bottom, top - 0.001, linestyles="--", linewidths=1
             )

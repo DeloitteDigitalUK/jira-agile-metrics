@@ -107,7 +107,7 @@ class ScatterplotCalculator(Calculator):
         # Add quantiles
         left, right = ax.get_xlim()
         for quantile, value in (
-            chart_data["cycle_time"].quantile(quantiles).iteritems()
+            chart_data["cycle_time"].quantile(quantiles).items()
         ):
             ax.hlines(value, left, right, linestyles="--", linewidths=1)
             ax.annotate(
