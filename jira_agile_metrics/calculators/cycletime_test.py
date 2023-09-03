@@ -47,10 +47,11 @@ def jira(custom_fields):
                 changes=[
                     Change(
                         "2018-01-02 10:01:01",
-                        [("Flagged", None, "Impediment")],
+                        [("Flagged", None, "Impediment", "customfield_100")],
                     ),
                     Change(
-                        "2018-01-03 01:00:00", [("Flagged", "Impediment", "")]
+                        "2018-01-03 01:00:00",
+                        [("Flagged", "Impediment", "", "customfield_100")],
                     ),  # blocked 1 day in the backlog
                     # (doesn't count towards blocked days)
                     Change(
@@ -64,13 +65,16 @@ def jira(custom_fields):
                         ],
                     ),
                     Change(
-                        "2018-01-04 10:01:01", [("Flagged", "", "Impediment")]
+                        "2018-01-04 10:01:01",
+                        [("Flagged", "", "Impediment", "customfield_100")],
                     ),
                     Change(
-                        "2018-01-05 08:01:01", [("Flagged", "Impediment", "")]
+                        "2018-01-05 08:01:01",
+                        [("Flagged", "Impediment", "", "customfield_100")],
                     ),  # was blocked 1 day
                     Change(
-                        "2018-01-08 10:01:01", [("Flagged", "", "Impediment")]
+                        "2018-01-08 10:01:01",
+                        [("Flagged", "", "Impediment", "customfield_100")],
                     ),  # stays blocked until today
                 ],
             ),
@@ -109,7 +113,7 @@ def jira(custom_fields):
                     ),
                     Change(
                         "2018-01-04 10:01:01",
-                        [("Flagged", None, "Impediment")],
+                        [("Flagged", None, "Impediment", "customfield_100")],
                     ),  # should clear two days later when issue resolved
                     Change(
                         "2018-01-05 01:01:01",
@@ -178,11 +182,18 @@ def jira(custom_fields):
                     ),
                     Change(
                         "2018-01-07 01:01:01",
-                        [("Flagged", None, "Awaiting input")],
+                        [
+                            (
+                                "Flagged",
+                                None,
+                                "Awaiting input",
+                                "customfield_100",
+                            )
+                        ],
                     ),
                     Change(
                         "2018-01-10 10:01:01",
-                        [("Flagged", "Awaiting input", "")],
+                        [("Flagged", "Awaiting input", "", "customfield_100")],
                     ),  # blocked 3 days
                 ],
             ),

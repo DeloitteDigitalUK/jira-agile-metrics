@@ -325,7 +325,7 @@ def config_to_options(data, cwd=None, extended=False):
             ) from None
 
         logger.debug("Extending file %s" % extends_filename)
-        with open(extends_filename) as extends_file:
+        with open(extends_filename, "r") as extends_file:
             options = config_to_options(
                 extends_file.read(),
                 cwd=os.path.dirname(extends_filename),

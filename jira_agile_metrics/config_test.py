@@ -496,7 +496,7 @@ Output:
 """
             )
 
-            fp.seek(0)
+            fp.close()
 
             # Extend the file
 
