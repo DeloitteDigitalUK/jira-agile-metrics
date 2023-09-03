@@ -224,7 +224,7 @@ class BurnupForecastCalculator(Calculator):
                     )
 
             bottom, top = ax.get_ylim()
-            for percentile, value in finish_date_quantiles.iteritems():
+            for percentile, value in finish_date_quantiles.items():
                 ax.vlines(
                     value, bottom, target, linestyles="--", linewidths=0.5
                 )
