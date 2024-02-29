@@ -150,7 +150,7 @@ def query_manager(fields, settings):
 
     def simple_ql(i, jql):
         clauses = [c.strip() for c in jql.split(" AND ") if "=" in c]
-        return all([compare_value(i, c) for c in clauses])
+        return all(compare_value(i, c) for c in clauses)
 
     return QueryManager(
         jira=JIRA(
@@ -1695,7 +1695,7 @@ def test_with_large_dataset(fields, settings, results):
 
     def simple_ql(i, jql):
         clauses = [c.strip() for c in jql.split(" AND ") if "=" in c]
-        return all([compare_value(i, c) for c in clauses])
+        return all(compare_value(i, c) for c in clauses)
 
     settings = extend_dict(
         settings,
@@ -1863,7 +1863,7 @@ def test_with_large_dataset_and_outcome_as_tickets(fields, settings, results):
 
     def simple_ql(i, jql):
         clauses = [c.strip() for c in jql.split(" AND ") if "=" in c]
-        return all([compare_value(i, c) for c in clauses])
+        return all(compare_value(i, c) for c in clauses)
 
     settings = extend_dict(
         settings,
@@ -2039,7 +2039,7 @@ def test_with_large_dataset_and_outcome_as_tickets_no_forecast(
 
     def simple_ql(i, jql):
         clauses = [c.strip() for c in jql.split(" AND ") if "=" in c]
-        return all([compare_value(i, c) for c in clauses])
+        return all(compare_value(i, c) for c in clauses)
 
     settings = extend_dict(
         settings,
@@ -2215,7 +2215,7 @@ def test_with_large_dataset_and_outcome_as_tickets_mixed_forecast(
 
     def simple_ql(i, jql):
         clauses = [c.strip() for c in jql.split(" AND ") if "=" in c]
-        return all([compare_value(i, c) for c in clauses])
+        return all(compare_value(i, c) for c in clauses)
 
     settings = extend_dict(
         settings,
@@ -2389,7 +2389,7 @@ def test_with_large_dataset_minimal(fields, settings, results):
 
     def simple_ql(i, jql):
         clauses = [c.strip() for c in jql.split(" AND ") if "=" in c]
-        return all([compare_value(i, c) for c in clauses])
+        return all(compare_value(i, c) for c in clauses)
 
     settings = extend_dict(
         settings,
@@ -2517,7 +2517,7 @@ def test_with_large_dataset_minimal_no_forecast(fields, settings, results):
 
     def simple_ql(i, jql):
         clauses = [c.strip() for c in jql.split(" AND ") if "=" in c]
-        return all([compare_value(i, c) for c in clauses])
+        return all(compare_value(i, c) for c in clauses)
 
     settings = extend_dict(
         settings,
@@ -2645,7 +2645,7 @@ def test_with_large_dataset_teams_no_outcomes(fields, settings, results):
 
     def simple_ql(i, jql):
         clauses = [c.strip() for c in jql.split(" AND ") if "=" in c]
-        return all([compare_value(i, c) for c in clauses])
+        return all(compare_value(i, c) for c in clauses)
 
     settings = extend_dict(
         settings,
@@ -2793,7 +2793,7 @@ def test_with_large_dataset_no_teams(fields, settings, results):
 
     def simple_ql(i, jql):
         clauses = [c.strip() for c in jql.split(" AND ") if "=" in c]
-        return all([compare_value(i, c) for c in clauses])
+        return all(compare_value(i, c) for c in clauses)
 
     settings = extend_dict(
         settings,
@@ -2947,7 +2947,7 @@ def test_with_large_dataset_dynamic_teams(fields, settings, results):
 
     def simple_ql(i, jql):
         clauses = [c.strip() for c in jql.split(" AND ") if "=" in c]
-        return all([compare_value(i, c) for c in clauses])
+        return all(compare_value(i, c) for c in clauses)
 
     settings = extend_dict(
         settings,
@@ -3104,7 +3104,7 @@ def test_with_large_dataset_static_and_dynamic_teams(
 
     def simple_ql(i, jql):
         clauses = [c.strip() for c in jql.split(" AND ") if "=" in c]
-        return all([compare_value(i, c) for c in clauses])
+        return all(compare_value(i, c) for c in clauses)
 
     settings = extend_dict(
         settings,

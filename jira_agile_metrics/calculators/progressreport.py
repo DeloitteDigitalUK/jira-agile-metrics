@@ -231,7 +231,7 @@ class ProgressReportCalculator(Calculator):
             )
 
         if len(outcomes) > 0:
-            if not all([bool(outcome.name) for outcome in outcomes]):
+            if not all(bool(outcome.name) for outcome in outcomes):
                 logger.error("Outcomes must have a name.")
                 return None
         else:
