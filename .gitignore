@@ -92,3 +92,5 @@ ENV/
 
 # Debug outputs that should not be committed
 progress*.html
+*.csv
+*.json
