@@ -373,3 +373,6 @@ def generate_ai_insights(parser, args):
     except Exception as e:
         print(f"❌ Error: {e}")
         logger.exception("Full error details:")
+
+if __name__ == "__main__":
+    main()
