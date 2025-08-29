@@ -1,36 +1,47 @@
 """
 Context file generator that creates structured data for AI consumption.
-Extends existing jira-agile-metrics calculators to produce AI-ready context.
+Focused on flow analysis rather than sprint-based metrics.
 """
 
 import json
 import logging
-import os
-from datetime import datetime, timedelta
-from typing import Dict, List, Any, Optional
+import pandas as pd
+
+from datetime import datetime
+from typing import Dict, List
 from ..calculator import Calculator
 
 logger = logging.getLogger(__name__)
 
 
 class AIContextGenerator(Calculator):
-    """Generates structured context files for AI analysis."""
+    """Generates structured context files for AI flow analysis."""
     
     def __init__(self, query_manager, settings, results):
         super().__init__(query_manager, settings, results)
         self.context_data = {}
     
     def run(self):
-        """Generate AI context from existing calculator results."""
-        logger.info("Generating AI context data...")
+        """Generate AI context from existing calculator results focused on flow analysis."""
+        logger.info("Generating AI context data for flow analysis...")
         
-        # Get basic metadata
+        # Get cycle time data as foundation
+        from ..calculators.cycletime import CycleTimeCalculator
+        
+        cycle_data = self._results.get(CycleTimeCalculator)
+        if cycle_data is None:
+            logger.error("No cycle time data available for AI context generation")
+            return {}
+        
         self.context_data = {
-            "metadata": self._generate_metadata(self.query_manager, self.settings),
-            "metrics_summary": self._generate_metrics_summary(self._results),
-            "specific_issues": self._generate_issue_details(self.query_manager, self._results),
-            "patterns_detected": self._detect_patterns([], self._results),
-            "workflow_analysis": self._analyze_workflow(self._results)
+            "metadata": self._generate_metadata(),
+            "flow_health": self._analyze_flow_health(cycle_data),
+            "ageing_wip_analysis": self._analyze_ageing_wip(),
+            "throughput_trends": self._analyze_throughput_trends(),
+            "wip_stability": self._analyze_wip_stability(),
+            "bottleneck_detection": self._detect_bottlenecks(),
+            "cycle_time_patterns": self._analyze_cycle_time_patterns(cycle_data),
+            "actionable_items": self._identify_actionable_items(cycle_data)
         }
         
         # Write context file
@@ -41,499 +52,287 @@ class AIContextGenerator(Calculator):
         logger.info(f"AI context written to {output_file}")
         return self.context_data
     
-    def _generate_metrics_summary(self, results) -> Dict:
-        """Generate summary of metrics from calculator results."""
+    def _generate_metadata(self) -> Dict:
+        """Generate metadata about the analysis period and configuration."""
         return {
-            "cycle_time": results.get('CycleTimeCalculator', {}),
-            "throughput": results.get('ThroughputCalculator', {}),
-            "wip": results.get('WIPCalculator', {})
+            "analysis_date": datetime.now().isoformat(),
+            "workflow_stages": [s["name"] for s in self.settings["cycle"]],
+            "committed_column": self.settings["committed_column"],
+            "done_column": self.settings["done_column"],
+            "backlog_column": self.settings["backlog_column"]
         }
     
-    def _generate_issue_details(self, query_manager, results) -> List[Dict]:
-        """Generate detailed issue information."""
-        issues = []
-        for issue in getattr(query_manager.jira, 'issues', []):
-            issues.append({
-                "ticket_id": issue.key,
-                "summary": issue.fields.summary,
-                "status": issue.fields.status.name,
-                "assignee": getattr(issue.fields.assignee, 'displayName', 'Unassigned'),
-                "issue_type": issue.fields.issuetype.name,
-                "priority": getattr(issue.fields.priority, 'name', 'Unknown'),
-                "created": issue.fields.created,
-                "blocked": getattr(issue.fields, 'flagged', None) is not None
-            })
-        return issues
-    
-    def _detect_patterns(self, results) -> List[Dict]:
-        """Detect patterns in the data."""
-        return []  # Placeholder implementation
-    
-    def _analyze_workflow(self, results) -> Dict:
-        """Analyze workflow efficiency."""
-        return {}  # Placeholder implementation
-    
-    def _generate_metadata(self, query_manager, settings) -> Dict:
-        """Generate metadata about the analysis."""
-        now = datetime.now()
+    def _analyze_flow_health(self, cycle_data) -> Dict:
+        """Analyze overall flow health metrics."""
+        import pandas as pd
         
-        # Try to extract sprint info from settings
-        sprint_info = self._extract_sprint_info(settings)
+        done_column = self.settings["done_column"]
+        
+        # Get completed items
+        completed_items = cycle_data[pd.notna(cycle_data[done_column])].copy()
+        
+        if len(completed_items) == 0:
+            return {"status": "no_completed_items", "message": "No completed items found"}
+        
+        # Calculate key metrics
+        cycle_times = completed_items['cycle_time'].dropna()
         
         return {
-            "generated_at": now.isoformat(),
-            "jira_query": settings.get('jira_query', getattr(query_manager, 'query', 'Unknown')),
-            "team_name": settings.get('team_name', 'Unknown Team'),
-            "sprint_info": sprint_info,
-            "analysis_period_days": settings.get('analysis_period_days', 14),
-            "total_issues_analyzed": len(getattr(query_manager.jira, '_issues', []))
+            "total_completed_items": len(completed_items),
+            "avg_cycle_time": float(cycle_times.mean()) if len(cycle_times) > 0 else 0,
+            "median_cycle_time": float(cycle_times.median()) if len(cycle_times) > 0 else 0,
+            "cycle_time_std": float(cycle_times.std()) if len(cycle_times) > 0 else 0,
+            "percentile_85": float(cycle_times.quantile(0.85)) if len(cycle_times) > 0 else 0,
+            "predictability_ratio": float(cycle_times.quantile(0.85) / cycle_times.median()) if len(cycle_times) > 0 and cycle_times.median() > 0 else 0
         }
     
-    def _extract_sprint_info(self, settings) -> Dict:
-        """Extract sprint information from settings."""
-        # This is a placeholder - you might have sprint info in your settings
-        # or need to extract it from JIRA data
-        return {
-            "current_sprint": settings.get('current_sprint', 'Unknown Sprint'),
-            "sprint_start": settings.get('sprint_start'),
-            "sprint_end": settings.get('sprint_end'),
-            "days_remaining": self._calculate_days_remaining(settings.get('sprint_end'))
-        }
-    
-    def _calculate_days_remaining(self, sprint_end) -> Optional[int]:
-        """Calculate days remaining in sprint."""
-        if not sprint_end:
-            return None
+    def _analyze_ageing_wip(self) -> Dict:
+        """Analyze work in progress for ageing and stuck items."""
+        from ..calculators.ageingwip import AgeingWIPChartCalculator
+        
         try:
-            if isinstance(sprint_end, str):
-                end_date = datetime.fromisoformat(sprint_end.replace('Z', '+00:00'))
-            else:
-                end_date = sprint_end
-            return max(0, (end_date - datetime.now()).days)
-        except:
-            return None
-    
-    def _generate_metrics_summary(self, results) -> Dict:
-        """Generate summary of key metrics from calculator results."""
-        summary = {}
-        
-        # Cycle time metrics
-        if 'cycletime' in results:
-            cycle_data = results['cycletime']
-            summary['cycle_time'] = self._extract_cycle_time_summary(cycle_data)
-        
-        # Throughput metrics
-        if 'throughput' in results:
-            throughput_data = results['throughput']
-            summary['throughput'] = self._extract_throughput_summary(throughput_data)
-        
-        # WIP metrics
-        if 'cfd' in results:
-            cfd_data = results['cfd']
-            summary['wip'] = self._extract_wip_summary(cfd_data)
-        
-        # Aging WIP
-        if 'ageingwip' in results:
-            aging_data = results['ageingwip']
-            summary['aging_wip'] = self._extract_aging_wip_summary(aging_data)
-        
-        return summary
-    
-    def _extract_cycle_time_summary(self, cycle_data) -> Dict:
-        """Extract cycle time summary from calculator results."""
-        if not cycle_data or not hasattr(cycle_data, 'to_dict'):
-            return {"error": "No cycle time data available"}
-        
-        df = cycle_data.to_dict('records') if hasattr(cycle_data, 'to_dict') else []
-        
-        if not df:
-            return {"error": "Empty cycle time data"}
-        
-        # Calculate basic statistics
-        cycle_times = [record.get('cycle_time', 0) for record in df if record.get('cycle_time')]
-        
-        if not cycle_times:
-            return {"error": "No valid cycle times found"}
-        
-        return {
-            "current_average": round(sum(cycle_times) / len(cycle_times), 1),
-            "median": round(sorted(cycle_times)[len(cycle_times)//2], 1),
-            "min": min(cycle_times),
-            "max": max(cycle_times),
-            "count": len(cycle_times),
-            "trend": "stable"  # Placeholder - would need historical data
-        }
-    
-    def _extract_throughput_summary(self, throughput_data) -> Dict:
-        """Extract throughput summary from calculator results."""
-        # Placeholder implementation - adapt based on your throughput data structure
-        return {
-            "current_week": 2.5,  # Items per week
-            "previous_week": 3.0,
-            "trend": "decreasing",
-            "average_last_4_weeks": 2.8
-        }
-    
-    def _extract_wip_summary(self, cfd_data) -> Dict:
-        """Extract WIP summary from CFD data."""
-        # Placeholder implementation - adapt based on your CFD data structure
-        return {
-            "current_count": 12,
-            "limit": 10,
-            "status": "over_limit",
-            "trend": "increasing"
-        }
-    
-    def _extract_aging_wip_summary(self, aging_data) -> Dict:
-        """Extract aging WIP summary."""
-        # Placeholder implementation
-        return {
-            "items_over_10_days": 3,
-            "items_over_20_days": 1,
-            "oldest_item_days": 25,
-            "average_age": 8.5
-        }
-    
-    def _generate_issue_details(self, query_manager, results) -> List[Dict]:
-        """Generate detailed information about specific issues."""
-        issues = []
-        
-        # Get issues from query manager - try different possible locations
-        issue_list = []
-        if hasattr(query_manager, 'issues'):
-            issue_list = query_manager.issues
-        elif hasattr(query_manager, 'jira') and hasattr(query_manager.jira, '_issues'):
-            issue_list = query_manager.jira._issues
-        elif hasattr(query_manager, 'jira') and hasattr(query_manager.jira, 'issues'):
-            issue_list = query_manager.jira.issues
-        
-        for issue in issue_list[:20]:  # Limit to 20 most recent
-            issue_data = self._extract_issue_data(issue, results)
-            if issue_data:
-                issues.append(issue_data)
-        
-        return issues
-    
-    def _extract_issue_data(self, issue, results) -> Optional[Dict]:
-        """Extract relevant data for a specific issue."""
-        try:
-            # Handle assignee - could be FauxFieldValue or regular object
-            assignee_name = "Unassigned"
-            if issue.fields.assignee:
-                if hasattr(issue.fields.assignee, 'displayName'):
-                    assignee_name = str(issue.fields.assignee.displayName)
-                elif hasattr(issue.fields.assignee, 'name'):
-                    assignee_name = str(issue.fields.assignee.name)
-                elif hasattr(issue.fields.assignee, 'value'):
-                    assignee_name = str(issue.fields.assignee.value)
-                else:
-                    assignee_name = str(issue.fields.assignee)
+            ageing_calc = AgeingWIPChartCalculator(self.query_manager, self.settings, self._results)
+            ageing_data = ageing_calc.run()
             
-            # Handle status - could be FauxFieldValue or regular object
-            status_name = "Unknown"
-            if hasattr(issue.fields.status, 'name'):
-                status_name = str(issue.fields.status.name)
-            elif hasattr(issue.fields.status, 'value'):
-                status_name = str(issue.fields.status.value)
-            else:
-                status_name = str(issue.fields.status)
+            if ageing_data is None or len(ageing_data) == 0:
+                return {"status": "no_wip_items", "message": "No work in progress items found"}
             
-            # Handle priority
-            priority_name = "Unknown"
-            if hasattr(issue.fields, 'priority') and issue.fields.priority:
-                if hasattr(issue.fields.priority, 'name'):
-                    priority_name = str(issue.fields.priority.name)
-                elif hasattr(issue.fields.priority, 'value'):
-                    priority_name = str(issue.fields.priority.value)
-                else:
-                    priority_name = str(issue.fields.priority)
+            # Analyze ageing patterns
+            ages = ageing_data['age']
+            avg_age = float(ages.mean())
             
-            # Basic issue information
-            issue_data = {
-                "ticket_id": str(issue.key),
-                "title": str(issue.fields.summary)[:100],  # Truncate long titles
-                "status": status_name,
-                "assignee": assignee_name,
-                "created": getattr(issue.fields, 'created', 'Unknown'),
-                "updated": getattr(issue.fields, 'updated', 'Unknown'),
-                "priority": priority_name
+            # Identify stuck items (age > 2x average)
+            stuck_threshold = avg_age * 2 if avg_age > 0 else 14  # fallback to 2 weeks
+            stuck_items = ageing_data[ageing_data['age'] > stuck_threshold]
+            
+            return {
+                "total_wip_items": len(ageing_data),
+                "avg_age_days": avg_age,
+                "oldest_item_age": float(ages.max()),
+                "stuck_items_count": len(stuck_items),
+                "stuck_items": [
+                    {
+                        "key": row['key'],
+                        "summary": row['summary'][:100] if pd.notna(row.get('summary')) else "No summary",
+                        "status": row['status'],
+                        "age_days": int(row['age'])
+                    }
+                    for _, row in stuck_items.head(10).iterrows()  # limit to top 10
+                ],
+                "status_distribution": ageing_data['status'].value_counts().to_dict()
             }
-            
-            # Add cycle time information if available
-            if 'cycletime' in results:
-                cycle_info = self._get_issue_cycle_info(issue.key, results['cycletime'])
-                issue_data.update(cycle_info)
-            
-            # Check if blocked/flagged
-            issue_data['blocked'] = self._is_issue_blocked(issue)
-            
-            return issue_data
-            
         except Exception as e:
-            logger.warning(f"Error extracting data for issue {issue.key}: {e}")
-            return None
+            logger.warning(f"Error analyzing ageing WIP: {e}")
+            return {"status": "error", "message": str(e)}
     
-    def _get_issue_cycle_info(self, issue_key, cycle_data) -> Dict:
-        """Get cycle time information for a specific issue."""
-        # Placeholder - adapt based on your cycle time data structure
-        return {
-            "days_in_current_status": 3,
-            "cycle_time_to_date": 8,
-            "last_transition": "2025-08-25T10:30:00Z"
-        }
-    
-    def _is_issue_blocked(self, issue) -> bool:
-        """Check if an issue is blocked or flagged."""
+    def _analyze_throughput_trends(self) -> Dict:
+        """Analyze throughput trends and patterns."""
+        from ..calculators.throughput import ThroughputCalculator
+        
         try:
-            # Check for flagged field (common in JIRA)
-            if hasattr(issue.fields, 'flagged') and issue.fields.flagged:
-                return True
+            throughput_calc = ThroughputCalculator(self.query_manager, self.settings, self._results)
+            throughput_data = throughput_calc.run()
             
-            # Check for blocked status or labels
-            status_name = str(issue.fields.status.name).lower()
-            if 'blocked' in status_name or 'impediment' in status_name:
-                return True
+            if throughput_data is None or len(throughput_data) == 0:
+                return {"status": "no_throughput_data", "message": "No throughput data available"}
             
-            # Check labels for blocked indicators
-            if hasattr(issue.fields, 'labels') and issue.fields.labels:
-                blocked_labels = ['blocked', 'impediment', 'waiting']
-                for label in issue.fields.labels:
-                    if any(blocked_term in str(label).lower() for blocked_term in blocked_labels):
-                        return True
+            # Calculate trend metrics
+            recent_period = throughput_data.tail(4)  # last 4 periods
+            older_period = throughput_data.head(len(throughput_data) - 4) if len(throughput_data) > 4 else throughput_data
             
-            return False
-        except:
-            return False
-    
-    def _detect_patterns(self, issues_data, metrics_data) -> List[Dict]:
-        """Detect patterns and anomalies in the data."""
-        patterns = []
-        
-        # Pattern: Review bottlenecks
-        review_pattern = self._detect_review_bottleneck_pattern(issues_data)
-        if review_pattern:
-            patterns.append(review_pattern)
-        
-        # Pattern: Blocked items
-        blocked_pattern = self._detect_blocked_items_pattern(issues_data)
-        if blocked_pattern:
-            patterns.append(blocked_pattern)
-        
-        # Pattern: High cycle time variance
-        if 'cycletime' in metrics_data:
-            pattern = self._detect_cycle_time_variance(metrics_data['cycletime'])
-            if pattern:
-                patterns.append(pattern)
-        
-        # Pattern: WIP limit violations
-        if 'cfd' in metrics_data:
-            pattern = self._detect_wip_violations(metrics_data['cfd'])
-            if pattern:
-                patterns.append(pattern)
-        
-        return patterns
-    
-    def _detect_cycle_time_variance(self, cycle_data) -> Optional[Dict]:
-        """Detect high variance in cycle times."""
-        # Placeholder implementation
-        return {
-            "pattern_type": "high_cycle_time_variance",
-            "description": "Cycle times show high variance, indicating inconsistent flow",
-            "confidence": 0.75,
-            "affected_tickets": ["PROJ-123", "PROJ-456"],
-            "supporting_data": {
-                "variance": 15.2,
-                "std_deviation": 3.9
-            }
-        }
-    
-    def _detect_review_bottlenecks(self, results) -> Optional[Dict]:
-        """Detect code review bottlenecks."""
-        # Placeholder implementation
-        return {
-            "pattern_type": "review_bottleneck",
-            "description": "Code reviews taking longer than historical average",
-            "confidence": 0.85,
-            "affected_tickets": ["PROJ-789", "PROJ-101"],
-            "supporting_data": {
-                "avg_review_time_current": 4.2,
-                "avg_review_time_historical": 2.1,
-                "sample_size": 8
-            }
-        }
-    
-    def _detect_wip_violations(self, cfd_data) -> Optional[Dict]:
-        """Detect WIP limit violations."""
-        # Placeholder implementation
-        return {
-            "pattern_type": "wip_limit_violation",
-            "description": "Work in Progress exceeds team limits",
-            "confidence": 0.95,
-            "supporting_data": {
-                "current_wip": 12,
-                "wip_limit": 10,
-                "days_over_limit": 5
-            }
-        }
-    
-    def _detect_review_bottleneck_pattern(self, issues_data) -> Optional[Dict]:
-        """Detect review bottleneck patterns."""
-        review_issues = [issue for issue in issues_data if issue.get('status') == 'Code Review']
-        if len(review_issues) >= 2:  # Threshold for bottleneck
+            recent_avg = recent_period['count'].mean() if len(recent_period) > 0 else 0
+            historical_avg = older_period['count'].mean() if len(older_period) > 0 else recent_avg
+            
+            trend_direction = "improving" if recent_avg > historical_avg else "declining" if recent_avg < historical_avg else "stable"
+            
             return {
-                "pattern_type": "review_bottleneck",
-                "description": f"Code Review bottleneck detected with {len(review_issues)} items",
-                "confidence": 0.8,
-                "affected_tickets": [issue['ticket_id'] for issue in review_issues],
-                "supporting_data": {
-                    "items_in_review": len(review_issues),
-                    "threshold": 2
+                "total_periods": len(throughput_data),
+                "recent_avg_throughput": float(recent_avg),
+                "historical_avg_throughput": float(historical_avg),
+                "trend_direction": trend_direction,
+                "trend_magnitude": float(abs(recent_avg - historical_avg)),
+                "max_throughput": float(throughput_data['count'].max()),
+                "min_throughput": float(throughput_data['count'].min()),
+                "throughput_volatility": float(throughput_data['count'].std())
+            }
+        except Exception as e:
+            logger.warning(f"Error analyzing throughput trends: {e}")
+            return {"status": "error", "message": str(e)}
+    
+    def _analyze_wip_stability(self) -> Dict:
+        """Analyze WIP stability and net flow patterns."""
+        from ..calculators.wip import WIPChartCalculator
+        from ..calculators.netflow import NetFlowChartCalculator
+        
+        try:
+            wip_calc = WIPChartCalculator(self.query_manager, self.settings, self._results)
+            wip_data = wip_calc.run()
+            
+            if wip_data is None or len(wip_data) == 0:
+                return {"status": "no_wip_data", "message": "No WIP data available"}
+            
+            wip_values = wip_data['wip']
+            current_wip = float(wip_values.iloc[-1]) if len(wip_values) > 0 else 0
+            avg_wip = float(wip_values.mean())
+            wip_trend = "increasing" if current_wip > avg_wip * 1.1 else "decreasing" if current_wip < avg_wip * 0.9 else "stable"
+            
+            result = {
+                "current_wip": current_wip,
+                "avg_wip": avg_wip,
+                "max_wip": float(wip_values.max()),
+                "wip_volatility": float(wip_values.std()),
+                "wip_trend": wip_trend
+            }
+            
+            # Add net flow analysis if available
+            try:
+                netflow_calc = NetFlowChartCalculator(self.query_manager, self.settings, self._results)
+                netflow_data = netflow_calc.run()
+                
+                if netflow_data is not None and len(netflow_data) > 0:
+                    recent_netflow = netflow_data['net_flow'].tail(4).mean()
+                    result.update({
+                        "recent_net_flow": float(recent_netflow),
+                        "net_flow_trend": "growing" if recent_netflow > 0.5 else "shrinking" if recent_netflow < -0.5 else "balanced"
+                    })
+            except Exception:
+                pass  # Net flow analysis is optional
+            
+            return result
+        except Exception as e:
+            logger.warning(f"Error analyzing WIP stability: {e}")
+            return {"status": "error", "message": str(e)}
+    
+    def _detect_bottlenecks(self) -> Dict:
+        """Detect bottlenecks using CFD analysis."""
+        from ..calculators.cfd import CFDCalculator
+        
+        try:
+            cfd_calc = CFDCalculator(self.query_manager, self.settings, self._results)
+            cfd_data = cfd_calc.run()
+            
+            if cfd_data is None or len(cfd_data) == 0:
+                return {"status": "no_cfd_data", "message": "No CFD data available"}
+            
+            # Analyze stage growth rates to detect bottlenecks
+            stage_analysis = {}
+            workflow_stages = [s["name"] for s in self.settings["cycle"]]
+            
+            for stage in workflow_stages:
+                if stage in cfd_data.columns:
+                    stage_data = cfd_data[stage].diff().tail(7)  # last week's changes
+                    avg_growth = stage_data.mean()
+                    stage_analysis[stage] = {
+                        "avg_weekly_growth": float(avg_growth),
+                        "current_count": float(cfd_data[stage].iloc[-1]) if len(cfd_data) > 0 else 0
+                    }
+            
+            # Identify potential bottlenecks (stages with high growth)
+            bottlenecks = []
+            for stage, metrics in stage_analysis.items():
+                if metrics["avg_weekly_growth"] > 2:  # growing by more than 2 items per week
+                    bottlenecks.append({
+                        "stage": stage,
+                        "growth_rate": metrics["avg_weekly_growth"],
+                        "current_count": metrics["current_count"]
+                    })
+            
+            return {
+                "stage_analysis": stage_analysis,
+                "potential_bottlenecks": bottlenecks,
+                "bottleneck_count": len(bottlenecks)
+            }
+        except Exception as e:
+            logger.warning(f"Error detecting bottlenecks: {e}")
+            return {"status": "error", "message": str(e)}
+    
+    def _analyze_cycle_time_patterns(self, cycle_data) -> Dict:
+        """Analyze cycle time patterns and trends."""
+        import pandas as pd
+        
+        try:
+            done_column = self.settings["done_column"]
+            completed_items = cycle_data[pd.notna(cycle_data[done_column])].copy()
+            
+            if len(completed_items) == 0:
+                return {"status": "no_completed_items", "message": "No completed items for pattern analysis"}
+            
+            # Analyze by issue type if available
+            patterns = {}
+            if 'issue_type' in completed_items.columns:
+                type_analysis = completed_items.groupby('issue_type')['cycle_time'].agg([
+                    'count', 'mean', 'median', 'std'
+                ]).round(2)
+                patterns['by_issue_type'] = type_analysis.to_dict('index')
+            
+            # Analyze recent vs historical performance
+            if len(completed_items) > 10:
+                recent_items = completed_items.tail(10)
+                historical_items = completed_items.head(len(completed_items) - 10)
+                
+                recent_avg = recent_items['cycle_time'].mean()
+                historical_avg = historical_items['cycle_time'].mean()
+                
+                patterns['performance_trend'] = {
+                    "recent_avg_cycle_time": float(recent_avg),
+                    "historical_avg_cycle_time": float(historical_avg),
+                    "trend": "improving" if recent_avg < historical_avg else "declining" if recent_avg > historical_avg else "stable"
                 }
-            }
-        return None
+            
+            return patterns
+        except Exception as e:
+            logger.warning(f"Error analyzing cycle time patterns: {e}")
+            return {"status": "error", "message": str(e)}
     
-    def _detect_blocked_items_pattern(self, issues_data) -> Optional[Dict]:
-        """Detect blocked items pattern."""
-        blocked_issues = [issue for issue in issues_data if issue.get('blocked', False)]
-        if len(blocked_issues) >= 2:  # Threshold for pattern
-            return {
-                "pattern_type": "blocked_items",
-                "description": f"{len(blocked_issues)} blocked items detected",
-                "confidence": 0.9,
-                "affected_tickets": [issue['ticket_id'] for issue in blocked_issues],
-                "supporting_data": {
-                    "blocked_count": len(blocked_issues),
-                    "total_items": len(issues_data)
-                }
-            }
-        return None
-    
-    def _analyze_cycle_time_metrics(self, cycle_time_data) -> Dict:
-        """Analyze cycle time metrics."""
-        completed_items = [item for item in cycle_time_data if item.get('cycle_time') is not None]
+    def _identify_actionable_items(self, cycle_data) -> List[Dict]:
+        """Identify specific items requiring attention."""
+        import pandas as pd
         
-        if not completed_items:
-            return {
-                "current_average": 0,
-                "previous_average": 0,
-                "trend": "no_data",
-                "completed_count": 0
-            }
+        actionable_items = []
         
-        cycle_times = [item['cycle_time'] for item in completed_items]
-        current_avg = sum(cycle_times) / len(cycle_times)
-        
-        return {
-            "current_average": round(current_avg, 1),
-            "previous_average": round(current_avg * 0.9, 1),  # Mock previous average
-            "trend": "stable",
-            "completed_count": len(completed_items)
-        }
-    
-    def _analyze_throughput_metrics(self, throughput_data) -> Dict:
-        """Analyze throughput metrics."""
-        if len(throughput_data) < 2:
-            return {
-                "current_week": 0,
-                "previous_week": 0,
-                "trend": "no_data",
-                "average": 0
-            }
-        
-        current_week = throughput_data[0]
-        previous_week = throughput_data[1]
-        average = sum(throughput_data) / len(throughput_data)
-        
-        trend = "improving" if current_week > previous_week else "declining" if current_week < previous_week else "stable"
-        
-        return {
-            "current_week": current_week,
-            "previous_week": previous_week,
-            "trend": trend,
-            "average": round(average, 1)
-        }
-    
-    def _analyze_wip_metrics(self, wip_data, wip_limit=10) -> Dict:
-        """Analyze WIP metrics."""
-        current_wip = wip_data.get('current_wip', 0)
-        by_status = wip_data.get('wip_by_status', {})
-        
-        status = "within_limit" if current_wip <= wip_limit else "over_limit"
-        
-        return {
-            "current_count": current_wip,
-            "limit": wip_limit,
-            "status": status,
-            "by_status": by_status
-        }
-    
-    def _calculate_days_in_status(self, issue) -> int:
-        """Calculate days an issue has been in current status."""
         try:
-            # Get the most recent status change from changelog
-            if hasattr(issue, 'changelog') and hasattr(issue.changelog, 'histories'):
-                for history in reversed(issue.changelog.histories):
-                    for item in history.items:
-                        if item.field == 'status':
-                            # Parse the date and calculate days
-                            change_date = datetime.strptime(history.created[:19], '%Y-%m-%dT%H:%M:%S')
-                            days_diff = (datetime.now() - change_date).days
-                            return max(0, days_diff)
-            return 0
-        except:
-            return 0
-    
-    def _is_blocked(self, issue) -> bool:
-        """Check if an issue is blocked."""
-        try:
-            # Check for flagged field
-            if hasattr(issue.fields, 'flagged') and issue.fields.flagged:
-                if hasattr(issue.fields.flagged, 'value'):
-                    return issue.fields.flagged.value == 'Impediment'
-                return True
-            return False
-        except:
-            return False
-    
-    def _format_issue_data(self, issue) -> Dict:
-        """Format issue data for output."""
-        return {
-            "ticket_id": issue.key,
-            "title": issue.fields.summary,
-            "summary": issue.fields.summary,
-            "status": issue.fields.status.name,
-            "assignee": issue.fields.assignee.displayName if issue.fields.assignee else "Unassigned",
-            "issue_type": issue.fields.issuetype.name,
-            "priority": issue.fields.priority.name if issue.fields.priority else "Unknown",
-            "days_in_status": self._calculate_days_in_status(issue),
-            "days_in_current_status": self._calculate_days_in_status(issue),
-            "blocked": self._is_blocked(issue)
-        }
-    
-    def write(self):
-        """Write context data to file."""
-        output_dir = self.settings.get('output_directory', '.')
-        output_file = os.path.join(output_dir, 'ai_context.json')
-        
-        # Ensure output directory exists
-        os.makedirs(output_dir, exist_ok=True)
-        
-        # Get context data from results
-        context_data = self._results.get(self.__class__, {})
-        
-        with open(output_file, 'w') as f:
-            json.dump(context_data, f, indent=2, default=str)
-        
-        logger.info(f"AI context written to {output_file}")
-    
-    def _analyze_workflow(self, results) -> Dict:
-        """Analyze workflow efficiency and bottlenecks."""
-        return {
-            "bottleneck_stages": ["Code Review", "QA Testing"],
-            "flow_efficiency": 0.65,  # Placeholder
-            "handoff_delays": {
-                "dev_to_review": 1.2,
-                "review_to_qa": 2.1,
-                "qa_to_done": 0.8
-            }
-        }
+            done_column = self.settings["done_column"]
+            committed_column = self.settings["committed_column"]
+            
+            # Get WIP items
+            wip_items = cycle_data[pd.isnull(cycle_data[done_column])].copy()
+            
+            if len(wip_items) == 0:
+                return actionable_items
+            
+            # Calculate ages for WIP items
+            today = pd.Timestamp.now().date()
+            
+            def calculate_age(row):
+                if pd.isnull(row[committed_column]):
+                    return None
+                return (today - row[committed_column].date()).days
+            
+            wip_items['age'] = wip_items.apply(calculate_age, axis=1)
+            wip_items = wip_items.dropna(subset=['age'])
+            
+            if len(wip_items) == 0:
+                return actionable_items
+            
+            # Identify outliers (age > 85th percentile of completed cycle times)
+            completed_items = cycle_data[pd.notna(cycle_data[done_column])]
+            if len(completed_items) > 0:
+                cycle_times = completed_items['cycle_time'].dropna()
+                if len(cycle_times) > 0:
+                    outlier_threshold = cycle_times.quantile(0.85)
+                    outliers = wip_items[wip_items['age'] > outlier_threshold]
+                    
+                    for _, item in outliers.head(5).iterrows():  # top 5 outliers
+                        actionable_items.append({
+                            "key": item['key'],
+                            "summary": item['summary'][:100] if pd.notna(item.get('summary')) else "No summary",
+                            "age_days": int(item['age']),
+                            "reason": "ageing_outlier",
+                            "threshold_exceeded": float(outlier_threshold),
+                            "priority": "high" if item['age'] > outlier_threshold * 1.5 else "medium"
+                        })
+            
+            return actionable_items
+        except Exception as e:
+            logger.warning(f"Error identifying actionable items: {e}")
+            return actionable_items

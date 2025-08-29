@@ -2,11 +2,8 @@
 Unit tests for AI insights generator with offline mocks.
 """
 
-import pytest
 import json
-import tempfile
-import os
-from unittest.mock import Mock, patch, mock_open
+from unittest.mock import patch, mock_open
 from .insights_generator import InsightsGenerator
 from .providers import LLMProvider
 
@@ -43,57 +40,51 @@ class TestInsightsGenerator:
             assert generator.llm == mock_provider
     
     def test_generate_daily_insights_success(self):
-        # Create test context data
+        # Create flow-focused test context data
         test_context = {
             "metadata": {
                 "generated_at": "2025-08-29T10:00:00Z",
-                "team_name": "Test Team",
-                "sprint_info": {
-                    "current_sprint": "Sprint 23",
-                    "sprint_start": "2025-08-21",
-                    "days_remaining": 5
-                },
-                "total_issues_analyzed": 15
+                "workflow_stages": ["To Do", "In Progress", "Code Review", "Done"],
+                "committed_column": "In Progress",
+                "done_column": "Done"
             },
-            "metrics_summary": {
-                "cycle_time": {
-                    "current_average": 8.2,
-                    "previous_average": 6.1
-                },
-                "throughput": {
-                    "current_week": 2.1,
-                    "previous_week": 2.5
-                },
-                "wip": {
-                    "current_count": 12,
-                    "limit": 10,
-                    "status": "over_limit"
-                }
+            "flow_health": {
+                "avg_cycle_time": 8.2,
+                "median_cycle_time": 7.0,
+                "predictability_ratio": 1.5,
+                "total_completed_items": 15
             },
-            "specific_issues": [
+            "ageing_wip_analysis": {
+                "total_wip_items": 12,
+                "stuck_items_count": 2,
+                "stuck_items": [
+                    {"key": "PROJ-123", "summary": "Test issue", "age_days": 15}
+                ]
+            },
+            "throughput_trends": {
+                "recent_avg_throughput": 2.1,
+                "trend_direction": "declining",
+                "throughput_volatility": 1.2
+            },
+            "actionable_items": [
                 {
-                    "ticket_id": "PROJ-123",
-                    "title": "Test issue",
-                    "status": "In Review",
-                    "assignee": "John Doe",
-                    "days_in_current_status": 6,
-                    "blocked": False
-                }
-            ],
-            "patterns_detected": [
-                {
-                    "pattern_type": "review_bottleneck",
-                    "description": "Code reviews taking longer than usual",
-                    "confidence": 0.85
+                    "key": "PROJ-123",
+                    "summary": "Test issue",
+                    "age_days": 15,
+                    "reason": "ageing_outlier",
+                    "priority": "high"
                 }
             ]
         }
         
-        mock_ai_response = """## Top Priorities
-1. **Review Bottleneck**: PROJ-123 stuck in review for 6 days
-   → Action: Assign additional reviewer or pair review
-2. **WIP Overload**: Team has 12 items vs 10 limit
-   → Action: Complete 2 items before starting new work"""
+        mock_ai_response = """## Flow Health Assessment
+Current flow shows declining throughput with 2 stuck items requiring attention.
+
+## Priority Actions
+1. **Address Stuck Items**: PROJ-123 has been in progress for 15 days
+   → Action: Review blockers and reassign if needed
+2. **Improve Throughput**: Recent decline in delivery rate
+   → Action: Analyze bottlenecks in Code Review stage"""
         
         ai_config = {'provider': 'test'}
         mock_provider = MockLLMProvider(mock_ai_response)
@@ -105,17 +96,15 @@ class TestInsightsGenerator:
             with patch('builtins.open', mock_open(read_data=json.dumps(test_context))):
                 result = generator.generate_daily_insights('test-context.json', 'test-output.md')
             
-            # Verify the result contains expected elements
-            assert "Daily Agile Team Briefing" in result
-            assert "Test Team" in result
-            assert "Sprint 23" in result
+            # Verify the result contains expected flow-focused elements
+            assert "Daily Flow Metrics Briefing" in result
+            assert "Flow Overview" in result
             assert "PROJ-123" in result
-            assert "Review Bottleneck" in result
+            assert "Flow Health Assessment" in result
             
-            # Verify the prompt was built correctly
+            # Verify the prompt was built correctly with flow data
             assert mock_provider.last_prompt is not None
-            assert "Test Team" in mock_provider.last_prompt
-            assert "Sprint 23" in mock_provider.last_prompt
+            assert "flow metrics expert" in mock_provider.last_prompt.lower()
             assert "PROJ-123" in mock_provider.last_prompt
     
     def test_generate_daily_insights_file_not_found(self):
@@ -272,12 +261,20 @@ class TestInsightsGenerator:
             
             context = {
                 "metadata": {
-                    "team_name": "Test Team",
-                    "sprint_info": {"current_sprint": "Sprint 23"},
-                    "jira_query": "project = TEST",
-                    "total_issues_analyzed": 20,
-                    "analysis_period_days": 14,
+                    "workflow_stages": ["To Do", "In Progress", "Done"],
+                    "committed_column": "In Progress",
+                    "done_column": "Done",
                     "generated_at": "2025-08-29T10:00:00Z"
+                },
+                "flow_health": {
+                    "avg_cycle_time": 8.5,
+                    "predictability_ratio": 1.3
+                },
+                "ageing_wip_analysis": {
+                    "total_wip_items": 5
+                },
+                "throughput_trends": {
+                    "trend_direction": "stable"
                 }
             }
             
@@ -285,11 +282,11 @@ class TestInsightsGenerator:
             
             result = generator._format_daily_insights(ai_insights, context)
             
-            # Verify structure
-            assert "# Daily Agile Team Briefing" in result
-            assert "**Team:** Test Team" in result
-            assert "**Sprint:** Sprint 23" in result
+            # Verify flow-focused structure
+            assert "# Daily Flow Metrics Briefing" in result
+            assert "Flow Overview" in result
+            assert "To Do → In Progress → Done" in result
+            assert "Current WIP**: 5 items" in result
+            assert "Avg Cycle Time**: 8.5 days" in result
             assert "Test AI insights content" in result
-            assert "**Verification Notes:**" in result
-            assert "20 issues from the last 14 days" in result
-            assert "**Next Steps:**" in result
+            assert "AI Flow Metrics Copilot" in result

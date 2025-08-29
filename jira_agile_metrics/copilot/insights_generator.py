@@ -6,7 +6,7 @@ Generates daily briefings and actionable recommendations.
 import json
 import logging
 from datetime import datetime
-from typing import Dict, List, Optional
+from typing import Dict, List
 from .providers import LLMFactory
 
 logger = logging.getLogger(__name__)
@@ -69,40 +69,53 @@ class InsightsGenerator:
             }
     
     def _build_daily_insights_prompt(self, context: Dict) -> str:
-        """Build prompt for daily insights generation."""
+        """Build prompt for flow-focused daily insights generation."""
         metadata = context.get('metadata', {})
-        metrics = context.get('metrics_summary', {})
-        issues = context.get('specific_issues', [])
-        patterns = context.get('patterns_detected', [])
+        flow_health = context.get('flow_health', {})
+        ageing_wip = context.get('ageing_wip_analysis', {})
+        throughput = context.get('throughput_trends', {})
+        wip_stability = context.get('wip_stability', {})
+        bottlenecks = context.get('bottleneck_detection', {})
+        actionable_items = context.get('actionable_items', [])
         
-        # Calculate sprint progress
-        sprint_day = self._calculate_sprint_day(metadata.get('sprint_info', {}))
-        
-        prompt = f"""Generate a daily team lead briefing based on the following agile metrics data:
+        prompt = f"""You are an experienced agile team lead with deep expertise in flow metrics and Actionable Agile principles. 
+Generate a daily team briefing based on the following flow analysis:
 
-TEAM CONTEXT:
-- Team: {metadata.get('team_name', 'Unknown')}
-- Sprint: {metadata.get('sprint_info', {}).get('current_sprint', 'Unknown')} (Day {sprint_day}/10)
-- Analysis Period: {metadata.get('analysis_period_days', 14)} days
-- Total Issues: {metadata.get('total_issues_analyzed', 0)}
+FLOW HEALTH OVERVIEW:
+{self._format_flow_health_for_prompt(flow_health)}
 
-CURRENT METRICS:
-{self._format_metrics_for_prompt(metrics)}
+WORK IN PROGRESS ANALYSIS:
+{self._format_wip_analysis_for_prompt(ageing_wip, wip_stability)}
 
-SPECIFIC ISSUES REQUIRING ATTENTION:
-{self._format_issues_for_prompt(issues[:10])}  # Limit to top 10
+THROUGHPUT & PREDICTABILITY:
+{self._format_throughput_for_prompt(throughput)}
 
-DETECTED PATTERNS:
-{self._format_patterns_for_prompt(patterns)}
+BOTTLENECK DETECTION:
+{self._format_bottlenecks_for_prompt(bottlenecks)}
 
-REQUIREMENTS:
-1. Provide 3-5 prioritized, actionable recommendations
-2. Focus on immediate actions for today/this week
-3. Include specific ticket IDs for verification
-4. Identify the top bottleneck and suggest concrete steps
-5. Keep recommendations concise and practical
+ITEMS REQUIRING IMMEDIATE ATTENTION:
+{self._format_actionable_items_for_prompt(actionable_items)}
 
-Format your response as a structured daily briefing suitable for a team lead."""
+WORKFLOW CONFIGURATION:
+- Stages: {' → '.join(metadata.get('workflow_stages', []))}
+- Committed Stage: {metadata.get('committed_column', 'Unknown')}
+- Done Stage: {metadata.get('done_column', 'Unknown')}
+
+As an experienced flow metrics expert, provide:
+
+1. **Flow Health Assessment**: Overall team flow health with specific metrics
+2. **Priority Actions**: 3-4 specific, actionable recommendations with ticket IDs
+3. **Bottleneck Analysis**: Primary constraint and concrete steps to address it  
+4. **Predictability Insights**: Team's delivery predictability and improvement areas
+5. **Leading Indicators**: Early warning signs to watch for
+
+Focus on:
+- Actionable insights that improve flow efficiency
+- Specific ticket IDs for verification
+- Evidence-based recommendations using provided metrics
+- Practical steps the team can take today/this week
+
+Format as a professional team lead briefing."""
         
         return prompt
     
@@ -198,35 +211,32 @@ CONSTRAINTS:
     
     def _format_daily_insights(self, insights: str, context: Dict) -> str:
         """Format the AI-generated insights into a structured daily briefing."""
-        metadata = context.get('metadata', {})
         timestamp = datetime.now().strftime("%Y-%m-%d %H:%M")
+        metadata = context.get('metadata', {})
         
-        header = f"""# Daily Agile Team Briefing
-**Generated:** {timestamp}
-**Team:** {metadata.get('team_name', 'Unknown')}
-**Sprint:** {metadata.get('sprint_info', {}).get('current_sprint', 'Unknown')}
-**Data Source:** {metadata.get('jira_query', 'Unknown query')}
+        # Extract key metrics for header
+        flow_health = context.get('flow_health', {})
+        wip_count = context.get('ageing_wip_analysis', {}).get('total_wip_items', 0)
+        throughput_trend = context.get('throughput_trends', {}).get('trend_direction', 'unknown')
+        
+        formatted = f"""# Daily Flow Metrics Briefing - {timestamp}
+
+## Flow Overview
+- **Workflow**: {' → '.join(metadata.get('workflow_stages', ['Unknown']))}
+- **Current WIP**: {wip_count} items
+- **Avg Cycle Time**: {flow_health.get('avg_cycle_time', 0):.1f} days
+- **Throughput Trend**: {throughput_trend.title()}
+- **Predictability**: {flow_health.get('predictability_ratio', 0):.1f}x median
+
+## Expert Analysis
+
+{insights}
 
 ---
-
+*Generated by AI Flow Metrics Copilot | Based on Actionable Agile principles*
 """
         
-        footer = f"""
-
----
-
-**Verification Notes:**
-- All ticket IDs mentioned above can be verified in JIRA
-- Metrics are based on {metadata.get('total_issues_analyzed', 0)} issues from the last {metadata.get('analysis_period_days', 14)} days
-- Context generated at: {metadata.get('generated_at', 'Unknown')}
-
-**Next Steps:**
-1. Review the specific tickets mentioned above
-2. Discuss top priority items in today's standup
-3. Take action on the recommended interventions
-"""
-        
-        return header + insights + footer
+        return formatted
     
     def _extract_ticket_references(self, text: str) -> List[str]:
         """Extract ticket ID references from text for verification."""
@@ -236,3 +246,113 @@ CONSTRAINTS:
         pattern = r'\b[A-Z]{2,10}-\d+\b'
         matches = re.findall(pattern, text)
         return list(set(matches))  # Remove duplicates
+    
+    def _format_flow_health_for_prompt(self, flow_health: Dict) -> str:
+        """Format flow health metrics for prompt."""
+        if flow_health.get('status') == 'no_completed_items':
+            return "⚠️  No completed items found - unable to assess flow health"
+        
+        if flow_health.get('status') == 'error':
+            return f"❌ Error analyzing flow health: {flow_health.get('message', 'Unknown error')}"
+        
+        predictability = flow_health.get('predictability_ratio', 0)
+        predictability_status = "🟢 Excellent" if predictability < 2 else "🟡 Moderate" if predictability < 3 else "🔴 Poor"
+        
+        return f"""- Completed Items: {flow_health.get('total_completed_items', 0)}
+- Average Cycle Time: {flow_health.get('avg_cycle_time', 0):.1f} days
+- Median Cycle Time: {flow_health.get('median_cycle_time', 0):.1f} days  
+- 85th Percentile: {flow_health.get('percentile_85', 0):.1f} days
+- Predictability Ratio: {predictability:.1f} {predictability_status}
+- Cycle Time Std Dev: {flow_health.get('cycle_time_std', 0):.1f} days"""
+    
+    def _format_wip_analysis_for_prompt(self, ageing_wip: Dict, wip_stability: Dict) -> str:
+        """Format WIP analysis for prompt."""
+        wip_section = []
+        
+        # Ageing WIP Analysis
+        if ageing_wip.get('status') == 'no_wip_items':
+            wip_section.append("✅ No work in progress items")
+        elif ageing_wip.get('status') == 'error':
+            wip_section.append(f"❌ WIP Analysis Error: {ageing_wip.get('message')}")
+        else:
+            stuck_count = ageing_wip.get('stuck_items_count', 0)
+            stuck_status = "🔴" if stuck_count > 3 else "🟡" if stuck_count > 1 else "🟢"
+            
+            wip_section.append(f"""Current WIP: {ageing_wip.get('total_wip_items', 0)} items
+Average Age: {ageing_wip.get('avg_age_days', 0):.1f} days
+Oldest Item: {ageing_wip.get('oldest_item_age', 0):.0f} days
+Stuck Items: {stuck_count} {stuck_status}""")
+            
+            # Add stuck items details
+            stuck_items = ageing_wip.get('stuck_items', [])
+            if stuck_items:
+                wip_section.append("\nStuck Items:")
+                for item in stuck_items[:5]:  # Top 5
+                    wip_section.append(f"  - {item['key']} ({item['age_days']}d): {item['summary']}")
+        
+        # WIP Stability
+        if wip_stability.get('status') != 'error':
+            trend_emoji = "📈" if wip_stability.get('wip_trend') == 'increasing' else "📉" if wip_stability.get('wip_trend') == 'decreasing' else "➡️"
+            wip_section.append(f"\nWIP Trend: {wip_stability.get('wip_trend', 'unknown')} {trend_emoji}")
+            wip_section.append(f"Current WIP: {wip_stability.get('current_wip', 0):.0f}")
+            wip_section.append(f"Average WIP: {wip_stability.get('avg_wip', 0):.1f}")
+            
+            if 'net_flow_trend' in wip_stability:
+                flow_emoji = "⚠️" if wip_stability.get('net_flow_trend') == 'growing' else "✅" if wip_stability.get('net_flow_trend') == 'shrinking' else "🔄"
+                wip_section.append(f"Net Flow: {wip_stability.get('net_flow_trend', 'unknown')} {flow_emoji}")
+        
+        return "\n".join(wip_section)
+    
+    def _format_throughput_for_prompt(self, throughput: Dict) -> str:
+        """Format throughput analysis for prompt."""
+        if throughput.get('status') == 'no_throughput_data':
+            return "⚠️  No throughput data available"
+        
+        if throughput.get('status') == 'error':
+            return f"❌ Throughput Analysis Error: {throughput.get('message')}"
+        
+        trend = throughput.get('trend_direction', 'unknown')
+        trend_emoji = "📈" if trend == 'improving' else "📉" if trend == 'declining' else "➡️"
+        
+        volatility = throughput.get('throughput_volatility', 0)
+        volatility_status = "🟢 Stable" if volatility < 2 else "🟡 Moderate" if volatility < 4 else "🔴 Volatile"
+        
+        return f"""Recent Avg Throughput: {throughput.get('recent_avg_throughput', 0):.1f} items/period
+Historical Avg: {throughput.get('historical_avg_throughput', 0):.1f} items/period
+Trend: {trend} {trend_emoji} (Δ{throughput.get('trend_magnitude', 0):.1f})
+Volatility: {volatility:.1f} {volatility_status}
+Range: {throughput.get('min_throughput', 0):.0f} - {throughput.get('max_throughput', 0):.0f} items"""
+    
+    def _format_bottlenecks_for_prompt(self, bottlenecks: Dict) -> str:
+        """Format bottleneck analysis for prompt."""
+        if bottlenecks.get('status') == 'no_cfd_data':
+            return "⚠️  No CFD data available for bottleneck analysis"
+        
+        if bottlenecks.get('status') == 'error':
+            return f"❌ Bottleneck Analysis Error: {bottlenecks.get('message')}"
+        
+        bottleneck_list = bottlenecks.get('potential_bottlenecks', [])
+        
+        if not bottleneck_list:
+            return "✅ No significant bottlenecks detected"
+        
+        result = [f"🚨 {len(bottleneck_list)} potential bottleneck(s) detected:"]
+        
+        for bottleneck in bottleneck_list:
+            result.append(f"  - {bottleneck['stage']}: +{bottleneck['growth_rate']:.1f} items/week ({bottleneck['current_count']:.0f} current)")
+        
+        return "\n".join(result)
+    
+    def _format_actionable_items_for_prompt(self, actionable_items: List[Dict]) -> str:
+        """Format actionable items for prompt."""
+        if not actionable_items:
+            return "✅ No items requiring immediate attention"
+        
+        result = [f"🎯 {len(actionable_items)} item(s) need attention:"]
+        
+        for item in actionable_items:
+            priority_emoji = "🔴" if item.get('priority') == 'high' else "🟡"
+            result.append(f"  {priority_emoji} {item['key']} ({item['age_days']}d): {item['summary']}")
+            result.append(f"     Reason: {item.get('reason', 'unknown')} (threshold: {item.get('threshold_exceeded', 0):.1f}d)")
+        
+        return "\n".join(result)
