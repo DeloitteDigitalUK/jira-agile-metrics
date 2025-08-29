@@ -29,7 +29,7 @@ def test_to_json_string():
     assert to_json_string(1) == "1"
     assert to_json_string("foo") == "foo"
     assert to_json_string(None) == ""
-    assert to_json_string(np.NaN) == ""
+    assert to_json_string(np.nan) == ""
     assert to_json_string(pd.NaT) == ""
     assert to_json_string(pd.Timestamp(2018, 2, 1)) == "2018-02-01"
 

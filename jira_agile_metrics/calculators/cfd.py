@@ -118,7 +118,7 @@ def calculate_cfd_data(cycle_data, cycle_names):
 
     # Replace missing NaT values (happens if a status is skipped)
     # with the subsequent timestamp
-    cfd_data = cfd_data.fillna(method="bfill", axis=1)
+    cfd_data = cfd_data.bfill(axis=1)
 
     # Count number of times each date occurs, preserving column order
     cfd_data = pd.concat(

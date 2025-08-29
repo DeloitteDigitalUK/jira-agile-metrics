@@ -171,7 +171,7 @@ def calculate_cycle_times(
 
     for criteria in queries:
         for issue in query_manager.find_issues(criteria["jql"]):
-            if type(query_manager.jira) == TrelloClient:
+            if isinstance(query_manager.jira, TrelloClient):
                 issue_url = issue.url
             else:
                 issue_url = "%s/browse/%s" % (
@@ -184,9 +184,11 @@ def calculate_cycle_times(
                 "issue_type": issue.fields.issuetype.name,
                 "summary": issue.fields.summary,
                 "status": issue.fields.status.name,
-                "resolution": issue.fields.resolution.name
-                if issue.fields.resolution
-                else None,
+                "resolution": (
+                    issue.fields.resolution.name
+                    if issue.fields.resolution
+                    else None
+                ),
                 "cycle_time": None,
                 "completed_timestamp": None,
                 "blocked_days": 0,
@@ -224,9 +226,9 @@ def calculate_cycle_times(
                         unmapped_statuses.add(snapshot.to_string)
                         continue
 
-                    last_status = (
-                        snapshot_cycle_step_name
-                    ) = snapshot_cycle_step["name"]
+                    last_status = snapshot_cycle_step_name = (
+                        snapshot_cycle_step["name"]
+                    )
 
                     # Keep the first time we entered a step
                     if item[snapshot_cycle_step_name] is None:

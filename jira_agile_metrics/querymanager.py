@@ -8,6 +8,7 @@ from .config import ConfigError
 
 logger = logging.getLogger(__name__)
 
+
 def multi_getattr(obj, attr, **kw):
     attributes = attr.split(".")
     for i in attributes:
@@ -17,12 +18,13 @@ def multi_getattr(obj, attr, **kw):
                 obj = obj()
         except AttributeError:
             logger.info("Not able to get data")
-        
-            if kw.has_key('default'):
-                return kw['default']
+
+            if "default" in kw:
+                return kw["default"]
             else:
                 raise
     return obj
+
 
 class IssueSnapshot(object):
     """A snapshot of the key fields of an issue
@@ -97,16 +99,20 @@ class QueryManager(object):
 
     def field_name_to_id(self, name):
         arr_name = name.split(".")
-        first_name = arr_name[0]
-        append_text = ("." + ".".join(arr_name[1:])) if len(arr_name) > 1 else ""
+        append_text = (
+            ("." + ".".join(arr_name[1:])) if len(arr_name) > 1 else ""
+        )
         try:
-            return next(
-                (
-                    f["id"]
-                    for f in self.jira_fields
-                    if f["name"].lower() == name.lower()
+            return (
+                next(
+                    (
+                        f["id"]
+                        for f in self.jira_fields
+                        if f["name"].lower() == name.lower()
+                    )
                 )
-            ) + append_text
+                + append_text
+            )
         except StopIteration:
 
             # XXX: we are having problems with
@@ -139,7 +145,7 @@ class QueryManager(object):
 
         try:
             field_value = multi_getattr(issue.fields, field_id)
-            
+
         except AttributeError:
             field_name = self.jira_fields_to_names.get(
                 field_id, "Unknown name"

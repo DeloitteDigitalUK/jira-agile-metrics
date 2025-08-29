@@ -51,7 +51,9 @@ def test_empty(query_manager, settings, minimal_cycle_time_columns):
             [],
             columns=["Backlog", "Committed", "Build", "Test", "Done"],
             index=date_range(
-                start=datetime.date(2018, 1, 1), periods=0,             ),
+                start=datetime.date(2018, 1, 1),
+                periods=0,
+            ),
         )
     }
 

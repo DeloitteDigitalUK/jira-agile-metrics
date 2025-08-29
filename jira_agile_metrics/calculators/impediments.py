@@ -75,9 +75,11 @@ class ImpedimentsCalculator(Calculator):
                         "status": event["status"],
                         "flag": event["flag"],
                         "start": pd.Timestamp(event["start"]),
-                        "end": pd.Timestamp(event["end"])
-                        if event["end"]
-                        else pd.NaT,
+                        "end": (
+                            pd.Timestamp(event["end"])
+                            if event["end"]
+                            else pd.NaT
+                        ),
                     }
                 )
 

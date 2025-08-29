@@ -21,7 +21,7 @@ def extend_dict(d, e):
 def to_json_string(value):
     if isinstance(value, pd.Timestamp):
         return value.strftime("%Y-%m-%d")
-    if value in (None, np.NaN, pd.NaT):
+    if value in (None, np.nan, pd.NaT):
         return ""
 
     try:

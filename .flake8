@@ -1,5 +1,6 @@
 [flake8]
-ignore = W503, E203
+ignore = W503, E203, E501
 max-line-length = 79
 # max-complexity = 18
 select = B,C,E,F,W,T4,B9
+exclude = venv, build, dist, .eggs

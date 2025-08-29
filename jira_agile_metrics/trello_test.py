@@ -19,7 +19,7 @@ def test_create(mock_trello_api):
     """
 
     my_trello = TrelloClient(member, key, token)
-    assert type(my_trello) == TrelloClient
+    assert isinstance(my_trello, TrelloClient)
 
 
 def test_search_issues(mock_trello_api):
@@ -57,7 +57,7 @@ def test_jira_like_history_item():
     my_item = JiraLikeHistoryItem(
         field="status", fromString="Open", toString="Closed"
     )
-    assert type(my_item) == JiraLikeHistoryItem
+    assert isinstance(my_item, JiraLikeHistoryItem)
 
 
 def test_jira_like_history():
@@ -71,7 +71,7 @@ def test_jira_like_history():
             field="status", fromString="Open", toString="Closed"
         ),
     )
-    assert type(my_history) == JiraLikeHistory
+    assert isinstance(my_history, JiraLikeHistory)
 
 
 def test_jira_like_issue():
@@ -90,7 +90,7 @@ def test_jira_like_issue():
             ),
         ),
     )
-    assert type(my_jira_like_issue) == JiraLikeIssue
+    assert isinstance(my_jira_like_issue, JiraLikeIssue)
 
 
 def test_jira_like_fields():
@@ -105,7 +105,7 @@ def test_jira_like_fields():
         issuetype="hmmm",
     )
 
-    assert type(my_jira_fields) == JiraLikeFields
+    assert isinstance(my_jira_fields, JiraLikeFields)
 
 
 def test_set_type_from_label(mock_trello_api):

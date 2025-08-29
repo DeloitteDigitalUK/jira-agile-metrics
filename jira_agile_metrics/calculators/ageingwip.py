@@ -39,15 +39,15 @@ class AgeingWIPChartCalculator(Calculator):
         def extract_status(row):
             last_valid = row.last_valid_index()
             if last_valid is None:
-                return np.NaN
+                return np.nan
             return last_valid
 
         def extract_age(row):
             if committed_column not in row:
-                return np.NaN
+                return np.nan
             started = row[committed_column]
             if pd.isnull(started):
-                return np.NaN
+                return np.nan
             return (today - started.date()).days
 
         ageing_wip_data["status"] = ageing_wip_data.apply(

@@ -21,12 +21,14 @@ class HistogramCalculator(Calculator):
         cycle_data = self.get_result(CycleTimeCalculator)
 
         # Convert timedelta to days as float (pandas 2.0+ compatibility)
-        if len(cycle_data) == 0 or not hasattr(cycle_data["cycle_time"], 'dt'):
+        if len(cycle_data) == 0 or not hasattr(cycle_data["cycle_time"], "dt"):
             cycle_times = []
         else:
             cycle_times = (
-                cycle_data["cycle_time"].dt.total_seconds() / (24 * 3600)
-            ).dropna().tolist()
+                (cycle_data["cycle_time"].dt.total_seconds() / (24 * 3600))
+                .dropna()
+                .tolist()
+            )
 
         if not cycle_times:
             bins = range(11)

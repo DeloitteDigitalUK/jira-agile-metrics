@@ -248,19 +248,27 @@ def _issues(issues):
             "status": (
                 "Done"
                 if i["Done"] is not NaT
-                else "Test"
-                if i["Test"] is not NaT
-                else "Build"
-                if i["Build"] is not NaT
-                else "Committed"
-                if i["Committed"] is not NaT
-                else "Backlog"
+                else (
+                    "Test"
+                    if i["Test"] is not NaT
+                    else (
+                        "Build"
+                        if i["Build"] is not NaT
+                        else (
+                            "Committed"
+                            if i["Committed"] is not NaT
+                            else "Backlog"
+                        )
+                    )
+                )
             ),
             "resoluton": "Done" if i["Done"] is not NaT else None,
             "completed_timestamp": i["Done"] if i["Done"] is not NaT else None,
-            "cycle_time": (i["Done"] - i["Committed"])
-            if (i["Done"] is not NaT and i["Committed"] is not NaT)
-            else None,
+            "cycle_time": (
+                (i["Done"] - i["Committed"])
+                if (i["Done"] is not NaT and i["Committed"] is not NaT)
+                else None
+            ),
             "blocked_days": i.get("blocked_days", 0),
             "impediments": i.get("impediments", []),
             "Backlog": i["Backlog"],
@@ -556,74 +564,74 @@ def mock_trello_api(mocker):
     mock_cards.get = Mock()
     mock_cards.get.side_effect = [
         {
-            u"labels": [],
-            u"pos": 16384,
-            u"manualCoverAttachment": False,
-            u"id": u"56ae35346b23ea1d6843a67f",
-            u"badges": {
-                u"votes": 0,
-                u"attachments": 0,
-                u"subscribed": False,
-                u"due": None,
-                u"comments": 0,
-                u"checkItemsChecked": 0,
-                u"fogbugz": u"",
-                u"viewingMemberVoted": False,
-                u"checkItems": 0,
-                u"description": False,
+            "labels": [],
+            "pos": 16384,
+            "manualCoverAttachment": False,
+            "id": "56ae35346b23ea1d6843a67f",
+            "badges": {
+                "votes": 0,
+                "attachments": 0,
+                "subscribed": False,
+                "due": None,
+                "comments": 0,
+                "checkItemsChecked": 0,
+                "fogbugz": "",
+                "viewingMemberVoted": False,
+                "checkItems": 0,
+                "description": False,
             },
-            u"idBoard": u"56ae35260b361ede7bfbb1ba",
-            u"idShort": 1,
-            u"due": None,
-            u"shortUrl": u"https://trello.com/c/J6st5pG8",
-            u"closed": False,
-            u"email": u"worldofchris+7327776194338bb7c60@boards.trello.com",
-            u"dateLastActivity": u"2016-01-31T16:24:36.264Z",
-            u"idList": u"56ae352bee563becb21b3b82",
-            u"idLabels": [],
-            u"idMembers": [],
-            u"checkItemStates": [],
-            u"desc": u"",
-            u"descData": None,
-            u"name": u"Card One",
-            u"url": u"https://trello.com/c/J6st5pG8/1-card-one",
-            u"idAttachmentCover": None,
-            u"idChecklists": [],
+            "idBoard": "56ae35260b361ede7bfbb1ba",
+            "idShort": 1,
+            "due": None,
+            "shortUrl": "https://trello.com/c/J6st5pG8",
+            "closed": False,
+            "email": "worldofchris+7327776194338bb7c60@boards.trello.com",
+            "dateLastActivity": "2016-01-31T16:24:36.264Z",
+            "idList": "56ae352bee563becb21b3b82",
+            "idLabels": [],
+            "idMembers": [],
+            "checkItemStates": [],
+            "desc": "",
+            "descData": None,
+            "name": "Card One",
+            "url": "https://trello.com/c/J6st5pG8/1-card-one",
+            "idAttachmentCover": None,
+            "idChecklists": [],
         },
         {
-            u"labels": [{u"name": u"bug"}],
-            u"pos": 16384,
-            u"manualCoverAttachment": False,
-            u"id": u"56ae35346b23ea1d6843a67a",
-            u"badges": {
-                u"votes": 0,
-                u"attachments": 0,
-                u"subscribed": False,
-                u"due": None,
-                u"comments": 0,
-                u"checkItemsChecked": 0,
-                u"fogbugz": u"",
-                u"viewingMemberVoted": False,
-                u"checkItems": 0,
-                u"description": False,
+            "labels": [{"name": "bug"}],
+            "pos": 16384,
+            "manualCoverAttachment": False,
+            "id": "56ae35346b23ea1d6843a67a",
+            "badges": {
+                "votes": 0,
+                "attachments": 0,
+                "subscribed": False,
+                "due": None,
+                "comments": 0,
+                "checkItemsChecked": 0,
+                "fogbugz": "",
+                "viewingMemberVoted": False,
+                "checkItems": 0,
+                "description": False,
             },
-            u"idBoard": u"56ae35260b361ede7bfbb1ba",
-            u"idShort": 1,
-            u"due": None,
-            u"shortUrl": u"https://trello.com/c/J6st5pG8",
-            u"closed": False,
-            u"email": u"worldofchris+559248f3a0cca5aeb0@boards.trello.com",
-            u"dateLastActivity": u"2016-01-31T16:24:36.264Z",
-            u"idList": u"56ae352bee563becb21b3b82",
-            u"idLabels": [],
-            u"idMembers": [],
-            u"checkItemStates": [],
-            u"desc": u"",
-            u"descData": None,
-            u"name": u"Card One",
-            u"url": u"https://trello.com/c/J6st5pG8/1-card-one",
-            u"idAttachmentCover": None,
-            u"idChecklists": [],
+            "idBoard": "56ae35260b361ede7bfbb1ba",
+            "idShort": 1,
+            "due": None,
+            "shortUrl": "https://trello.com/c/J6st5pG8",
+            "closed": False,
+            "email": "worldofchris+559248f3a0cca5aeb0@boards.trello.com",
+            "dateLastActivity": "2016-01-31T16:24:36.264Z",
+            "idList": "56ae352bee563becb21b3b82",
+            "idLabels": [],
+            "idMembers": [],
+            "checkItemStates": [],
+            "desc": "",
+            "descData": None,
+            "name": "Card One",
+            "url": "https://trello.com/c/J6st5pG8/1-card-one",
+            "idAttachmentCover": None,
+            "idChecklists": [],
         },
     ]
 
@@ -635,200 +643,200 @@ def mock_trello_api(mocker):
     mock_boards.get_action.side_effect = [
         [
             {
-                u"type": u"updateCard",
-                u"idMemberCreator": u"559248f3a0cca5aeb0277db6",
-                u"memberCreator": {
-                    u"username": u"worldofchris",
-                    u"fullName": u"Chris Young",
-                    u"initials": u"CY",
-                    u"id": u"559248f3a0cca5aeb0277db6",
-                    u"avatarHash": u"1171b29b10de82b6a77187b79d8b9a41",
+                "type": "updateCard",
+                "idMemberCreator": "559248f3a0cca5aeb0277db6",
+                "memberCreator": {
+                    "username": "worldofchris",
+                    "fullName": "Chris Young",
+                    "initials": "CY",
+                    "id": "559248f3a0cca5aeb0277db6",
+                    "avatarHash": "1171b29b10de82b6a77187b79d8b9a41",
                 },
-                u"date": u"2016-01-31T16:24:36.269Z",
-                u"data": {
-                    u"listBefore": {
-                        u"name": u"Three",
-                        u"id": u"56ae35296061372e997c0321",
+                "date": "2016-01-31T16:24:36.269Z",
+                "data": {
+                    "listBefore": {
+                        "name": "Three",
+                        "id": "56ae35296061372e997c0321",
                     },
-                    u"old": {u"idList": u"56ae35296061372e997c0321"},
-                    u"board": {
-                        u"id": u"56ae35260b361ede7bfbb1ba",
-                        u"name": u"API Test 001",
-                        u"shortLink": u"l4YiX1fv",
+                    "old": {"idList": "56ae35296061372e997c0321"},
+                    "board": {
+                        "id": "56ae35260b361ede7bfbb1ba",
+                        "name": "API Test 001",
+                        "shortLink": "l4YiX1fv",
                     },
-                    u"card": {
-                        u"idShort": 1,
-                        u"id": u"56ae35346b23ea1d6843a67f",
-                        u"name": u"Card One",
-                        u"idList": u"56ae352bee563becb21b3b82",
-                        u"shortLink": u"J6st5pG8",
+                    "card": {
+                        "idShort": 1,
+                        "id": "56ae35346b23ea1d6843a67f",
+                        "name": "Card One",
+                        "idList": "56ae352bee563becb21b3b82",
+                        "shortLink": "J6st5pG8",
                     },
-                    u"listAfter": {
-                        u"name": u"Four",
-                        u"id": u"56ae352bee563becb21b3b82",
+                    "listAfter": {
+                        "name": "Four",
+                        "id": "56ae352bee563becb21b3b82",
                     },
                 },
-                u"id": u"56ae35444acfaca041099908",
+                "id": "56ae35444acfaca041099908",
             },
             {
-                u"type": u"moveCardToBoard",
-                u"idMemberCreator": u"559248f3a0cca5aeb0277db6",
-                u"memberCreator": {
-                    u"username": u"worldofchris",
-                    u"fullName": u"Chris Young",
-                    u"initials": u"CY",
-                    u"id": u"559248f3a0cca5aeb0277db6",
-                    u"avatarHash": u"1171b29b10de82b6a77187b79d8b9a41",
+                "type": "moveCardToBoard",
+                "idMemberCreator": "559248f3a0cca5aeb0277db6",
+                "memberCreator": {
+                    "username": "worldofchris",
+                    "fullName": "Chris Young",
+                    "initials": "CY",
+                    "id": "559248f3a0cca5aeb0277db6",
+                    "avatarHash": "1171b29b10de82b6a77187b79d8b9a41",
                 },
-                u"date": u"2016-01-31T16:24:29.768Z",
-                u"data": {
-                    u"boardSource": {
-                        u"name": u"API Test 000",
-                        u"id": u"56ae351097460cd456a5f323",
+                "date": "2016-01-31T16:24:29.768Z",
+                "data": {
+                    "boardSource": {
+                        "name": "API Test 000",
+                        "id": "56ae351097460cd456a5f323",
                     },
-                    u"list": {
-                        u"name": u"Three",
-                        u"id": u"56ae35296061372e997c0321",
+                    "list": {
+                        "name": "Three",
+                        "id": "56ae35296061372e997c0321",
                     },
-                    u"board": {
-                        u"id": u"56ae35260b361ede7bfbb1ba",
-                        u"name": u"API Test 001",
-                        u"shortLink": u"l4YiX1fv",
+                    "board": {
+                        "id": "56ae35260b361ede7bfbb1ba",
+                        "name": "API Test 001",
+                        "shortLink": "l4YiX1fv",
                     },
-                    u"card": {
-                        u"idShort": 1,
-                        u"id": u"56ae35346b23ea1d6843a67f",
-                        u"name": u"Card One",
-                        u"shortLink": u"J6st5pG8",
+                    "card": {
+                        "idShort": 1,
+                        "id": "56ae35346b23ea1d6843a67f",
+                        "name": "Card One",
+                        "shortLink": "J6st5pG8",
                     },
                 },
-                u"id": u"56ae353d1fd6686e1baa1d93",
+                "id": "56ae353d1fd6686e1baa1d93",
             },
             {
-                u"type": u"createCard",
-                u"idMemberCreator": u"559248f3a0cca5aeb0277db6",
-                u"memberCreator": {
-                    u"username": u"worldofchris",
-                    u"fullName": u"Chris Young",
-                    u"initials": u"CY",
-                    u"id": u"559248f3a0cca5aeb0277db6",
-                    u"avatarHash": u"1171b29b10de82b6a77187b79d8b9a41",
+                "type": "createCard",
+                "idMemberCreator": "559248f3a0cca5aeb0277db6",
+                "memberCreator": {
+                    "username": "worldofchris",
+                    "fullName": "Chris Young",
+                    "initials": "CY",
+                    "id": "559248f3a0cca5aeb0277db6",
+                    "avatarHash": "1171b29b10de82b6a77187b79d8b9a41",
                 },
-                u"date": u"2016-01-31T16:24:20.398Z",
-                u"data": {
-                    u"list": {
-                        u"name": u"List One",
-                        u"id": u"56ae3514326fd4436da31bbf",
+                "date": "2016-01-31T16:24:20.398Z",
+                "data": {
+                    "list": {
+                        "name": "List One",
+                        "id": "56ae3514326fd4436da31bbf",
                     },
-                    u"board": {
-                        u"name": u"API Test 001",
-                        u"id": u"56ae35260b361ede7bfbb1ba",
+                    "board": {
+                        "name": "API Test 001",
+                        "id": "56ae35260b361ede7bfbb1ba",
                     },
-                    u"card": {
-                        u"idShort": 1,
-                        u"id": u"56ae35346b23ea1d6843a67f",
-                        u"name": u"Card One",
-                        u"shortLink": u"J6st5pG8",
+                    "card": {
+                        "idShort": 1,
+                        "id": "56ae35346b23ea1d6843a67f",
+                        "name": "Card One",
+                        "shortLink": "J6st5pG8",
                     },
                 },
-                u"id": u"56ae35346b23ea1d6843a680",
+                "id": "56ae35346b23ea1d6843a680",
             },
             {
-                u"type": u"createList",
-                u"idMemberCreator": u"559248f3a0cca5aeb0277db6",
-                u"memberCreator": {
-                    u"username": u"worldofchris",
-                    u"fullName": u"Chris Young",
-                    u"initials": u"CY",
-                    u"id": u"559248f3a0cca5aeb0277db6",
-                    u"avatarHash": u"1171b29b10de82b6a77187b79d8b9a41",
+                "type": "createList",
+                "idMemberCreator": "559248f3a0cca5aeb0277db6",
+                "memberCreator": {
+                    "username": "worldofchris",
+                    "fullName": "Chris Young",
+                    "initials": "CY",
+                    "id": "559248f3a0cca5aeb0277db6",
+                    "avatarHash": "1171b29b10de82b6a77187b79d8b9a41",
                 },
-                u"date": u"2016-01-31T16:24:11.845Z",
-                u"data": {
-                    u"list": {
-                        u"name": u"Four",
-                        u"id": u"56ae352bee563becb21b3b82",
+                "date": "2016-01-31T16:24:11.845Z",
+                "data": {
+                    "list": {
+                        "name": "Four",
+                        "id": "56ae352bee563becb21b3b82",
                     },
-                    u"board": {
-                        u"id": u"56ae35260b361ede7bfbb1ba",
-                        u"name": u"API Test 001",
-                        u"shortLink": u"l4YiX1fv",
+                    "board": {
+                        "id": "56ae35260b361ede7bfbb1ba",
+                        "name": "API Test 001",
+                        "shortLink": "l4YiX1fv",
                     },
                 },
-                u"id": u"56ae352bee563becb21b3b83",
+                "id": "56ae352bee563becb21b3b83",
             },
             {
-                u"type": u"createList",
-                u"idMemberCreator": u"559248f3a0cca5aeb0277db6",
-                u"memberCreator": {
-                    u"username": u"worldofchris",
-                    u"fullName": u"Chris Young",
-                    u"initials": u"CY",
-                    u"id": u"559248f3a0cca5aeb0277db6",
-                    u"avatarHash": u"1171b29b10de82b6a77187b79d8b9a41",
+                "type": "createList",
+                "idMemberCreator": "559248f3a0cca5aeb0277db6",
+                "memberCreator": {
+                    "username": "worldofchris",
+                    "fullName": "Chris Young",
+                    "initials": "CY",
+                    "id": "559248f3a0cca5aeb0277db6",
+                    "avatarHash": "1171b29b10de82b6a77187b79d8b9a41",
                 },
-                u"date": u"2016-01-31T16:24:09.766Z",
-                u"data": {
-                    u"list": {
-                        u"name": u"Three",
-                        u"id": u"56ae35296061372e997c0321",
+                "date": "2016-01-31T16:24:09.766Z",
+                "data": {
+                    "list": {
+                        "name": "Three",
+                        "id": "56ae35296061372e997c0321",
                     },
-                    u"board": {
-                        u"id": u"56ae35260b361ede7bfbb1ba",
-                        u"name": u"API Test 001",
-                        u"shortLink": u"l4YiX1fv",
+                    "board": {
+                        "id": "56ae35260b361ede7bfbb1ba",
+                        "name": "API Test 001",
+                        "shortLink": "l4YiX1fv",
                     },
                 },
-                u"id": u"56ae35296061372e997c0322",
+                "id": "56ae35296061372e997c0322",
             },
             {
-                u"type": u"createBoard",
-                u"idMemberCreator": u"559248f3a0cca5aeb0277db6",
-                u"memberCreator": {
-                    u"username": u"worldofchris",
-                    u"fullName": u"Chris Young",
-                    u"initials": u"CY",
-                    u"id": u"559248f3a0cca5aeb0277db6",
-                    u"avatarHash": u"1171b29b10de82b6a77187b79d8b9a41",
+                "type": "createBoard",
+                "idMemberCreator": "559248f3a0cca5aeb0277db6",
+                "memberCreator": {
+                    "username": "worldofchris",
+                    "fullName": "Chris Young",
+                    "initials": "CY",
+                    "id": "559248f3a0cca5aeb0277db6",
+                    "avatarHash": "1171b29b10de82b6a77187b79d8b9a41",
                 },
-                u"date": u"2016-01-31T16:24:06.359Z",
-                u"data": {
-                    u"board": {
-                        u"id": u"56ae35260b361ede7bfbb1ba",
-                        u"name": u"API Test 001",
-                        u"shortLink": u"l4YiX1fv",
+                "date": "2016-01-31T16:24:06.359Z",
+                "data": {
+                    "board": {
+                        "id": "56ae35260b361ede7bfbb1ba",
+                        "name": "API Test 001",
+                        "shortLink": "l4YiX1fv",
                     }
                 },
-                u"id": u"56ae35260b361ede7bfbb1bc",
+                "id": "56ae35260b361ede7bfbb1bc",
             },
             {
-                u"type": u"createCard",
-                u"idMemberCreator": u"559248f3a0cca5aeb0277db6",
-                u"memberCreator": {
-                    u"username": u"worldofchris",
-                    u"fullName": u"Chris Young",
-                    u"initials": u"CY",
-                    u"id": u"559248f3a0cca5aeb0277db6",
-                    u"avatarHash": u"1171b29b10de82b6a77187b79d8b9a41",
+                "type": "createCard",
+                "idMemberCreator": "559248f3a0cca5aeb0277db6",
+                "memberCreator": {
+                    "username": "worldofchris",
+                    "fullName": "Chris Young",
+                    "initials": "CY",
+                    "id": "559248f3a0cca5aeb0277db6",
+                    "avatarHash": "1171b29b10de82b6a77187b79d8b9a41",
                 },
-                u"date": u"2016-01-31T16:24:20.398Z",
-                u"data": {
-                    u"list": {
-                        u"name": u"List One",
-                        u"id": u"56ae3514326fd4436da31bbf",
+                "date": "2016-01-31T16:24:20.398Z",
+                "data": {
+                    "list": {
+                        "name": "List One",
+                        "id": "56ae3514326fd4436da31bbf",
                     },
-                    u"board": {
-                        u"name": u"API Test 001",
-                        u"id": u"56ae35260b361ede7bfbb1ba",
+                    "board": {
+                        "name": "API Test 001",
+                        "id": "56ae35260b361ede7bfbb1ba",
                     },
-                    u"card": {
-                        u"idShort": 1,
-                        u"id": u"56ae35346b23ea1d6843a67a",
-                        u"name": u"Card Two",
-                        u"shortLink": u"J6st5pG8",
+                    "card": {
+                        "idShort": 1,
+                        "id": "56ae35346b23ea1d6843a67a",
+                        "name": "Card Two",
+                        "shortLink": "J6st5pG8",
                     },
                 },
-                u"id": u"56ae35346b23ea1d6843a680",
+                "id": "56ae35346b23ea1d6843a680",
             },
         ],
         [],
@@ -839,11 +847,11 @@ def mock_trello_api(mocker):
     mock_lists = Mock(spec=trello.lists)
     mock_lists.get = Mock(
         return_value={
-            u"pos": 131071,
-            u"idBoard": u"56ae35260b361ede7bfbb1ba",
-            u"id": u"56ae352bee563becb21b3b82",
-            u"closed": False,
-            u"name": u"Four",
+            "pos": 131071,
+            "idBoard": "56ae35260b361ede7bfbb1ba",
+            "id": "56ae352bee563becb21b3b82",
+            "closed": False,
+            "name": "Four",
         }
     )
     mock_api.lists = mock_lists
