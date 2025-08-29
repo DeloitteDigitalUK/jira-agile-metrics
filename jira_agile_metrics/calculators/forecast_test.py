@@ -95,8 +95,8 @@ def test_calculate_forecast(query_manager, settings, results):
     # we don't know exactly how many records
     # there will be, but will assume at least two
     assert len(data.index) > 0
-    assert list(data.index)[0] == Timestamp("2018-01-09 00:00:00", freq="D")
-    assert list(data.index)[1] == Timestamp("2018-01-10 00:00:00", freq="D")
+    assert list(data.index)[0] == Timestamp("2018-01-09 00:00:00").to_period("D").to_timestamp()
+    assert list(data.index)[1] == Timestamp("2018-01-10 00:00:00").to_period("D").to_timestamp()
 
     for i in range(10):
         trial_values = data["Trial %d" % i]
@@ -154,8 +154,8 @@ def test_calculate_forecast_settings(query_manager, settings, results):
     # know exactly how many records
     # there will be, but will assume at least two
     assert len(data.index) > 0
-    assert list(data.index)[0] == Timestamp("2018-01-09 00:00:00", freq="D")
-    assert list(data.index)[1] == Timestamp("2018-01-10 00:00:00", freq="D")
+    assert list(data.index)[0] == Timestamp("2018-01-09 00:00:00").to_period("D").to_timestamp()
+    assert list(data.index)[1] == Timestamp("2018-01-10 00:00:00").to_period("D").to_timestamp()
 
     for i in range(10):
         trial_values = data["Trial %d" % i]

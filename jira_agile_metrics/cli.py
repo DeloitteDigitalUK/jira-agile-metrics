@@ -11,6 +11,7 @@ from .querymanager import QueryManager
 from .calculator import run_calculators
 from .utils import set_chart_context
 from .trello import TrelloClient
+from .copilot.cli_commands import AIConfigValidator, AIInsightsCommand, create_ai_config_from_settings_and_args
 
 logger = logging.getLogger(__name__)
 
@@ -95,6 +96,28 @@ def configure_argument_parser():
         ),
     )
 
+    # AI Copilot options
+    parser.add_argument(
+        "--generate-insights",
+        action="store_true",
+        help="Generate AI-powered daily insights from metrics data"
+    )
+    parser.add_argument(
+        "--ai-provider",
+        metavar="openai",
+        help="AI provider (openai, anthropic, azure)"
+    )
+    parser.add_argument(
+        "--ai-model",
+        metavar="gpt-4o",
+        help="AI model name"
+    )
+    parser.add_argument(
+        "--validate-ai-config",
+        action="store_true",
+        help="Validate AI configuration and exit"
+    )
+
     return parser
 
 
@@ -104,6 +127,10 @@ def main():
 
     if args.server:
         run_server(parser, args)
+    elif args.validate_ai_config:
+        validate_ai_configuration(parser, args)
+    elif args.generate_insights:
+        generate_ai_insights(parser, args)
     else:
         run_command_line(parser, args)
 
@@ -172,7 +199,14 @@ def run_command_line(parser, args):
     # Query JIRA and run calculators
     logger.info("Running calculators")
     query_manager = QueryManager(jira, options["settings"])
-    run_calculators(CALCULATORS, query_manager, options["settings"])
+    
+    # Add AI context generator to calculators if AI is configured
+    calculators = list(CALCULATORS)
+    if options["settings"].get("ai", {}).get("enabled", False):
+        from .copilot.context_generator import AIContextGenerator
+        calculators.append(AIContextGenerator)
+    
+    run_calculators(calculators, query_manager, options["settings"])
 
 
 def override_options(options, arguments):
@@ -237,3 +271,94 @@ def get_trello_client(connection, type_mapping):
         token = getpass.getpass("Token: ")
 
     return TrelloClient(username, key, token, type_mapping=type_mapping)
+
+
+def validate_ai_configuration(parser, args):
+    """Validate AI configuration and exit."""
+    if not args.config:
+        parser.print_usage()
+        return
+
+    logging.basicConfig(
+        format="[%(asctime)s %(levelname)s] %(message)s",
+        datefmt="%Y-%m-%d %H:%M:%S",
+        level=logging.INFO
+    )
+
+    try:
+        with open(args.config) as config:
+            options = config_to_options(
+                config.read(), cwd=os.path.dirname(os.path.abspath(args.config))
+            )
+
+        # Create AI config from settings and args
+        ai_config = create_ai_config_from_settings_and_args(options["settings"], args)
+
+        # Validate configuration
+        validator = AIConfigValidator(ai_config)
+        is_valid, errors = validator.validate()
+        
+        if not is_valid:
+            print("❌ AI Configuration Errors:")
+            for error in errors:
+                print(f"  - {error}")
+            config_summary = validator.get_config_summary()
+            print(f"\nAvailable providers: {', '.join(config_summary['available_providers'])}")
+            return
+
+        print("✅ AI configuration is valid")
+        config_summary = validator.get_config_summary()
+        print(f"Provider: {config_summary['provider']}")
+        print(f"Model: {config_summary['model']}")
+
+    except Exception as e:
+        print(f"❌ Configuration error: {e}")
+
+
+def generate_ai_insights(parser, args):
+    """Generate AI insights from existing context file."""
+    if not args.config:
+        parser.print_usage()
+        return
+
+    logging.basicConfig(
+        format="[%(asctime)s %(levelname)s] %(message)s",
+        datefmt="%Y-%m-%d %H:%M:%S",
+        level=logging.INFO if args.verbose else logging.WARNING
+    )
+
+    try:
+        with open(args.config) as config:
+            options = config_to_options(
+                config.read(), cwd=os.path.dirname(os.path.abspath(args.config))
+            )
+
+        # Create AI config from settings and args
+        ai_config = create_ai_config_from_settings_and_args(options["settings"], args)
+        
+        # Create command handler
+        output_dir = args.output_directory
+        command = AIInsightsCommand(ai_config, output_dir)
+        
+        # Check prerequisites
+        context_file = options["settings"].get("ai_context_file", "ai-context.json")
+        is_valid, error_msg = command.validate_prerequisites(context_file)
+        if not is_valid:
+            print(f"❌ {error_msg}")
+            return
+
+        # Generate insights
+        print(f"🤖 Generating AI insights using {ai_config.get('provider', 'unknown')} provider...")
+        success, result_msg, preview = command.generate_insights(context_file)
+        
+        if success:
+            print(f"✅ {result_msg}")
+            print("\nPreview:")
+            print("-" * 50)
+            print(preview)
+        else:
+            print(f"❌ {result_msg}")
+
+    except Exception as e:
+        print(f"❌ Error: {e}")
+        logger.exception("Full error details:")

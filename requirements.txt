@@ -16,3 +16,4 @@ Jinja2
 pytest-mock
 mock
 trello
+requests>=2.25.0

@@ -90,15 +90,15 @@ def test_calculate_net_flow(query_manager, settings, results):
     data = calculator.run()
 
     assert list(data.index) == [
-        Timestamp("2018-01-01 00:00:00", freq="D"),
-        Timestamp("2018-01-02 00:00:00", freq="D"),
-        Timestamp("2018-01-03 00:00:00", freq="D"),
-        Timestamp("2018-01-04 00:00:00", freq="D"),
-        Timestamp("2018-01-05 00:00:00", freq="D"),
-        Timestamp("2018-01-06 00:00:00", freq="D"),
-        Timestamp("2018-01-07 00:00:00", freq="D"),
-        Timestamp("2018-01-08 00:00:00", freq="D"),
-        Timestamp("2018-01-09 00:00:00", freq="D"),
+        Timestamp("2018-01-01 00:00:00").to_period("D").to_timestamp(),
+        Timestamp("2018-01-02 00:00:00").to_period("D").to_timestamp(),
+        Timestamp("2018-01-03 00:00:00").to_period("D").to_timestamp(),
+        Timestamp("2018-01-04 00:00:00").to_period("D").to_timestamp(),
+        Timestamp("2018-01-05 00:00:00").to_period("D").to_timestamp(),
+        Timestamp("2018-01-06 00:00:00").to_period("D").to_timestamp(),
+        Timestamp("2018-01-07 00:00:00").to_period("D").to_timestamp(),
+        Timestamp("2018-01-08 00:00:00").to_period("D").to_timestamp(),
+        Timestamp("2018-01-09 00:00:00").to_period("D").to_timestamp(),
     ]
 
     assert data[["arrivals", "departures", "net_flow", "positive"]].to_dict(
@@ -177,15 +177,15 @@ def test_calculate_net_flow_different_columns(
     data = calculator.run()
 
     assert list(data.index) == [
-        Timestamp("2018-01-01 00:00:00", freq="D"),
-        Timestamp("2018-01-02 00:00:00", freq="D"),
-        Timestamp("2018-01-03 00:00:00", freq="D"),
-        Timestamp("2018-01-04 00:00:00", freq="D"),
-        Timestamp("2018-01-05 00:00:00", freq="D"),
-        Timestamp("2018-01-06 00:00:00", freq="D"),
-        Timestamp("2018-01-07 00:00:00", freq="D"),
-        Timestamp("2018-01-08 00:00:00", freq="D"),
-        Timestamp("2018-01-09 00:00:00", freq="D"),
+        Timestamp("2018-01-01 00:00:00").to_period("D").to_timestamp(),
+        Timestamp("2018-01-02 00:00:00").to_period("D").to_timestamp(),
+        Timestamp("2018-01-03 00:00:00").to_period("D").to_timestamp(),
+        Timestamp("2018-01-04 00:00:00").to_period("D").to_timestamp(),
+        Timestamp("2018-01-05 00:00:00").to_period("D").to_timestamp(),
+        Timestamp("2018-01-06 00:00:00").to_period("D").to_timestamp(),
+        Timestamp("2018-01-07 00:00:00").to_period("D").to_timestamp(),
+        Timestamp("2018-01-08 00:00:00").to_period("D").to_timestamp(),
+        Timestamp("2018-01-09 00:00:00").to_period("D").to_timestamp(),
     ]
 
     assert data[["arrivals", "departures", "net_flow", "positive"]].to_dict(

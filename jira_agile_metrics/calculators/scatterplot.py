@@ -145,6 +145,11 @@ def calculate_scatterplot_data(cycle_data):
         .rename(columns={"completed_timestamp": "completed_date"})
     )
 
-    data["cycle_time"] = data["cycle_time"].astype("timedelta64[D]")
+    # Convert timedelta to days as float (pandas 2.0+ compatibility)
+    if len(data) == 0 or not hasattr(data["cycle_time"], 'dt'):
+        # Empty dataframe or non-timedelta dtype, keep as-is
+        pass
+    else:
+        data["cycle_time"] = data["cycle_time"].dt.total_seconds() / (24 * 3600)
 
     return data

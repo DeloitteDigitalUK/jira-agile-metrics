@@ -274,14 +274,16 @@ def _issues(issues):
 
 
 def _ts(datestring, timestring="00:00:00", freq=None):
-    return Timestamp(
+    ts = Timestamp(
         "%s %s"
         % (
             datestring,
             timestring,
-        ),
-        freq=freq,
+        )
     )
+    if freq is not None:
+        ts = ts.to_period(freq).to_timestamp()
+    return ts
 
 
 @pytest.fixture
