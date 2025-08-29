@@ -22,7 +22,7 @@ class ImpedimentsCalculator(Calculator):
     tickets in that month.
 
     Writes to `impediments_chart`, `impediments_days_chart`,
-    `impediments_tatus_chart`, and `impediments_status_days_chart`,
+    `impediments_status_chart`, and `impediments_status_days_chart`,
     respectively, with corresponding titles. The number of months to
     output can be restricted with `impediments_window`.
     Raw data can be written to `impediments_data`.
