@@ -47,6 +47,11 @@ Your recommendations should be:
 - Prioritized (most impactful first)
 - Evidence-based (backed by the provided metrics)
 - Focused on flow efficiency improvements"""
+    
+    def _format_user_message(self, prompt: str, context: Dict) -> str:
+        """Format user message with context data and query."""
+        context_str = json.dumps(context, indent=2) if context else "No context data provided"
+        return f"Context Data:\n{context_str}\n\nQuery: {prompt}"
 
 
 class OpenAIProvider(LLMProvider):
@@ -72,7 +77,7 @@ class OpenAIProvider(LLMProvider):
             'model': self.model,
             'messages': [
                 {'role': 'system', 'content': self._get_system_prompt()},
-                {'role': 'user', 'content': prompt}
+                {'role': 'user', 'content': self._format_user_message(prompt, context)}
             ],
             'temperature': self.temperature,
             'max_tokens': self.max_tokens
@@ -120,7 +125,7 @@ class AnthropicProvider(LLMProvider):
         }
         
         # Anthropic expects system prompt in the message
-        full_prompt = f"{self._get_system_prompt()}\n\n{prompt}"
+        full_prompt = f"{self._get_system_prompt()}\n\n{self._format_user_message(prompt, context)}"
         
         payload = {
             'model': self.model,
@@ -176,7 +181,7 @@ class AzureOpenAIProvider(LLMProvider):
         payload = {
             'messages': [
                 {'role': 'system', 'content': self._get_system_prompt()},
-                {'role': 'user', 'content': prompt}
+                {'role': 'user', 'content': self._format_user_message(prompt, context)}
             ],
             'temperature': self.temperature,
             'max_tokens': self.max_tokens

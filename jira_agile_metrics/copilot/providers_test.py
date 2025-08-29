@@ -13,6 +13,66 @@ from .providers import (
 )
 
 
+# Realistic JIRA metrics context data for testing
+SAMPLE_CONTEXT = {
+    "issues": [
+        {
+            "key": "PROJ-123",
+            "summary": "Implement user authentication",
+            "issue_type": "Story",
+            "status": "Done",
+            "cycle_time": 8.5,
+            "blocked_days": 2.0,
+            "impediments": ["Waiting for API spec"],
+            "timestamps": {
+                "Backlog": "2024-01-01T09:00:00Z",
+                "In Progress": "2024-01-03T10:00:00Z",
+                "Code Review": "2024-01-08T14:00:00Z",
+                "Done": "2024-01-10T16:00:00Z"
+            }
+        },
+        {
+            "key": "PROJ-456",
+            "summary": "Fix payment gateway bug",
+            "issue_type": "Bug",
+            "status": "In Progress",
+            "cycle_time": None,
+            "blocked_days": 0.0,
+            "impediments": [],
+            "timestamps": {
+                "Backlog": "2024-01-05T09:00:00Z",
+                "In Progress": "2024-01-08T11:00:00Z"
+            }
+        },
+        {
+            "key": "PROJ-789",
+            "summary": "Database performance optimization",
+            "issue_type": "Task",
+            "status": "Code Review",
+            "cycle_time": None,
+            "blocked_days": 1.5,
+            "impediments": ["DBA review pending"],
+            "timestamps": {
+                "Backlog": "2024-01-02T09:00:00Z",
+                "In Progress": "2024-01-04T10:00:00Z",
+                "Code Review": "2024-01-09T15:00:00Z"
+            }
+        }
+    ],
+    "metrics": {
+        "avg_cycle_time": 8.5,
+        "wip_count": 2,
+        "throughput_last_week": 3,
+        "blocked_items_count": 1,
+        "total_blocked_days": 3.5
+    },
+    "date_range": {
+        "start": "2024-01-01",
+        "end": "2024-01-10"
+    }
+}
+
+
 class TestOpenAIProvider:
     """Test OpenAI provider with mocked API calls."""
     
@@ -64,7 +124,7 @@ class TestOpenAIProvider:
         
         with patch.dict('os.environ', {'TEST_OPENAI_KEY': 'test-key-123'}):
             provider = OpenAIProvider(config)
-            result = provider.generate_insights("Test prompt", {})
+            result = provider.generate_insights("Analyze team performance", SAMPLE_CONTEXT)
         
         assert result == 'Test AI insight: Focus on reducing cycle time for PROJ-123.'
         
@@ -74,6 +134,15 @@ class TestOpenAIProvider:
         assert call_args[0][0] == 'https://api.openai.com/v1/chat/completions'
         assert 'Authorization' in call_args[1]['headers']
         assert call_args[1]['headers']['Authorization'] == 'Bearer test-key-123'
+        
+        # Verify context data is included in the request
+        payload = call_args[1]['json']
+        user_message = payload['messages'][1]['content']
+        assert 'Context Data:' in user_message
+        assert 'PROJ-123' in user_message
+        assert 'PROJ-456' in user_message
+        assert 'avg_cycle_time' in user_message
+        assert 'Query: Analyze team performance' in user_message
     
     @patch('jira_agile_metrics.copilot.providers.requests.post')
     def test_generate_insights_api_error(self, mock_post):
@@ -89,7 +158,7 @@ class TestOpenAIProvider:
             provider = OpenAIProvider(config)
             
             with pytest.raises(Exception) as exc_info:
-                provider.generate_insights("Test prompt", {})
+                provider.generate_insights("Test prompt", SAMPLE_CONTEXT)
             
             assert "OpenAI API error (401)" in str(exc_info.value)
     
@@ -100,9 +169,53 @@ class TestOpenAIProvider:
             provider = OpenAIProvider(config)
             
             with pytest.raises(ValueError) as exc_info:
-                provider.generate_insights("Test prompt", {})
+                provider.generate_insights("Test prompt", SAMPLE_CONTEXT)
             
             assert "OpenAI API key not found" in str(exc_info.value)
+    
+    @patch('jira_agile_metrics.copilot.providers.requests.post')
+    def test_generate_insights_empty_context(self, mock_post):
+        # Test handling of empty context
+        mock_response = Mock()
+        mock_response.status_code = 200
+        mock_response.json.return_value = {
+            'choices': [{'message': {'content': 'Response with no context'}}]
+        }
+        mock_post.return_value = mock_response
+        
+        config = {'api_key_env': 'TEST_OPENAI_KEY'}
+        
+        with patch.dict('os.environ', {'TEST_OPENAI_KEY': 'test-key-123'}):
+            provider = OpenAIProvider(config)
+            result = provider.generate_insights("Test prompt", {})
+        
+        # Verify empty context is handled gracefully
+        call_args = mock_post.call_args
+        payload = call_args[1]['json']
+        user_message = payload['messages'][1]['content']
+        assert 'No context data provided' in user_message
+    
+    @patch('jira_agile_metrics.copilot.providers.requests.post')
+    def test_generate_insights_empty_context(self, mock_post):
+        # Test handling of empty context
+        mock_response = Mock()
+        mock_response.status_code = 200
+        mock_response.json.return_value = {
+            'choices': [{'message': {'content': 'Response with no context'}}]
+        }
+        mock_post.return_value = mock_response
+        
+        config = {'api_key_env': 'TEST_OPENAI_KEY'}
+        
+        with patch.dict('os.environ', {'TEST_OPENAI_KEY': 'test-key-123'}):
+            provider = OpenAIProvider(config)
+            result = provider.generate_insights("Test prompt", {})
+        
+        # Verify empty context is handled gracefully
+        call_args = mock_post.call_args
+        payload = call_args[1]['json']
+        user_message = payload['messages'][1]['content']
+        assert 'No context data provided' in user_message
 
 
 class TestAnthropicProvider:
@@ -124,7 +237,7 @@ class TestAnthropicProvider:
         
         with patch.dict('os.environ', {'TEST_ANTHROPIC_KEY': 'test-key-456'}):
             provider = AnthropicProvider(config)
-            result = provider.generate_insights("Test prompt", {})
+            result = provider.generate_insights("Identify bottlenecks", SAMPLE_CONTEXT)
         
         assert result == 'Anthropic AI insight: Review bottleneck detected in PROJ-456.'
         
@@ -133,6 +246,14 @@ class TestAnthropicProvider:
         call_args = mock_post.call_args
         assert call_args[0][0] == 'https://api.anthropic.com/v1/messages'
         assert 'x-api-key' in call_args[1]['headers']
+        
+        # Verify context data is included in the request
+        payload = call_args[1]['json']
+        user_content = payload['messages'][0]['content']
+        assert 'Context Data:' in user_content
+        assert 'PROJ-789' in user_content
+        assert 'blocked_days' in user_content
+        assert 'Query: Identify bottlenecks' in user_content
 
 
 class TestAzureOpenAIProvider:
@@ -161,7 +282,7 @@ class TestAzureOpenAIProvider:
         
         with patch.dict('os.environ', {'TEST_AZURE_KEY': 'test-azure-key'}):
             provider = AzureOpenAIProvider(config)
-            result = provider.generate_insights("Test prompt", {})
+            result = provider.generate_insights("Analyze WIP levels", SAMPLE_CONTEXT)
         
         assert result == 'Azure AI insight: WIP limit exceeded, consider pausing new work.'
         
@@ -170,6 +291,14 @@ class TestAzureOpenAIProvider:
         call_args = mock_post.call_args
         expected_url = 'https://test-resource.openai.azure.com/openai/deployments/gpt-4-deployment/chat/completions?api-version=2024-02-15-preview'
         assert call_args[0][0] == expected_url
+        
+        # Verify context data is included in the request
+        payload = call_args[1]['json']
+        user_message = payload['messages'][1]['content']
+        assert 'Context Data:' in user_message
+        assert 'wip_count' in user_message
+        assert 'throughput_last_week' in user_message
+        assert 'Query: Analyze WIP levels' in user_message
 
 
 class TestLLMFactory:
