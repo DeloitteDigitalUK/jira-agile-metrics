@@ -67,35 +67,53 @@ class QueryManager(object):
         max_results=False,
     )
 
-    def __init__(self, jira, settings):
+    def __init__(self, jira, settings, data_source=None):
         self.jira = jira
+        self.data_source = data_source
         self.settings = self.settings.copy()
         self.settings.update(settings)
 
         self.attributes_to_fields = {}
         self.fields_to_attributes = {}
 
-        # Look up fields in JIRA and resolve attributes to fields
-        logger.debug("Resolving JIRA fields")
-        self.jira_fields = self.jira.fields()
+        # If a data source is provided, operate in offline mode and skip JIRA field discovery
+        if self.data_source is not None:
+            logger.debug("Using offline data source; skipping JIRA field resolution")
+            self.jira_fields = []
+            self.jira_fields_to_names = {}
+        else:
+            # Look up fields in JIRA and resolve attributes to fields
+            logger.debug("Resolving JIRA fields")
+            self.jira_fields = self.jira.fields()
 
-        if len(self.jira_fields) == 0:
-            raise ConfigError(
-                (
-                    "No field data retrieved from JIRA. "
-                    "This likely means a problem with the JIRA API."
-                )
-            ) from None
+            if len(self.jira_fields) == 0:
+                raise ConfigError(
+                    (
+                        "No field data retrieved from JIRA. "
+                        "This likely means a problem with the JIRA API."
+                    )
+                ) from None
 
-        self.jira_fields_to_names = {
-            field["id"]: field["name"] for field in self.jira_fields
-        }
-        field_id = None
+            self.jira_fields_to_names = {
+                field["id"]: field["name"] for field in self.jira_fields
+            }
+            field_id = None
 
-        for name, field in self.settings["attributes"].items():
-            field_id = self.field_name_to_id(field)
-            self.attributes_to_fields[name] = field_id
-            self.fields_to_attributes[field_id] = name
+            for name, field in self.settings["attributes"].items():
+                field_id = self.field_name_to_id(field)
+                self.attributes_to_fields[name] = field_id
+                self.fields_to_attributes[field_id] = name
+
+    def has_precomputed_cycle_data(self):
+        return (
+            self.data_source is not None
+            and self.data_source.get_precomputed_cycle_data() is not None
+        )
+
+    def get_precomputed_cycle_data(self):
+        if self.data_source is None:
+            return None
+        return self.data_source.get_precomputed_cycle_data()
 
     def field_name_to_id(self, name):
         arr_name = name.split(".")

@@ -16,6 +16,7 @@ from .copilot.cli_commands import (
     AIInsightsCommand,
     create_ai_config_from_settings_and_args,
 )
+from .datasources.csv_source import CSVDataSource
 
 logger = logging.getLogger(__name__)
 
@@ -110,7 +111,7 @@ def configure_argument_parser():
         "--cycle-data-file",
         metavar="path/to/cycletime.csv",
         help=(
-            "Path to an exported cycletime.csv (or JSON) to generate AI context/insights without querying JIRA"
+            "Path to an exported cycletime.csv that can be used to preload cycle data instead of querying JIRA"
         ),
     )
     parser.add_argument(
@@ -197,27 +198,48 @@ def run_command_line(parser, args):
         logger.info("Changing working directory to %s" % args.output_directory)
         os.chdir(args.output_directory)
 
-    # Select data source
+    # Select data source (online JIRA/Trello or offline CSV)
     jira = None
-
-    if options["connection"]["type"] == "jira":
+    data_source = None
+    if args.cycle_data_file:
+        logger.info("Using offline CSV data source: %s", args.cycle_data_file)
+        data_source = CSVDataSource(args.cycle_data_file, options["settings"])
+    elif options["connection"]["type"] == "jira":
         jira = get_jira_client(options["connection"])
     elif options["connection"]["type"] == "trello":
-        jira = get_trello_client(
-            options["connection"], options["settings"]["type_mapping"]
-        )
+        jira = get_trello_client(options["connection"], options["settings"]["type_mapping"])
     else:
         raise ConfigError("Unknown source")
-    # Query JIRA and run calculators
+        # Query JIRA and run calculators
     logger.info("Running calculators")
-    query_manager = QueryManager(jira, options["settings"])
+    query_manager = QueryManager(jira, options["settings"], data_source=data_source)
 
-    # Add AI context generator to calculators if AI is configured
+    # Build calculators list
     calculators = list(CALCULATORS)
-    if options["settings"].get("ai", {}).get("enabled", False):
+    # Append AIContextGenerator only when AI options are configured and core workflow settings exist
+    settings_dict = options["settings"]
+    has_core_workflow = (
+        bool(settings_dict.get("cycle"))
+        and ("committed_column" in settings_dict)
+        and ("done_column" in settings_dict)
+        and ("backlog_column" in settings_dict)
+    )
+    # AI configured via settings (ai dict or ai_context_file) or CLI (ai_provider/model)
+    ai_settings = settings_dict.get("ai", {}) or {}
+    has_ai_options = (
+        bool(ai_settings)  # any ai settings present
+        or bool(settings_dict.get("ai_context_file"))
+        or bool(args.ai_provider)
+        or bool(args.ai_model)
+    )
+    if has_core_workflow and has_ai_options:
         from .copilot.context_generator import AIContextGenerator
 
         calculators.append(AIContextGenerator)
+    else:
+        logger.info(
+            "Skipping AI context generation (ai options or required workflow settings missing)"
+        )
 
     run_calculators(calculators, query_manager, options["settings"])
 
@@ -360,49 +382,9 @@ def generate_ai_insights(parser, args):
         # Determine context file path (allow override)
         context_file = (
             args.ai_context_file
-            if getattr(args, "ai_context_file", None)
+            if args.ai_context_file
             else options["settings"].get("ai_context_file", "ai-context.json")
         )
-
-        # If an offline cycle data file is provided, build the AI context first
-        if getattr(args, "cycle_data_file", None):
-            try:
-                from .copilot.offline_loader import load_cycle_data_from_file
-                from .calculators.cycletime import CycleTimeCalculator
-                from .copilot.context_generator import AIContextGenerator
-
-                # Load cycle data from file and synthesize calculator results
-                cycle_df = load_cycle_data_from_file(
-                    args.cycle_data_file, options["settings"]
-                )
-
-                # Create a faux results map so calculators can reuse existing logic
-                faux_results = {CycleTimeCalculator: cycle_df}
-
-                # Run the AI context generator using offline data only
-                generator = AIContextGenerator(
-                    query_manager=None,
-                    settings=options["settings"],
-                    results=faux_results,
-                )
-                generator.run()  # writes to settings['ai_context_file'] by default
-
-                # If user overrode the context file path and it differs, move the file
-                default_context_path = options["settings"].get(
-                    "ai_context_file", "ai-context.json"
-                )
-                if context_file and context_file != default_context_path:
-                    import shutil
-                    if os.path.exists(default_context_path):
-                        shutil.copyfile(default_context_path, context_file)
-
-                print(
-                    f"🗂️ Built AI context from offline cycle data: {context_file}"
-                )
-            except Exception as e:
-                print(f"❌ Failed to build AI context from file: {e}")
-                logger.exception("Error building AI context from offline data")
-                return
 
         # Create command handler
         output_dir = args.output_directory
@@ -431,6 +413,7 @@ def generate_ai_insights(parser, args):
     except Exception as e:
         print(f"❌ Error: {e}")
         logger.exception("Full error details:")
+
 
 if __name__ == "__main__":
     main()

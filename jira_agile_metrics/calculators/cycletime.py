@@ -39,6 +39,9 @@ class CycleTimeCalculator(Calculator):
     """
 
     def run(self, now=None):
+        # If QueryManager has precomputed cycle data (offline/CSV mode), use it
+        if self.query_manager.has_precomputed_cycle_data():
+            return self.query_manager.get_precomputed_cycle_data()
 
         return calculate_cycle_times(
             self.query_manager,
