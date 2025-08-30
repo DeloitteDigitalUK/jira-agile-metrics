@@ -475,6 +475,12 @@ def config_to_options(data, cwd=None, extended=False):
                     config["output"][expand_key(key)]
                 )
 
+        # Handle AI Context file (new format) - this should take precedence over old format
+        if "ai context" in config["output"]:
+            options["settings"]["ai_context_file"] = os.path.basename(
+                config["output"]["ai context"]
+            )
+
         # file name list values
         for key in [
             "cycle_time_data",
@@ -750,4 +756,20 @@ def config_to_options(data, cwd=None, extended=False):
     if "type mapping" in config:
         for name, values in config["type mapping"].items():
             options["settings"]["type_mapping"][name] = force_list(values)
+
+    # Parse Copilot configuration - top-level Copilot block
+    if "copilot" in config:
+        copilot_config = {}
+        for key, value in config["copilot"].items():
+            # Convert spaced keys to underscore format for internal use
+            internal_key = key.lower().replace(" ", "_")
+            copilot_config[internal_key] = value
+        options["settings"]["ai"] = copilot_config
+
+    # Handle Copilot Context file from Output section
+    if "output" in config and "copilot context" in config["output"]:
+        options["settings"]["ai_context_file"] = os.path.basename(
+            config["output"]["copilot context"]
+        )
+
     return options

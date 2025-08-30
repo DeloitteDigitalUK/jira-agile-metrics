@@ -123,7 +123,7 @@ def configure_argument_parser():
         "--ai-context-file",
         metavar="ai-context.json",
         help=(
-            "Override the AI context file path (defaults to settings.ai_context_file or ai-context.json)"
+            "Override the Copilot context file path (defaults to settings.ai_context_file or ai-context.json)"
         ),
     )
     parser.add_argument(
@@ -262,11 +262,11 @@ def run_command_line(parser, args):
         and ("done_column" in settings_dict)
         and ("backlog_column" in settings_dict)
     )
-    # AI configured via settings (ai dict or ai_context_file) or CLI (ai_provider/model)
+    # Copilot configured via settings (ai dict or ai_context_file) or CLI (ai_provider/model)
     ai_settings = settings_dict.get("ai", {}) or {}
     has_ai_options = (
-        bool(ai_settings)  # any ai settings present
-        or bool(settings_dict.get("ai_context_file"))
+        bool(ai_settings)  # any copilot settings present
+        or bool(settings_dict.get("ai_context_file"))  # Copilot Context file configured in Output
         or bool(args.ai_provider)
         or bool(args.ai_model)
     )
@@ -276,7 +276,7 @@ def run_command_line(parser, args):
         calculators.append(AIContextGenerator)
     else:
         logger.info(
-            "Skipping AI context generation (ai options or required workflow settings missing)"
+            "Skipping Copilot context generation (copilot options or required workflow settings missing)"
         )
 
     run_calculators(calculators, query_manager, options["settings"])

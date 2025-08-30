@@ -626,3 +626,155 @@ Workflow:
 
     assert options["connection"]["domain"] == "https://foo.com"
     assert options["connection"]["jira_server_version_check"] is False
+
+
+def test_config_to_options_copilot_basic():
+
+    options = config_to_options(
+        """\
+Connection:
+    Domain: https://foo.com
+
+Query: (filter=123)
+
+Workflow:
+    Backlog: Backlog
+    In progress: Build
+    Done: Done
+
+Copilot:
+    Provider: openai
+    Model: gpt-4o
+    API Key Environment Variable: OPENAI_API_KEY
+    Max Tokens: 2000
+    Temperature: 0.1
+
+Output:
+    Copilot Context: ai-context.json
+"""
+    )
+
+    assert options["connection"]["domain"] == "https://foo.com"
+    assert options["settings"]["ai"] == {
+        "provider": "openai",
+        "model": "gpt-4o",
+        "api_key_environment_variable": "OPENAI_API_KEY",
+        "max_tokens": 2000,
+        "temperature": 0.1,
+    }
+    assert options["settings"]["ai_context_file"] == "ai-context.json"
+
+
+def test_config_to_options_copilot_spaced_keys():
+
+    options = config_to_options(
+        """\
+Connection:
+    Domain: https://foo.com
+
+Query: (filter=123)
+
+Workflow:
+    Backlog: Backlog
+    In progress: Build
+    Done: Done
+
+Copilot:
+    Provider: anthropic
+    Model: claude-3-5-sonnet-20241022
+    API Key Environment Variable: ANTHROPIC_API_KEY
+    Max Tokens: 4000
+    Temperature: 0.2
+    System Prompt: You are a helpful assistant
+    Custom Setting With Spaces: test value
+
+Output:
+    Copilot Context: copilot-output.json
+"""
+    )
+
+    assert options["settings"]["ai"] == {
+        "provider": "anthropic",
+        "model": "claude-3-5-sonnet-20241022",
+        "api_key_environment_variable": "ANTHROPIC_API_KEY",
+        "max_tokens": 4000,
+        "temperature": 0.2,
+        "system_prompt": "You are a helpful assistant",
+        "custom_setting_with_spaces": "test value",
+    }
+    assert options["settings"]["ai_context_file"] == "copilot-output.json"
+
+
+def test_config_to_options_copilot_context_strips_directory():
+
+    options = config_to_options(
+        """\
+Connection:
+    Domain: https://foo.com
+
+Query: (filter=123)
+
+Workflow:
+    Backlog: Backlog
+    In progress: Build
+    Done: Done
+
+Copilot:
+    Provider: openai
+    Model: gpt-4o
+
+Output:
+    Copilot Context: /tmp/subdir/ai-context.json
+"""
+    )
+
+    assert options["settings"]["ai_context_file"] == "ai-context.json"
+
+
+def test_config_to_options_copilot_without_context():
+
+    options = config_to_options(
+        """\
+Connection:
+    Domain: https://foo.com
+
+Query: (filter=123)
+
+Workflow:
+    Backlog: Backlog
+    In progress: Build
+    Done: Done
+
+Copilot:
+    Provider: openai
+    Model: gpt-4o
+"""
+    )
+
+    assert options["settings"]["ai"] == {
+        "provider": "openai",
+        "model": "gpt-4o",
+    }
+    # ai_context_file should not be set if not specified
+    assert "ai_context_file" not in options["settings"]
+
+
+def test_config_to_options_no_copilot():
+
+    options = config_to_options(
+        """\
+Connection:
+    Domain: https://foo.com
+
+Query: (filter=123)
+
+Workflow:
+    Backlog: Backlog
+    In progress: Build
+    Done: Done
+"""
+    )
+
+    # No AI configuration should be present
+    assert "ai" not in options["settings"]
+    assert "ai_context_file" not in options["settings"]

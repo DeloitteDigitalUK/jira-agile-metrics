@@ -28,24 +28,14 @@ Workflow:
   committed_column: In Progress
   done_column: Done
   
-# Team and sprint information
-Settings:
-  team_name: "Backend Team Alpha"
-  current_sprint: "Sprint 23"
-  sprint_start: "2025-08-21"
-  sprint_end: "2025-09-04"
-  
-  # AI Copilot Configuration
-  ai:
-    enabled: true
-    provider: openai  # openai, anthropic, azure
-    model: gpt-4o
-    api_key_env: OPENAI_API_KEY  # Environment variable name
-    max_tokens: 2000
-    temperature: 0.1
-    
-  # Context file for AI analysis
-  ai_context_file: ai-context.json
+# Copilot Configuration
+Copilot:
+  Provider: openai  # openai, anthropic, azure
+  Model: gpt-4o
+  API Key Environment Variable: OPENAI_API_KEY  # Environment variable name
+  Max Tokens: 2000
+  Temperature: 0.1
+
 
 # Output settings
 Output:
@@ -56,5 +46,5 @@ Output:
   Throughput chart: throughput.png
   Ageing WIP chart: ageing-wip.png
   
-  # AI context output (automatically generated when ai.enabled = true)
-  # This file will be consumed by the AI insights generator
+  # Copilot context output (automatically generated when Copilot block is present)
+  Copilot Context: ai-context.json
