@@ -17,10 +17,12 @@ from __future__ import annotations
 
 import json
 import os
-from typing import Dict, List
-
+import warnings
 import pandas as pd
+from typing import List
+import logging
 
+logger = logging.getLogger(__name__)
 
 HEADER_RENAME = {
     "ID": "key",
@@ -31,6 +33,74 @@ HEADER_RENAME = {
     "Resolution": "resolution",
     "Blocked Days": "blocked_days",
 }
+
+
+def _parse_dates_robust(date_series: pd.Series) -> pd.Series:
+    """
+    Robust date parsing that handles multiple formats:
+    - ISO format (YYYY-MM-DD) - tool-generated CSV files
+    - DD/MM/YYYY format - European/UK format
+    - MM/DD/YYYY format - US format
+    
+    Uses format detection and fallback parsing to maximize compatibility.
+    """
+    if date_series.isna().all():
+        return pd.to_datetime(date_series, errors="coerce")
+    
+    # Get non-null values for testing
+    non_null_series = date_series.dropna()
+    if len(non_null_series) == 0:
+        return pd.to_datetime(date_series, errors="coerce")
+    
+    # Helper function to check if parsing was successful
+    def _parsing_success_rate(result: pd.Series) -> float:
+        non_null_input = len(non_null_series)
+        valid_parsed = len(result.dropna())
+        return valid_parsed / non_null_input if non_null_input > 0 else 0
+    
+    # Try ISO format first (tool default output: YYYY-MM-DD)
+    try:
+        result = pd.to_datetime(date_series, format="%Y-%m-%d", errors="coerce")
+        if _parsing_success_rate(result) > 0.8:  # 80% success threshold
+            logger.debug("Parsed dates using ISO format (YYYY-MM-DD)")
+            return result
+    except:
+        pass
+    
+    # Try DD/MM/YYYY format (European/UK)
+    try:
+        result = pd.to_datetime(date_series, format="%d/%m/%Y", errors="coerce")
+        if _parsing_success_rate(result) > 0.8:
+            logger.debug("Parsed dates using DD/MM/YYYY format")
+            return result
+    except:
+        pass
+    
+    # Try MM/DD/YYYY format (US)
+    try:
+        result = pd.to_datetime(date_series, format="%m/%d/%Y", errors="coerce")
+        if _parsing_success_rate(result) > 0.8:
+            logger.debug("Parsed dates using MM/DD/YYYY format")
+            return result
+    except:
+        pass
+    
+    # Try default pandas parsing (handles many formats automatically)
+    try:
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore", UserWarning)
+            result = pd.to_datetime(date_series, errors="coerce")
+        if _parsing_success_rate(result) > 0.5:  # Lower threshold for default parsing
+            logger.debug("Parsed dates using pandas default parsing")
+            return result
+    except:
+        pass
+    
+    # Final fallback with dayfirst=True for ambiguous cases
+    logger.warning("Using fallback date parsing with dayfirst=True")
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore", UserWarning)
+        return pd.to_datetime(date_series, errors="coerce", dayfirst=True)
 
 
 def _read_cycle_file(path: str) -> pd.DataFrame:
@@ -81,10 +151,10 @@ def load_cycle_data_from_file(path: str, settings: Dict) -> pd.DataFrame:
         if col not in df.columns:
             df[col] = None
 
-    # Parse date columns for each cycle step
+    # Parse date columns for each cycle step with format detection
     for col in cycle_names:
         if col in df.columns:
-            df[col] = pd.to_datetime(df[col], errors="coerce")
+            df[col] = _parse_dates_robust(df[col])
         else:
             df[col] = pd.NaT
 
@@ -98,7 +168,7 @@ def load_cycle_data_from_file(path: str, settings: Dict) -> pd.DataFrame:
         df["impediments"] = [[] for _ in range(len(df))]
 
     # Compute completed_timestamp and cycle_time if possible
-    df["completed_timestamp"] = pd.to_datetime(df[done], errors="coerce")
+    df["completed_timestamp"] = _parse_dates_robust(df[done])
     if committed in df.columns and done in df.columns:
         df["cycle_time"] = df[done] - df[committed]
     else:
