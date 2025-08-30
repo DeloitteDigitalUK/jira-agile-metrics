@@ -107,6 +107,20 @@ def configure_argument_parser():
         help="Generate AI-powered daily insights from metrics data",
     )
     parser.add_argument(
+        "--cycle-data-file",
+        metavar="path/to/cycletime.csv",
+        help=(
+            "Path to an exported cycletime.csv (or JSON) to generate AI context/insights without querying JIRA"
+        ),
+    )
+    parser.add_argument(
+        "--ai-context-file",
+        metavar="ai-context.json",
+        help=(
+            "Override the AI context file path (defaults to settings.ai_context_file or ai-context.json)"
+        ),
+    )
+    parser.add_argument(
         "--ai-provider",
         metavar="openai",
         help="AI provider (openai, anthropic, azure)",
@@ -343,14 +357,58 @@ def generate_ai_insights(parser, args):
             options["settings"], args
         )
 
+        # Determine context file path (allow override)
+        context_file = (
+            args.ai_context_file
+            if getattr(args, "ai_context_file", None)
+            else options["settings"].get("ai_context_file", "ai-context.json")
+        )
+
+        # If an offline cycle data file is provided, build the AI context first
+        if getattr(args, "cycle_data_file", None):
+            try:
+                from .copilot.offline_loader import load_cycle_data_from_file
+                from .calculators.cycletime import CycleTimeCalculator
+                from .copilot.context_generator import AIContextGenerator
+
+                # Load cycle data from file and synthesize calculator results
+                cycle_df = load_cycle_data_from_file(
+                    args.cycle_data_file, options["settings"]
+                )
+
+                # Create a faux results map so calculators can reuse existing logic
+                faux_results = {CycleTimeCalculator: cycle_df}
+
+                # Run the AI context generator using offline data only
+                generator = AIContextGenerator(
+                    query_manager=None,
+                    settings=options["settings"],
+                    results=faux_results,
+                )
+                generator.run()  # writes to settings['ai_context_file'] by default
+
+                # If user overrode the context file path and it differs, move the file
+                default_context_path = options["settings"].get(
+                    "ai_context_file", "ai-context.json"
+                )
+                if context_file and context_file != default_context_path:
+                    import shutil
+                    if os.path.exists(default_context_path):
+                        shutil.copyfile(default_context_path, context_file)
+
+                print(
+                    f"🗂️ Built AI context from offline cycle data: {context_file}"
+                )
+            except Exception as e:
+                print(f"❌ Failed to build AI context from file: {e}")
+                logger.exception("Error building AI context from offline data")
+                return
+
         # Create command handler
         output_dir = args.output_directory
         command = AIInsightsCommand(ai_config, output_dir)
 
-        # Check prerequisites
-        context_file = options["settings"].get(
-            "ai_context_file", "ai-context.json"
-        )
+        # Check prerequisites (context file must now exist)
         is_valid, error_msg = command.validate_prerequisites(context_file)
         if not is_valid:
             print(f"❌ {error_msg}")
