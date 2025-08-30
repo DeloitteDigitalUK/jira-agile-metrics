@@ -47,6 +47,9 @@ def _parse_dates_robust(date_series: pd.Series) -> pd.Series:
     if date_series.isna().all():
         return pd.to_datetime(date_series, errors="coerce")
     
+    # Replace empty strings with NaN for consistent handling
+    date_series = date_series.replace('', pd.NaT)
+    
     # Get non-null values for testing
     non_null_series = date_series.dropna()
     if len(non_null_series) == 0:
