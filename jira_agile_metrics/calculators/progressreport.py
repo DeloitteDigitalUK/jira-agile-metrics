@@ -17,6 +17,7 @@ import matplotlib.transforms
 import jinja2
 
 from ..calculator import Calculator
+from ..utils import get_current_date, get_current_time
 from ..utils import set_chart_style, to_days_since_epoch
 
 from .cycletime import calculate_cycle_times
@@ -377,7 +378,7 @@ class ProgressReportCalculator(Calculator):
         date_format = self.settings["date_format"]
 
         template = jinja_env.get_template("progressreport_template.html")
-        today = datetime.date.today()
+        today = get_current_date()
 
         epics_by_team = {}
         have_outcomes = False
@@ -810,7 +811,7 @@ def forecast_to_complete(
 
     # Allows unit testing to use a fixed date
     if now is None:
-        now = datetime.datetime.utcnow()
+        now = get_current_time()
 
     epic_trials = {e.key: pd.Series([np.nan] * trials) for e in epics}
 

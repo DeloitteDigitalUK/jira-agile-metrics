@@ -5,6 +5,9 @@ import numpy as np
 import pandas as pd
 import seaborn as sns
 
+# Global variable to override current time for testing with historical data
+_current_time_override = None
+
 
 class StatusTypes:
     backlog = "backlog"
@@ -16,6 +19,39 @@ def extend_dict(d, e):
     r = d.copy()
     r.update(e)
     return r
+
+
+def set_current_time_override(override_time):
+    """Set a global override for current time, useful for testing with historical data."""
+    global _current_time_override
+    _current_time_override = override_time
+
+
+def clear_current_time_override():
+    """Clear the global current time override."""
+    global _current_time_override
+    _current_time_override = None
+
+
+def get_current_time():
+    """Get current time, respecting any global override for testing with historical data."""
+    if _current_time_override is not None:
+        return _current_time_override
+    return datetime.datetime.utcnow()
+
+
+def get_current_date():
+    """Get current date, respecting any global override for testing with historical data."""
+    if _current_time_override is not None:
+        return _current_time_override.date()
+    return datetime.date.today()
+
+
+def get_current_timestamp():
+    """Get current timestamp as pandas Timestamp, respecting any global override."""
+    if _current_time_override is not None:
+        return pd.Timestamp(_current_time_override)
+    return pd.Timestamp.now()
 
 
 def to_json_string(value):

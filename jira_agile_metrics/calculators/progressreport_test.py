@@ -10,7 +10,7 @@ from ..conftest import (
 )
 
 from ..querymanager import QueryManager
-from ..utils import extend_dict
+from ..utils import get_extension, get_current_date, extend_dict
 
 from .progressreport import (
     throughput_range_sampler,
@@ -1681,7 +1681,7 @@ def test_calculator_no_fields(query_manager, settings, results):
 
 def test_with_large_dataset(fields, settings, results):
 
-    today = date.today()
+    today = get_current_date()
 
     # build a large and partially randomised data set to forecast on
 
@@ -1855,7 +1855,7 @@ def test_with_large_dataset(fields, settings, results):
 
 def test_with_large_dataset_and_outcome_as_tickets(fields, settings, results):
 
-    today = date.today()
+    today = get_current_date()
 
     # build a large and partially randomised data set to forecast on
 
@@ -2041,7 +2041,7 @@ def test_with_large_dataset_and_outcome_as_tickets_no_forecast(
     fields, settings, results
 ):
 
-    today = date.today()
+    today = get_current_date()
 
     # build a large and partially randomised data set to forecast on
 
@@ -2227,7 +2227,7 @@ def test_with_large_dataset_and_outcome_as_tickets_mixed_forecast(
     fields, settings, results
 ):
 
-    today = date.today()
+    today = get_current_date()
 
     # build a large and partially randomised data set to forecast on
 
@@ -2411,7 +2411,7 @@ def test_with_large_dataset_and_outcome_as_tickets_mixed_forecast(
 
 def test_with_large_dataset_minimal(fields, settings, results):
 
-    today = date.today()
+    today = get_current_date()
 
     # build a large and partially randomised data set to forecast on
 
@@ -2541,7 +2541,7 @@ def test_with_large_dataset_minimal(fields, settings, results):
 
 def test_with_large_dataset_minimal_no_forecast(fields, settings, results):
 
-    today = date.today()
+    today = get_current_date()
 
     # build a large and partially randomised data set to forecast on
 
@@ -2671,7 +2671,7 @@ def test_with_large_dataset_minimal_no_forecast(fields, settings, results):
 
 def test_with_large_dataset_teams_no_outcomes(fields, settings, results):
 
-    today = date.today()
+    today = get_current_date()
 
     # build a large and partially randomised data set to forecast on
 
@@ -2825,7 +2825,7 @@ def test_with_large_dataset_teams_no_outcomes(fields, settings, results):
 
 def test_with_large_dataset_no_teams(fields, settings, results):
 
-    today = date.today()
+    today = get_current_date()
 
     # build a large and partially randomised data set to forecast on
 
@@ -2989,7 +2989,7 @@ def test_with_large_dataset_no_teams(fields, settings, results):
 
 def test_with_large_dataset_dynamic_teams(fields, settings, results):
 
-    today = date.today()
+    today = get_current_date()
 
     # build a large and partially randomised data set to forecast on
 
@@ -3156,7 +3156,7 @@ def test_with_large_dataset_static_and_dynamic_teams(
     fields, settings, results
 ):
 
-    today = date.today()
+    today = get_current_date()
 
     # build a large and partially randomised data set to forecast on
 

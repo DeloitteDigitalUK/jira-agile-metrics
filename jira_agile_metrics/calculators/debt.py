@@ -6,6 +6,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 
 from ..calculator import Calculator
+from ..utils import get_current_time
 from ..utils import breakdown_by_month, set_chart_style, to_bin
 
 logger = logging.getLogger(__name__)
@@ -31,7 +32,7 @@ class DebtCalculator(Calculator):
 
         # Allows unit testing to use a fixed date
         if now is None:
-            now = datetime.datetime.utcnow()
+            now = get_current_time()
 
         # This calculation is expensive. Only run it if we have a query.
         if not query:

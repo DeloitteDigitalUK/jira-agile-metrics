@@ -5,7 +5,7 @@ import dateutil
 import pandas as pd
 from ..trello import TrelloClient
 from ..calculator import Calculator
-from ..utils import get_extension, to_json_string
+from ..utils import get_extension, to_json_string, get_current_time
 
 logger = logging.getLogger(__name__)
 
@@ -130,7 +130,7 @@ def calculate_cycle_times(
 
     # Allows unit testing to use a fixed date
     if now is None:
-        now = datetime.datetime.utcnow()
+        now = get_current_time()
 
     cycle_names = [s["name"] for s in cycle]
     active_columns = cycle_names[

@@ -5,9 +5,10 @@ Focused on flow analysis rather than sprint-based metrics.
 
 import json
 import logging
+import datetime
 import pandas as pd
 
-from datetime import datetime
+from ..utils import get_extension, get_current_timestamp, get_current_time
 from typing import Dict, List
 from ..calculator import Calculator
 
@@ -59,7 +60,7 @@ class AIContextGenerator(Calculator):
     def _generate_metadata(self) -> Dict:
         """Generate metadata about the analysis period and configuration."""
         return {
-            "analysis_date": datetime.now().isoformat(),
+            "analysis_date": get_current_time().isoformat(),
             "workflow_stages": [s["name"] for s in self.settings["cycle"]],
             "committed_column": self.settings["committed_column"],
             "done_column": self.settings["done_column"],
@@ -408,7 +409,7 @@ class AIContextGenerator(Calculator):
                 return actionable_items
 
             # Calculate ages for WIP items
-            today = pd.Timestamp.now().date()
+            today = get_current_timestamp().date()
 
             def calculate_age(row):
                 if pd.isna(row[committed_column]):

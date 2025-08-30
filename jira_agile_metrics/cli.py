@@ -2,6 +2,7 @@ import os
 import argparse
 import getpass
 import logging
+import datetime
 
 from jira import JIRA
 
@@ -9,7 +10,7 @@ from .config import config_to_options, CALCULATORS, ConfigError
 from .webapp.app import app as webapp
 from .querymanager import QueryManager
 from .calculator import run_calculators
-from .utils import set_chart_context
+from .utils import set_chart_context, set_current_time_override
 from .trello import TrelloClient
 from .copilot.cli_commands import (
     AIConfigValidator,
@@ -137,6 +138,17 @@ def configure_argument_parser():
         help="Validate AI configuration and exit",
     )
 
+    # Date override for testing and historical analysis
+    parser.add_argument(
+        "--current-date",
+        metavar="YYYY-MM-DD",
+        help=(
+            "Override the current date for calculations. "
+            "Useful for testing or analyzing historical data. "
+            "Format: YYYY-MM-DD (e.g., 2024-01-15)"
+        ),
+    )
+
     return parser
 
 
@@ -193,6 +205,18 @@ def run_command_line(parser, args):
     # Allow command line arguments to override options
     override_options(options["connection"], args)
     override_options(options["settings"], args)
+
+    # Handle current date override if specified
+    if args.current_date:
+        try:
+            override_date = datetime.datetime.strptime(args.current_date, "%Y-%m-%d")
+            set_current_time_override(override_date)
+            logger.info("Using override date: %s", args.current_date)
+        except ValueError:
+            raise ConfigError(
+                f"Invalid date format '{args.current_date}'. "
+                "Expected format: YYYY-MM-DD (e.g., 2024-01-15)"
+            )
 
     # Set charting context, which determines how charts are rendered
     set_chart_context("paper")

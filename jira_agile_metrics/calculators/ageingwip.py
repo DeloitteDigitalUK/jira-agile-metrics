@@ -5,6 +5,7 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 
 from ..calculator import Calculator
+from ..utils import get_current_timestamp
 from ..utils import set_chart_style
 
 from .cycletime import CycleTimeCalculator
@@ -29,7 +30,7 @@ class AgeingWIPChartCalculator(Calculator):
         last_active_column = cycle_names[cycle_names.index(done_column) - 1]
 
         today = (
-            pd.Timestamp.now().date() if today is None else today
+            get_current_timestamp().date() if today is None else today
         )  # to allow testing
 
         # remove items that are done
