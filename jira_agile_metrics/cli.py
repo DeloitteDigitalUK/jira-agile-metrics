@@ -197,6 +197,12 @@ def run_command_line(parser, args):
     # Set charting context, which determines how charts are rendered
     set_chart_context("paper")
 
+    # Resolve CSV file path before changing directories
+    csv_file_path = None
+    if args.cycle_data_file:
+        csv_file_path = os.path.abspath(args.cycle_data_file)
+        logger.info("Using offline CSV data source: %s", csv_file_path)
+
     # Set output directory if required
     if args.output_directory:
         logger.info("Changing working directory to %s" % args.output_directory)
@@ -205,9 +211,8 @@ def run_command_line(parser, args):
     # Select data source (online JIRA/Trello or offline CSV)
     jira = None
     data_source = None
-    if args.cycle_data_file:
-        logger.info("Using offline CSV data source: %s", args.cycle_data_file)
-        data_source = CSVDataSource(args.cycle_data_file, options["settings"])
+    if csv_file_path:
+        data_source = CSVDataSource(csv_file_path, options["settings"])
     elif options["connection"]["type"] == "jira":
         jira = get_jira_client(options["connection"])
     elif options["connection"]["type"] == "trello":
