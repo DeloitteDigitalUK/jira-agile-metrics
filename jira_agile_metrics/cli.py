@@ -17,6 +17,10 @@ from .copilot.cli_commands import (
     create_ai_config_from_settings_and_args,
 )
 from .datasources.csv_source import CSVDataSource
+from .calculators.defects import DefectsCalculator
+from .calculators.debt import DebtCalculator
+from .calculators.waste import WasteCalculator
+from .calculators.progressreport import ProgressReportCalculator
 
 logger = logging.getLogger(__name__)
 
@@ -111,7 +115,7 @@ def configure_argument_parser():
         "--cycle-data-file",
         metavar="path/to/cycletime.csv",
         help=(
-            "Path to an exported cycletime.csv that can be used to preload cycle data instead of querying JIRA"
+            "Path to an exported cycletime.csv or cycletime.json that can be used to preload cycle data instead of querying JIRA"
         ),
     )
     parser.add_argument(
@@ -216,6 +220,11 @@ def run_command_line(parser, args):
 
     # Build calculators list
     calculators = list(CALCULATORS)
+    
+    # Check for unsafe calculators when using CSV data source
+    if args.cycle_data_file:
+        validate_csv_calculator_compatibility(calculators, options["settings"])
+    
     # Append AIContextGenerator only when AI options are configured and core workflow settings exist
     settings_dict = options["settings"]
     has_core_workflow = (
@@ -413,6 +422,51 @@ def generate_ai_insights(parser, args):
     except Exception as e:
         print(f"❌ Error: {e}")
         logger.exception("Full error details:")
+
+
+def validate_csv_calculator_compatibility(calculators, settings):
+    """Validate that calculators are compatible with CSV data source mode.
+    
+    Raises ConfigError if any unsafe calculators are configured to run.
+    """
+    # Define calculators that require JIRA connectivity
+    JIRA_DEPENDENT_CALCULATORS = {
+        DefectsCalculator: "defects_query",
+        DebtCalculator: "debt_query", 
+        WasteCalculator: "waste_query",
+        ProgressReportCalculator: "progress_report"
+    }
+    
+    unsafe_calculators = []
+    
+    for calculator_class in calculators:
+        if calculator_class in JIRA_DEPENDENT_CALCULATORS:
+            setting_key = JIRA_DEPENDENT_CALCULATORS[calculator_class]
+            
+            # Check if this calculator is actually configured to run
+            if settings.get(setting_key):
+                unsafe_calculators.append({
+                    'name': calculator_class.__name__,
+                    'setting': setting_key
+                })
+    
+    if unsafe_calculators:
+        error_msg = (
+            "Cannot use --cycle-data-file with calculators that require JIRA connectivity.\n"
+            "The following calculators are configured but incompatible with CSV mode:\n"
+        )
+        for calc in unsafe_calculators:
+            error_msg += f"  - {calc['name']} (configured via '{calc['setting']}')\n"
+        
+        error_msg += (
+            "\nTo use CSV mode, either:\n"
+            "  1. Remove/comment out the incompatible settings from your config file, or\n"
+            "  2. Run without --cycle-data-file to use live JIRA data\n"
+            "\nCompatible calculators include: cycle time, CFD, scatterplot, histogram, "
+            "percentiles, throughput, burnup, WIP, net flow, ageing WIP, forecast, and impediments."
+        )
+        
+        raise ConfigError(error_msg)
 
 
 if __name__ == "__main__":
