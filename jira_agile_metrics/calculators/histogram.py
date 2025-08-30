@@ -118,9 +118,10 @@ class HistogramCalculator(Calculator):
         fig, ax = plt.subplots()
         bins = range(int(ct_days.max()) + 2)
 
-        sns.distplot(
-            ct_days, bins=bins, ax=ax, kde=False, axlabel="Cycle time (days)"
+        sns.histplot(
+            ct_days, bins=bins, ax=ax, kde=False
         )
+        ax.set_xlabel("Cycle time (days)")
 
         if self.settings["histogram_chart_title"]:
             ax.set_title(self.settings["histogram_chart_title"])
@@ -130,7 +131,7 @@ class HistogramCalculator(Calculator):
 
         # Add quantiles
         bottom, top = ax.get_ylim()
-        for quantile, value in ct_days.quantile(quantiles).iteritems():
+        for quantile, value in ct_days.quantile(quantiles).items():
             ax.vlines(
                 value, bottom, top - 0.001, linestyles="--", linewidths=1
             )

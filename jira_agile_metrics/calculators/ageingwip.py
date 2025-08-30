@@ -102,7 +102,7 @@ class AgeingWIPChartCalculator(Calculator):
         ax.set_xlabel("Status")
         ax.set_ylabel("Age (days)")
 
-        ax.set_xticklabels(ax.xaxis.get_majorticklabels(), rotation=90)
+        ax.tick_params(axis='x', rotation=90)
 
         _, top = ax.get_ylim()
         ax.set_ylim(0, top)
