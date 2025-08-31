@@ -106,12 +106,9 @@ def create_ai_config_from_settings_and_args(settings: Dict, args) -> Dict:
     """Create AI config by merging settings with command line arguments."""
     ai_config = settings.get("ai", {})
 
-    # Override with command line arguments
-    if hasattr(args, "ai_provider") and args.ai_provider:
-        ai_config["provider"] = args.ai_provider
-    if hasattr(args, "ai_model") and args.ai_model:
-        ai_config["model"] = args.ai_model
+    # Only support dry-run override via CLI; provider/model come from YAML config
     if hasattr(args, "dry_run") and args.dry_run:
-        ai_config["dry_run"] = args.dry_run
+        ai_config = dict(ai_config)  # shallow copy
+        ai_config["dry_run"] = True
 
     return ai_config

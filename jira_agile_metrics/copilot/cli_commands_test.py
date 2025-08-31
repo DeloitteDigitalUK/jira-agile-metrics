@@ -200,52 +200,42 @@ class TestAIInsightsCommand:
 class TestCreateAIConfigFromSettingsAndArgs:
     """Test AI config creation from settings and args."""
 
-    def test_merge_settings_and_args(self):
+    def test_uses_settings_without_overrides(self):
         settings = {
             "ai": {"provider": "openai", "model": "gpt-4o", "temperature": 0.3}
         }
 
-        # Mock args object
         args = Mock()
-        args.ai_provider = "anthropic"
-        args.ai_model = "claude-3-5-sonnet-20241022"
-
-        result = create_ai_config_from_settings_and_args(settings, args)
-
-        # Args should override settings
-        assert result["provider"] == "anthropic"
-        assert result["model"] == "claude-3-5-sonnet-20241022"
-        assert result["temperature"] == 0.3  # From settings
-
-    def test_no_ai_settings(self):
-        settings = {}  # No AI config
-        args = Mock()
-        args.ai_provider = "openai"
-        args.ai_model = None
+        args.dry_run = False
 
         result = create_ai_config_from_settings_and_args(settings, args)
 
         assert result["provider"] == "openai"
-        assert "model" not in result
+        assert result["model"] == "gpt-4o"
+        assert result["temperature"] == 0.3
 
-    def test_no_args_override(self):
-        settings = {"ai": {"provider": "openai", "model": "gpt-4o"}}
-
+    def test_no_ai_settings(self):
+        settings = {}  # No AI config
         args = Mock()
-        args.ai_provider = None
-        args.ai_model = None
+        args.dry_run = False
 
         result = create_ai_config_from_settings_and_args(settings, args)
 
-        # Should use settings values
+        assert result == {}
+
+    def test_no_args_override(self):
+        settings = {"ai": {"provider": "openai", "model": "gpt-4o"}}
+        args = Mock()
+        args.dry_run = False
+
+        result = create_ai_config_from_settings_and_args(settings, args)
+
         assert result["provider"] == "openai"
         assert result["model"] == "gpt-4o"
 
     def test_dry_run_arg(self):
         settings = {"ai": {"provider": "openai"}}
         args = Mock()
-        args.ai_provider = None
-        args.ai_model = None
         args.dry_run = True
 
         result = create_ai_config_from_settings_and_args(settings, args)
