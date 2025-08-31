@@ -446,10 +446,15 @@ def generate_ai_insights(parser, args):
         success, result_msg, preview = command.generate_insights(context_file)
 
         if success:
-            print(f"✅ {result_msg}")
-            print("\nPreview:")
-            print("-" * 50)
-            print(preview)
+            if args.dry_run:
+                print(f"✅ {result_msg}")
+                # Preview in dry run contains the prompt and payload
+                print(preview)  
+            else:
+                print(f"✅ {result_msg}")
+                print("\nPreview:")
+                print("-" * 50)
+                print(preview)
         else:
             print(f"❌ {result_msg}")
 

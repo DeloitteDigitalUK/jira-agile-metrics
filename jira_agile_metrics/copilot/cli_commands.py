@@ -75,7 +75,11 @@ class AIInsightsCommand:
                 context_file, output_file
             )
 
-            # Create preview
+            # Handle dry run case
+            if self.ai_config.get("dry_run", False):
+                return True, "Dry run complete. No insights generated.", insights
+
+            # Create preview for actual insights
             preview = (
                 insights[:500] + "..." if len(insights) > 500 else insights
             )
