@@ -200,6 +200,32 @@ class TestOpenAIProvider:
         user_message = payload["messages"][1]["content"]
         assert "No context data provided" in user_message
 
+    @patch("jira_agile_metrics.copilot.providers.requests.post")
+    def test_generate_insights_dry_run(self, mock_post, capsys):
+        # Config with dry_run enabled, no API key needed
+        config = {"dry_run": True, "model": "gpt-4o"}
+
+        # No API key in environment
+        with patch.dict("os.environ", {}, clear=True):
+            provider = OpenAIProvider(config)
+            result = provider.generate_insights(
+                "Dry run test", SAMPLE_CONTEXT
+            )
+
+        # 1. Verify API was not called
+        mock_post.assert_not_called()
+
+        # 2. Verify the output was printed
+        captured = capsys.readouterr()
+        assert "--- PAYLOAD (OpenAI) ---" in captured.out
+        assert '"model": "gpt-4o"' in captured.out
+        assert "Dry run test" in captured.out
+        assert "PROJ-123" in captured.out  # from SAMPLE_CONTEXT
+        assert "--- END PAYLOAD ---" in captured.out
+
+        # 3. Verify the return value
+        assert "Dry run mode: OpenAI API not called" in result
+
 
 class TestAnthropicProvider:
     """Test Anthropic provider with mocked API calls."""
@@ -247,6 +273,26 @@ class TestAnthropicProvider:
         assert "PROJ-789" in user_content
         assert "blocked_days" in user_content
         assert "Query: Identify bottlenecks" in user_content
+
+    @patch("jira_agile_metrics.copilot.providers.requests.post")
+    def test_generate_insights_dry_run(self, mock_post, capsys):
+        config = {"dry_run": True, "model": "claude-3-opus-20240229"}
+
+        with patch.dict("os.environ", {}, clear=True):
+            provider = AnthropicProvider(config)
+            result = provider.generate_insights(
+                "Dry run test", SAMPLE_CONTEXT
+            )
+
+        mock_post.assert_not_called()
+
+        captured = capsys.readouterr()
+        assert "--- PAYLOAD (Anthropic) ---" in captured.out
+        assert '"model": "claude-3-opus-20240229"' in captured.out
+        assert "Dry run test" in captured.out
+        assert "--- END PAYLOAD ---" in captured.out
+
+        assert "Dry run mode: Anthropic API not called" in result
 
 
 class TestAzureOpenAIProvider:
@@ -299,6 +345,30 @@ class TestAzureOpenAIProvider:
         assert "wip_count" in user_message
         assert "throughput_last_week" in user_message
         assert "Query: Analyze WIP levels" in user_message
+
+    @patch("jira_agile_metrics.copilot.providers.requests.post")
+    def test_generate_insights_dry_run(self, mock_post, capsys):
+        config = {
+            "dry_run": True,
+            "api_base": "https://test-resource.openai.azure.com",
+            "model": "gpt-4-deployment",
+        }
+
+        with patch.dict("os.environ", {}, clear=True):
+            provider = AzureOpenAIProvider(config)
+            result = provider.generate_insights(
+                "Dry run test", SAMPLE_CONTEXT
+            )
+
+        mock_post.assert_not_called()
+
+        captured = capsys.readouterr()
+        assert "--- PAYLOAD (Azure OpenAI) ---" in captured.out
+        assert "URL: https://test-resource.openai.azure.com" in captured.out
+        assert '"role": "user"' in captured.out
+        assert "--- END PAYLOAD ---" in captured.out
+
+        assert "Dry run mode: Azure OpenAI API not called" in result
 
 
 class TestLLMFactory:

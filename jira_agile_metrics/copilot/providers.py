@@ -67,9 +67,10 @@ class OpenAIProvider(LLMProvider):
         self.api_base = config.get("api_base", "https://api.openai.com/v1")
         self.max_tokens = config.get("max_tokens", 2000)
         self.temperature = config.get("temperature", 0.1)
+        self.dry_run = config.get("dry_run", False)
 
     def generate_insights(self, prompt: str, context: Dict) -> str:
-        if not self.api_key:
+        if not self.api_key and not self.dry_run:
             raise ValueError(
                 "OpenAI API key not found. Set OPENAI_API_KEY environment variable."
             )
@@ -91,6 +92,12 @@ class OpenAIProvider(LLMProvider):
             "temperature": self.temperature,
             "max_tokens": self.max_tokens,
         }
+
+        if self.dry_run:
+            print("--- PAYLOAD (OpenAI) ---")
+            print(json.dumps(payload, indent=2))
+            print("--- END PAYLOAD ---")
+            return "Dry run mode: OpenAI API not called."
 
         logger.debug(f"Calling OpenAI API with model {self.model}")
 
@@ -126,9 +133,10 @@ class AnthropicProvider(LLMProvider):
         )
         self.model = config.get("model", "claude-3-5-sonnet-20241022")
         self.max_tokens = config.get("max_tokens", 2000)
+        self.dry_run = config.get("dry_run", False)
 
     def generate_insights(self, prompt: str, context: Dict) -> str:
-        if not self.api_key:
+        if not self.api_key and not self.dry_run:
             raise ValueError(
                 "Anthropic API key not found. Set ANTHROPIC_API_KEY environment variable."
             )
@@ -147,6 +155,12 @@ class AnthropicProvider(LLMProvider):
             "max_tokens": self.max_tokens,
             "messages": [{"role": "user", "content": full_prompt}],
         }
+
+        if self.dry_run:
+            print("--- PAYLOAD (Anthropic) ---")
+            print(json.dumps(payload, indent=2))
+            print("--- END PAYLOAD ---")
+            return "Dry run mode: Anthropic API not called."
 
         logger.debug(f"Calling Anthropic API with model {self.model}")
 
@@ -187,9 +201,12 @@ class AzureOpenAIProvider(LLMProvider):
         )  # In Azure, this is the deployment name
         self.max_tokens = config.get("max_tokens", 2000)
         self.temperature = config.get("temperature", 0.1)
+        self.dry_run = config.get("dry_run", False)
 
     def generate_insights(self, prompt: str, context: Dict) -> str:
-        if not self.api_key or not self.api_base or not self.deployment_name:
+        if (
+            not self.api_key or not self.api_base or not self.deployment_name
+        ) and not self.dry_run:
             raise ValueError(
                 "Azure OpenAI requires api_key, api_base, and deployment name (model)."
             )
@@ -209,6 +226,13 @@ class AzureOpenAIProvider(LLMProvider):
         }
 
         url = f"{self.api_base}/openai/deployments/{self.deployment_name}/chat/completions?api-version={self.api_version}"
+
+        if self.dry_run:
+            print("--- PAYLOAD (Azure OpenAI) ---")
+            print(f"URL: {url}")
+            print(json.dumps(payload, indent=2))
+            print("--- END PAYLOAD ---")
+            return "Dry run mode: Azure OpenAI API not called."
 
         logger.debug(
             f"Calling Azure OpenAI API with deployment {self.deployment_name}"

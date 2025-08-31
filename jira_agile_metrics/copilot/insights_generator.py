@@ -28,6 +28,13 @@ class InsightsGenerator:
                 context = json.load(f)
 
             prompt = self._build_daily_insights_prompt(context)
+
+            if self.config.get("dry_run", False):
+                print("--- PROMPT ---")
+                print(prompt)
+                print("--- END PROMPT ---")
+                return "Dry run mode: Insights not generated."
+
             insights = self.llm.generate_insights(prompt, context)
 
             # Format and save insights

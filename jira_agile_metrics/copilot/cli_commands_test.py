@@ -119,6 +119,20 @@ class TestAIInsightsCommand:
         assert is_valid is False
         assert "Context file not found" in error
 
+    def test_validate_prerequisites_skips_validation_on_dry_run(self):
+        # Config is invalid, but should pass with dry_run
+        ai_config = {"provider": "openai", "dry_run": True}
+        command = AIInsightsCommand(ai_config)
+
+        with patch(
+            "jira_agile_metrics.copilot.cli_commands.AIConfigValidator.validate",
+        ) as mock_validate, patch("os.path.exists", return_value=True):
+            is_valid, error = command.validate_prerequisites("context.json")
+
+        assert is_valid is True
+        assert error == ""
+        mock_validate.assert_not_called()
+
     @patch("jira_agile_metrics.copilot.cli_commands.InsightsGenerator")
     def test_generate_insights_success(self, mock_insights_generator_class):
         mock_generator = Mock()
@@ -200,6 +214,18 @@ class TestCreateAIConfigFromSettingsAndArgs:
         # Should use settings values
         assert result["provider"] == "openai"
         assert result["model"] == "gpt-4o"
+
+    def test_dry_run_arg(self):
+        settings = {"ai": {"provider": "openai"}}
+        args = Mock()
+        args.ai_provider = None
+        args.ai_model = None
+        args.dry_run = True
+
+        result = create_ai_config_from_settings_and_args(settings, args)
+
+        assert result["provider"] == "openai"
+        assert result["dry_run"] is True
 
 
 class TestIntegration:

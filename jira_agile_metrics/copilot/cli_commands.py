@@ -41,11 +41,12 @@ class AIInsightsCommand:
 
     def validate_prerequisites(self, context_file: str) -> Tuple[bool, str]:
         """Check if all prerequisites are met. Returns (is_valid, error_message)."""
-        # Validate AI configuration
-        validator = AIConfigValidator(self.ai_config)
-        is_valid, errors = validator.validate()
-        if not is_valid:
-            return False, f"AI Configuration Errors: {'; '.join(errors)}"
+        # Validate AI configuration, skipping if in dry-run mode
+        if not self.ai_config.get("dry_run", False):
+            validator = AIConfigValidator(self.ai_config)
+            is_valid, errors = validator.validate()
+            if not is_valid:
+                return False, f"AI Configuration Errors: {'; '.join(errors)}"
 
         # Check context file exists
         if not os.path.exists(context_file):
@@ -95,5 +96,7 @@ def create_ai_config_from_settings_and_args(settings: Dict, args) -> Dict:
         ai_config["provider"] = args.ai_provider
     if hasattr(args, "ai_model") and args.ai_model:
         ai_config["model"] = args.ai_model
+    if hasattr(args, "dry_run") and args.dry_run:
+        ai_config["dry_run"] = args.dry_run
 
     return ai_config

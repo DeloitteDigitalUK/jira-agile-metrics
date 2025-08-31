@@ -137,6 +137,11 @@ def configure_argument_parser():
         action="store_true",
         help="Validate AI configuration and exit",
     )
+    parser.add_argument(
+        "--dry-run",
+        action="store_true",
+        help="Print AI prompts and payloads without making API calls. For use with --generate-insights.",
+    )
 
     # Date override for testing and historical analysis
     parser.add_argument(
