@@ -1,5 +1,4 @@
 import logging
-import datetime
 import dateutil.parser
 
 import pandas as pd

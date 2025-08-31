@@ -1,6 +1,5 @@
 import json
 import logging
-import datetime
 import dateutil
 import pandas as pd
 from ..trello import TrelloClient

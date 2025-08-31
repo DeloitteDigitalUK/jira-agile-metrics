@@ -18,9 +18,9 @@ from __future__ import annotations
 import json
 import os
 import warnings
-import pandas as pd
-from typing import List
 import logging
+import pandas as pd
+from typing import List, Dict
 
 logger = logging.getLogger(__name__)
 
@@ -33,6 +33,8 @@ HEADER_RENAME = {
     "Resolution": "resolution",
     "Blocked Days": "blocked_days",
 }
+
+
 
 
 def _parse_dates_robust(date_series: pd.Series) -> pd.Series:
@@ -67,7 +69,7 @@ def _parse_dates_robust(date_series: pd.Series) -> pd.Series:
         if _parsing_success_rate(result) > 0.8:  # 80% success threshold
             logger.debug("Parsed dates using ISO format (YYYY-MM-DD)")
             return result
-    except:
+    except (ValueError, TypeError):
         pass
     
     # Try DD/MM/YYYY format (European/UK)
@@ -76,7 +78,7 @@ def _parse_dates_robust(date_series: pd.Series) -> pd.Series:
         if _parsing_success_rate(result) > 0.8:
             logger.debug("Parsed dates using DD/MM/YYYY format")
             return result
-    except:
+    except (ValueError, TypeError):
         pass
     
     # Try MM/DD/YYYY format (US)
@@ -85,7 +87,7 @@ def _parse_dates_robust(date_series: pd.Series) -> pd.Series:
         if _parsing_success_rate(result) > 0.8:
             logger.debug("Parsed dates using MM/DD/YYYY format")
             return result
-    except:
+    except (ValueError, TypeError):
         pass
     
     # Try default pandas parsing (handles many formats automatically)
@@ -96,7 +98,7 @@ def _parse_dates_robust(date_series: pd.Series) -> pd.Series:
         if _parsing_success_rate(result) > 0.5:  # Lower threshold for default parsing
             logger.debug("Parsed dates using pandas default parsing")
             return result
-    except:
+    except (ValueError, TypeError):
         pass
     
     # Final fallback with dayfirst=True for ambiguous cases
