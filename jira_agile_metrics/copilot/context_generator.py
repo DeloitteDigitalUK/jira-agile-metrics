@@ -366,11 +366,13 @@ class AIContextGenerator(Calculator):
             # Analyze by issue type if available
             patterns = {}
             if "issue_type" in completed_items.columns:
-                type_analysis = (
-                    completed_items.groupby("issue_type")["cycle_time"]
-                    .agg(["count", "mean", "median", "std"])
-                    .round(2)
+                # Convert to days before aggregation to avoid Timedelta rounding issues
+                completed_items["cycle_time_days"] = (
+                    completed_items["cycle_time"] / pd.Timedelta(days=1)
                 )
+                type_analysis = completed_items.groupby("issue_type")[
+                    "cycle_time_days"
+                ].agg(["count", "mean", "median", "std"])
                 patterns["by_issue_type"] = type_analysis.to_dict("index")
 
             # Analyze recent vs historical performance
