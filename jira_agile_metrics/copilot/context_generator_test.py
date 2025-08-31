@@ -51,12 +51,16 @@ class TestAIContextGenerator:
         assert generator._results == {}
 
     def test_run_generates_flow_context(
-        self, mock_query_manager, test_settings
+        self, mock_query_manager, test_settings, tmp_path
     ):
         # Mock cycle time data in results to avoid "no data" error
         from jira_agile_metrics.calculators.cycletime import (
             CycleTimeCalculator,
         )
+
+        # Use tmp_path for the output file
+        output_file = tmp_path / "ai-context.json"
+        test_settings["ai_context_file"] = str(output_file)
 
         mock_cycle_data = pd.DataFrame(
             [{"key": "PROJ-123", "cycle_time": 5.0}]
