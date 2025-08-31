@@ -37,7 +37,7 @@ def get_current_time():
     """Get current time, respecting any global override for testing with historical data."""
     if _current_time_override is not None:
         return _current_time_override
-    return datetime.datetime.utcnow()
+    return datetime.datetime.now(datetime.UTC)
 
 
 def get_current_date():

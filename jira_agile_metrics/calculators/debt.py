@@ -81,7 +81,7 @@ class DebtCalculator(Calculator):
                 (
                     resolved_date.replace(tzinfo=None)
                     if resolved_date is not None
-                    else now
+                    else now.replace(tzinfo=None)
                 )
                 - created_date.replace(tzinfo=None)
             )
