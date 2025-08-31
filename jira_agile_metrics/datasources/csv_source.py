@@ -2,9 +2,11 @@
 CSV-backed data source for offline operation.
 Provides precomputed cycle-time data for calculators via QueryManager.
 """
+
 from __future__ import annotations
 
-from typing import Optional, Dict
+from typing import Dict, Optional
+
 import pandas as pd
 
 from .offline_loader import load_cycle_data_from_file

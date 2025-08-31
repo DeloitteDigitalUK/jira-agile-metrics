@@ -1,10 +1,10 @@
 import logging
-import pandas as pd
+
 import matplotlib.pyplot as plt
+import pandas as pd
 
 from ..calculator import Calculator
 from ..utils import set_chart_style
-
 from .cfd import CFDCalculator
 
 logger = logging.getLogger(__name__)
@@ -47,9 +47,7 @@ class BurnupCalculator(Calculator):
 
             # Re-check after slicing for window
             if len(chart_data.index) == 0:
-                logger.warning(
-                    "Unable to draw burnup chart with no data items"
-                )
+                logger.warning("Unable to draw burnup chart with no data items")
                 return
 
         fig, ax = plt.subplots()
@@ -71,9 +69,7 @@ class BurnupCalculator(Calculator):
         # Place legend underneath graph
         box = ax.get_position()
         handles, labels = ax.get_legend_handles_labels()
-        ax.set_position(
-            [box.x0, box.y0 + box.height * 0.1, box.width, box.height * 0.9]
-        )
+        ax.set_position([box.x0, box.y0 + box.height * 0.1, box.width, box.height * 0.9])
 
         ax.legend(
             handles[:2],

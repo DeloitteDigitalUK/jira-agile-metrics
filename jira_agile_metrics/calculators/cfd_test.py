@@ -1,10 +1,9 @@
 import pytest
 from pandas import DataFrame, Timestamp
 
-from .cycletime import CycleTimeCalculator
-from .cfd import CFDCalculator
-
 from ..utils import extend_dict
+from .cfd import CFDCalculator
+from .cycletime import CycleTimeCalculator
 
 
 @pytest.fixture
@@ -32,9 +31,7 @@ def test_empty(query_manager, settings, columns):
 
 
 def test_columns(query_manager, settings, minimal_cycle_time_results):
-    calculator = CFDCalculator(
-        query_manager, settings, minimal_cycle_time_results
-    )
+    calculator = CFDCalculator(query_manager, settings, minimal_cycle_time_results)
 
     data = calculator.run()
 
@@ -48,9 +45,7 @@ def test_columns(query_manager, settings, minimal_cycle_time_results):
 
 
 def test_calculate_cfd(query_manager, settings, minimal_cycle_time_results):
-    calculator = CFDCalculator(
-        query_manager, settings, minimal_cycle_time_results
-    )
+    calculator = CFDCalculator(query_manager, settings, minimal_cycle_time_results)
 
     data = calculator.run()
 

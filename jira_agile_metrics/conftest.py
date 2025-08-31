@@ -1,15 +1,12 @@
 import pytest
-from pandas import DataFrame, Timestamp, NaT
-
-from mock import Mock
 import trello
+from mock import Mock
+from pandas import DataFrame, NaT, Timestamp
 
+from .calculators.cfd import CFDCalculator
+from .calculators.cycletime import CycleTimeCalculator
 from .querymanager import QueryManager
 from .utils import extend_dict
-
-from .calculators.cycletime import CycleTimeCalculator
-from .calculators.cfd import CFDCalculator
-
 
 # Fake a portion of the JIRA API
 
@@ -83,11 +80,7 @@ class FauxJIRA(object):
         return self._fields
 
     def search_issues(self, jql, *args, **kwargs):
-        return (
-            self._issues
-            if self._filter is None
-            else [i for i in self._issues if self._filter(i, jql)]
-        )
+        return self._issues if self._filter is None else [i for i in self._issues if self._filter(i, jql)]
 
 
 # Fixtures
@@ -252,22 +245,14 @@ def _issues(issues):
                     "Test"
                     if i["Test"] is not NaT
                     else (
-                        "Build"
-                        if i["Build"] is not NaT
-                        else (
-                            "Committed"
-                            if i["Committed"] is not NaT
-                            else "Backlog"
-                        )
+                        "Build" if i["Build"] is not NaT else ("Committed" if i["Committed"] is not NaT else "Backlog")
                     )
                 )
             ),
             "resoluton": "Done" if i["Done"] is not NaT else None,
             "completed_timestamp": i["Done"] if i["Done"] is not NaT else None,
             "cycle_time": (
-                (i["Done"] - i["Committed"])
-                if (i["Done"] is not NaT and i["Committed"] is not NaT)
-                else None
+                (i["Done"] - i["Committed"]) if (i["Done"] is not NaT and i["Committed"] is not NaT) else None
             ),
             "blocked_days": i.get("blocked_days", 0),
             "impediments": i.get("impediments", []),
@@ -555,9 +540,7 @@ def mock_trello_api(mocker):
 
     mock_api = Mock(spec=trello.TrelloApi)
     mock_members = Mock(spec=trello.members)
-    mock_members.get_board = Mock(
-        return_value=[{"name": "my_board", "id": "my_id"}]
-    )
+    mock_members.get_board = Mock(return_value=[{"name": "my_board", "id": "my_id"}])
     mock_api.members = mock_members
 
     mock_cards = Mock(spec=trello.cards)

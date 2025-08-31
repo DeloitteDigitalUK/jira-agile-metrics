@@ -1,11 +1,11 @@
-import pytest
 import datetime
+
+import pytest
 from pandas import DataFrame, Timestamp, date_range
 
+from ..utils import extend_dict
 from .cfd import CFDCalculator
 from .netflow import NetFlowChartCalculator
-
-from ..utils import extend_dict
 
 
 @pytest.fixture
@@ -37,11 +37,7 @@ def results(query_manager, settings, large_cycle_time_results):
 
     return extend_dict(
         large_cycle_time_results,
-        {
-            CFDCalculator: CFDCalculator(
-                query_manager, settings, large_cycle_time_results
-            ).run()
-        },
+        {CFDCalculator: CFDCalculator(query_manager, settings, large_cycle_time_results).run()},
     )
 
 
@@ -50,9 +46,7 @@ def test_empty(query_manager, settings, minimal_cycle_time_columns):
         CFDCalculator: DataFrame(
             [],
             columns=["Backlog", "Committed", "Build", "Test", "Done"],
-            index=date_range(
-                start=datetime.date(2018, 1, 1), periods=0, freq="D"
-            ),
+            index=date_range(start=datetime.date(2018, 1, 1), periods=0, freq="D"),
         )
     }
 
@@ -101,9 +95,7 @@ def test_calculate_net_flow(query_manager, settings, results):
         Timestamp("2018-01-09 00:00:00").to_period("D").to_timestamp(),
     ]
 
-    assert data[["arrivals", "departures", "net_flow", "positive"]].to_dict(
-        "records"
-    ) == [
+    assert data[["arrivals", "departures", "net_flow", "positive"]].to_dict("records") == [
         {
             "arrivals": 0.0,
             "departures": 0.0,
@@ -161,9 +153,7 @@ def test_calculate_net_flow(query_manager, settings, results):
     ]
 
 
-def test_calculate_net_flow_different_columns(
-    query_manager, settings, results
-):
+def test_calculate_net_flow_different_columns(query_manager, settings, results):
 
     settings.update(
         {
@@ -188,9 +178,7 @@ def test_calculate_net_flow_different_columns(
         Timestamp("2018-01-09 00:00:00").to_period("D").to_timestamp(),
     ]
 
-    assert data[["arrivals", "departures", "net_flow", "positive"]].to_dict(
-        "records"
-    ) == [
+    assert data[["arrivals", "departures", "net_flow", "positive"]].to_dict("records") == [
         {
             "arrivals": 0.0,
             "departures": 0.0,

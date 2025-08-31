@@ -4,19 +4,14 @@ Unit tests for CLI command handlers.
 
 import os
 from unittest.mock import Mock, patch
-from .cli_commands import (
-    AIConfigValidator,
-    AIInsightsCommand,
-    create_ai_config_from_settings_and_args,
-)
+
+from .cli_commands import AIConfigValidator, AIInsightsCommand, create_ai_config_from_settings_and_args
 
 
 class TestAIConfigValidator:
     """Test AI configuration validator."""
 
-    @patch(
-        "jira_agile_metrics.copilot.cli_commands.LLMFactory.validate_provider_config"
-    )
+    @patch("jira_agile_metrics.copilot.cli_commands.LLMFactory.validate_provider_config")
     def test_validate_success(self, mock_validate):
         mock_validate.return_value = []  # No errors
 
@@ -29,9 +24,7 @@ class TestAIConfigValidator:
         assert errors == []
         mock_validate.assert_called_once_with(config)
 
-    @patch(
-        "jira_agile_metrics.copilot.cli_commands.LLMFactory.validate_provider_config"
-    )
+    @patch("jira_agile_metrics.copilot.cli_commands.LLMFactory.validate_provider_config")
     def test_validate_errors(self, mock_validate):
         mock_validate.return_value = ["API key not found", "Invalid model"]
 
@@ -44,9 +37,7 @@ class TestAIConfigValidator:
         assert len(errors) == 2
         assert "API key not found" in errors
 
-    @patch(
-        "jira_agile_metrics.copilot.cli_commands.LLMFactory.list_available_providers"
-    )
+    @patch("jira_agile_metrics.copilot.cli_commands.LLMFactory.list_available_providers")
     def test_get_config_summary(self, mock_list_providers):
         mock_list_providers.return_value = ["openai", "anthropic"]
 
@@ -67,17 +58,13 @@ class TestAIInsightsCommand:
         ai_config = {"provider": "openai", "model": "gpt-4o"}
         command = AIInsightsCommand(ai_config)
 
-        with patch(
-            "jira_agile_metrics.copilot.cli_commands.AIConfigValidator"
-        ) as mock_validator_class:
+        with patch("jira_agile_metrics.copilot.cli_commands.AIConfigValidator") as mock_validator_class:
             mock_validator = Mock()
             mock_validator.validate.return_value = (True, [])
             mock_validator_class.return_value = mock_validator
 
             with patch("os.path.exists", return_value=True):
-                is_valid, error = command.validate_prerequisites(
-                    "context.json"
-                )
+                is_valid, error = command.validate_prerequisites("context.json")
 
         assert is_valid is True
         assert error == ""
@@ -86,9 +73,7 @@ class TestAIInsightsCommand:
         ai_config = {}  # Invalid config
         command = AIInsightsCommand(ai_config)
 
-        with patch(
-            "jira_agile_metrics.copilot.cli_commands.AIConfigValidator"
-        ) as mock_validator_class:
+        with patch("jira_agile_metrics.copilot.cli_commands.AIConfigValidator") as mock_validator_class:
             mock_validator = Mock()
             mock_validator.validate.return_value = (
                 False,
@@ -105,17 +90,13 @@ class TestAIInsightsCommand:
         ai_config = {"provider": "openai"}
         command = AIInsightsCommand(ai_config)
 
-        with patch(
-            "jira_agile_metrics.copilot.cli_commands.AIConfigValidator"
-        ) as mock_validator_class:
+        with patch("jira_agile_metrics.copilot.cli_commands.AIConfigValidator") as mock_validator_class:
             mock_validator = Mock()
             mock_validator.validate.return_value = (True, [])
             mock_validator_class.return_value = mock_validator
 
             with patch("os.path.exists", return_value=False):
-                is_valid, error = command.validate_prerequisites(
-                    "missing.json"
-                )
+                is_valid, error = command.validate_prerequisites("missing.json")
 
         assert is_valid is False
         assert "Context file not found" in error
@@ -137,17 +118,13 @@ class TestAIInsightsCommand:
     @patch("jira_agile_metrics.copilot.cli_commands.InsightsGenerator")
     def test_generate_insights_success(self, mock_insights_generator_class):
         mock_generator = Mock()
-        mock_generator.generate_daily_insights.return_value = (
-            "# Daily Briefing\nTest insights content"
-        )
+        mock_generator.generate_daily_insights.return_value = "# Daily Briefing\nTest insights content"
         mock_insights_generator_class.return_value = mock_generator
 
         ai_config = {"provider": "openai"}
         command = AIInsightsCommand(ai_config)
 
-        success, message, preview = command.generate_insights(
-            "context.json", "output.md"
-        )
+        success, message, preview = command.generate_insights("context.json", "output.md")
 
         assert success is True
         assert "Daily insights generated" in message
@@ -175,16 +152,12 @@ class TestAIInsightsCommand:
         # Verify that the generator was called with correctly joined paths
         expected_context_path = os.path.join(output_dir, context_filename)
         expected_insights_path = os.path.join(output_dir, insights_filename)
-        mock_generator.generate_daily_insights.assert_called_once_with(
-            expected_context_path, expected_insights_path
-        )
+        mock_generator.generate_daily_insights.assert_called_once_with(expected_context_path, expected_insights_path)
 
     @patch("jira_agile_metrics.copilot.cli_commands.InsightsGenerator")
     def test_generate_insights_error(self, mock_insights_generator_class):
         mock_generator = Mock()
-        mock_generator.generate_daily_insights.side_effect = Exception(
-            "AI service unavailable"
-        )
+        mock_generator.generate_daily_insights.side_effect = Exception("AI service unavailable")
         mock_insights_generator_class.return_value = mock_generator
 
         ai_config = {"provider": "openai"}
@@ -201,9 +174,7 @@ class TestCreateAIConfigFromSettingsAndArgs:
     """Test AI config creation from settings and args."""
 
     def test_uses_settings_without_overrides(self):
-        settings = {
-            "ai": {"provider": "openai", "model": "gpt-4o", "temperature": 0.3}
-        }
+        settings = {"ai": {"provider": "openai", "model": "gpt-4o", "temperature": 0.3}}
 
         args = Mock()
         args.dry_run = False
@@ -253,32 +224,22 @@ class TestIntegration:
         command = AIInsightsCommand(ai_config)
 
         # Mock all dependencies
-        with patch(
-            "jira_agile_metrics.copilot.cli_commands.AIConfigValidator"
-        ) as mock_validator_class:
+        with patch("jira_agile_metrics.copilot.cli_commands.AIConfigValidator") as mock_validator_class:
             mock_validator = Mock()
             mock_validator.validate.return_value = (True, [])
             mock_validator_class.return_value = mock_validator
 
             with patch("os.path.exists", return_value=True):
-                with patch(
-                    "jira_agile_metrics.copilot.cli_commands.InsightsGenerator"
-                ) as mock_gen_class:
+                with patch("jira_agile_metrics.copilot.cli_commands.InsightsGenerator") as mock_gen_class:
                     mock_generator = Mock()
-                    mock_generator.generate_daily_insights.return_value = (
-                        "Test insights"
-                    )
+                    mock_generator.generate_daily_insights.return_value = "Test insights"
                     mock_gen_class.return_value = mock_generator
 
                     # Validate prerequisites
-                    is_valid, error = command.validate_prerequisites(
-                        "context.json"
-                    )
+                    is_valid, error = command.validate_prerequisites("context.json")
                     assert is_valid is True
 
                     # Generate insights
-                    success, message, preview = command.generate_insights(
-                        "context.json", "insights.md"
-                    )
+                    success, message, preview = command.generate_insights("context.json", "insights.md")
                     assert success is True
                     assert "Test insights" in preview

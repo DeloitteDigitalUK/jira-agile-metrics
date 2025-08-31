@@ -3,11 +3,12 @@ CLI command implementations for AI copilot functionality.
 Separates business logic from console output formatting.
 """
 
-import os
 import logging
+import os
 from typing import Dict, List, Tuple
-from .providers import LLMFactory
+
 from .insights_generator import InsightsGenerator
+from .providers import LLMFactory
 
 logger = logging.getLogger(__name__)
 
@@ -64,9 +65,7 @@ class AIInsightsCommand:
 
         return True, ""
 
-    def generate_insights(
-        self, context_file: str, output_file: str
-    ) -> Tuple[bool, str, str]:
+    def generate_insights(self, context_file: str, output_file: str) -> Tuple[bool, str, str]:
         """
         Generate AI insights.
         Returns (success, result_message, preview_text).
@@ -74,26 +73,18 @@ class AIInsightsCommand:
         try:
             # Get full paths for context and output files
             context_file_path = self._get_context_file_path(context_file)
-            output_file_path = (
-                os.path.join(self.output_dir, output_file)
-                if self.output_dir
-                else output_file
-            )
+            output_file_path = os.path.join(self.output_dir, output_file) if self.output_dir else output_file
 
             # Generate insights
             generator = InsightsGenerator(self.ai_config)
-            insights = generator.generate_daily_insights(
-                context_file_path, output_file_path
-            )
+            insights = generator.generate_daily_insights(context_file_path, output_file_path)
 
             # Handle dry run case
             if self.ai_config.get("dry_run", False):
                 return True, f"Dry run complete. Would write insights to: {output_file_path}", insights
 
             # Create preview for actual insights
-            preview = (
-                insights[:500] + "..." if len(insights) > 500 else insights
-            )
+            preview = insights[:500] + "..." if len(insights) > 500 else insights
 
             return True, f"Daily insights generated: {output_file_path}", preview
 

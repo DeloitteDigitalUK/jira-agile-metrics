@@ -1,10 +1,9 @@
 import pytest
 from pandas import DataFrame, Timestamp
 
-from .cfd import CFDCalculator
-from .burnup import BurnupCalculator
-
 from ..utils import extend_dict
+from .burnup import BurnupCalculator
+from .cfd import CFDCalculator
 
 
 @pytest.fixture
@@ -63,9 +62,7 @@ def test_calculate_burnup(query_manager, settings, results):
     ]
 
 
-def test_calculate_burnup_with_different_columns(
-    query_manager, settings, results
-):
+def test_calculate_burnup_with_different_columns(query_manager, settings, results):
     settings.update({"backlog_column": "Committed", "done_column": "Test"})
 
     calculator = BurnupCalculator(query_manager, settings, results)

@@ -1,13 +1,12 @@
 import logging
+
+import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-import matplotlib.pyplot as plt
 import seaborn as sns
 
 from ..calculator import Calculator
-from ..utils import get_current_timestamp
-from ..utils import set_chart_style
-
+from ..utils import get_current_timestamp, set_chart_style
 from .cycletime import CycleTimeCalculator
 
 logger = logging.getLogger(__name__)
@@ -29,9 +28,7 @@ class AgeingWIPChartCalculator(Calculator):
         done_column = self.settings["done_column"]
         last_active_column = cycle_names[cycle_names.index(done_column) - 1]
 
-        today = (
-            get_current_timestamp().date() if today is None else today
-        )  # to allow testing
+        today = get_current_timestamp().date() if today is None else today  # to allow testing
 
         # remove items that are done
         ageing_wip_data = cycle_data[pd.isnull(cycle_data[done_column])].copy()
@@ -54,15 +51,11 @@ class AgeingWIPChartCalculator(Calculator):
                 return np.nan
             return (today - started.date()).days
 
-        ageing_wip_data["status"] = ageing_wip_data.apply(
-            extract_status, axis=1
-        )
+        ageing_wip_data["status"] = ageing_wip_data.apply(extract_status, axis=1)
         ageing_wip_data["age"] = ageing_wip_data.apply(extract_age, axis=1)
 
         # remove blank rows
-        ageing_wip_data.dropna(
-            how="any", inplace=True, subset=["status", "age"]
-        )
+        ageing_wip_data.dropna(how="any", inplace=True, subset=["status", "age"])
 
         # reorder columns so we get key, summary, status,
         # age, and then all the cycle stages
@@ -85,9 +78,7 @@ class AgeingWIPChartCalculator(Calculator):
         chart_data = self.get_result()
 
         if len(chart_data.index) == 0:
-            logger.warning(
-                "Unable to draw ageing WIP chart with zero completed items"
-            )
+            logger.warning("Unable to draw ageing WIP chart with zero completed items")
             return
 
         fig, ax = plt.subplots()
@@ -95,20 +86,12 @@ class AgeingWIPChartCalculator(Calculator):
         if self.settings["ageing_wip_chart_title"]:
             ax.set_title(self.settings["ageing_wip_chart_title"])
 
-        sns.stripplot(
-            x="status",
-            y="age",
-            order=chart_data.columns[4:],
-            data=chart_data,
-            ax=ax,
-            jitter=True,
-            alpha=0.7
-        )
+        sns.stripplot(x="status", y="age", order=chart_data.columns[4:], data=chart_data, ax=ax, jitter=True, alpha=0.7)
 
         ax.set_xlabel("Status")
         ax.set_ylabel("Age (days)")
 
-        ax.tick_params(axis='x', rotation=90)
+        ax.tick_params(axis="x", rotation=90)
 
         _, top = ax.get_ylim()
         ax.set_ylim(0, top)

@@ -1,10 +1,9 @@
 import pytest
 from pandas import DataFrame
 
+from ..utils import extend_dict
 from .cycletime import CycleTimeCalculator
 from .histogram import HistogramCalculator
-
-from ..utils import extend_dict
 
 
 @pytest.fixture
@@ -23,11 +22,7 @@ def results(large_cycle_time_results):
 
 
 def test_empty(query_manager, settings, minimal_cycle_time_columns):
-    results = {
-        CycleTimeCalculator: DataFrame(
-            [], columns=minimal_cycle_time_columns, index=[]
-        )
-    }
+    results = {CycleTimeCalculator: DataFrame([], columns=minimal_cycle_time_columns, index=[])}
 
     calculator = HistogramCalculator(query_manager, settings, results)
 

@@ -5,12 +5,12 @@ Focused on flow analysis rather than sprint-based metrics.
 
 import json
 import logging
-import datetime
+from typing import Dict, List
+
 import pandas as pd
 
-from ..utils import get_extension, get_current_timestamp, get_current_time
-from typing import Dict, List
 from ..calculator import Calculator
+from ..utils import get_current_time, get_current_timestamp
 
 logger = logging.getLogger(__name__)
 
@@ -31,9 +31,7 @@ class AIContextGenerator(Calculator):
 
         cycle_data = self._results.get(CycleTimeCalculator)
         if cycle_data is None:
-            logger.error(
-                "No cycle time data available for AI context generation"
-            )
+            logger.error("No cycle time data available for AI context generation")
             return {}
 
         self.context_data = {
@@ -43,9 +41,7 @@ class AIContextGenerator(Calculator):
             "throughput_trends": self._analyze_throughput_trends(),
             "wip_stability": self._analyze_wip_stability(),
             "bottleneck_detection": self._detect_bottlenecks(),
-            "cycle_time_patterns": self._analyze_cycle_time_patterns(
-                cycle_data
-            ),
+            "cycle_time_patterns": self._analyze_cycle_time_patterns(cycle_data),
             "actionable_items": self._identify_actionable_items(cycle_data),
         }
 
@@ -92,25 +88,12 @@ class AIContextGenerator(Calculator):
 
         return {
             "total_completed_items": len(completed_items),
-            "avg_cycle_time": (
-                float(cycle_times_days.mean()) if not cycle_times_days.empty else 0
-            ),
-            "median_cycle_time": (
-                float(cycle_times_days.median()) if not cycle_times_days.empty else 0
-            ),
-            "cycle_time_std": (
-                float(cycle_times_days.std()) if not cycle_times_days.empty else 0
-            ),
-            "percentile_85": (
-                float(cycle_times_days.quantile(0.85))
-                if not cycle_times_days.empty
-                else 0
-            ),
+            "avg_cycle_time": (float(cycle_times_days.mean()) if not cycle_times_days.empty else 0),
+            "median_cycle_time": (float(cycle_times_days.median()) if not cycle_times_days.empty else 0),
+            "cycle_time_std": (float(cycle_times_days.std()) if not cycle_times_days.empty else 0),
+            "percentile_85": (float(cycle_times_days.quantile(0.85)) if not cycle_times_days.empty else 0),
             "predictability_ratio": (
-                float(
-                    cycle_times_days.quantile(0.85)
-                    / cycle_times_days.median()
-                )
+                float(cycle_times_days.quantile(0.85) / cycle_times_days.median())
                 if not cycle_times_days.empty and cycle_times_days.median() > 0
                 else 0
             ),
@@ -121,9 +104,7 @@ class AIContextGenerator(Calculator):
         from ..calculators.ageingwip import AgeingWIPChartCalculator
 
         try:
-            ageing_calc = AgeingWIPChartCalculator(
-                self.query_manager, self.settings, self._results
-            )
+            ageing_calc = AgeingWIPChartCalculator(self.query_manager, self.settings, self._results)
             ageing_data = ageing_calc.run()
 
             if ageing_data is None or ageing_data.empty:
@@ -137,9 +118,7 @@ class AIContextGenerator(Calculator):
             avg_age = float(ages.mean())
 
             # Identify stuck items (age > 2x average)
-            stuck_threshold = (
-                avg_age * 2 if avg_age > 0 else 14
-            )  # fallback to 2 weeks
+            stuck_threshold = avg_age * 2 if avg_age > 0 else 14  # fallback to 2 weeks
             stuck_items = ageing_data[ageing_data["age"] > stuck_threshold]
 
             return {
@@ -150,21 +129,13 @@ class AIContextGenerator(Calculator):
                 "stuck_items": [
                     {
                         "key": row["key"],
-                        "summary": (
-                            row["summary"][:100]
-                            if pd.notna(row.get("summary"))
-                            else "No summary"
-                        ),
+                        "summary": (row["summary"][:100] if pd.notna(row.get("summary")) else "No summary"),
                         "status": row["status"],
                         "age_days": int(row["age"]),
                     }
-                    for _, row in stuck_items.head(
-                        10
-                    ).iterrows()  # limit to top 10
+                    for _, row in stuck_items.head(10).iterrows()  # limit to top 10
                 ],
-                "status_distribution": ageing_data["status"]
-                .value_counts()
-                .to_dict(),
+                "status_distribution": ageing_data["status"].value_counts().to_dict(),
             }
         except Exception as e:
             logger.warning(f"Error analyzing ageing WIP: {e}")
@@ -175,9 +146,7 @@ class AIContextGenerator(Calculator):
         from ..calculators.throughput import ThroughputCalculator
 
         try:
-            throughput_calc = ThroughputCalculator(
-                self.query_manager, self.settings, self._results
-            )
+            throughput_calc = ThroughputCalculator(self.query_manager, self.settings, self._results)
             throughput_data = throughput_calc.run()
 
             if throughput_data is None or throughput_data.empty:
@@ -189,24 +158,14 @@ class AIContextGenerator(Calculator):
             # Calculate trend metrics
             recent_period = throughput_data.tail(4)  # last 4 periods
             older_period = (
-                throughput_data.head(len(throughput_data) - 4)
-                if len(throughput_data) > 4
-                else throughput_data
+                throughput_data.head(len(throughput_data) - 4) if len(throughput_data) > 4 else throughput_data
             )
 
-            recent_avg = (
-                recent_period["count"].mean() if len(recent_period) > 0 else 0
-            )
-            historical_avg = (
-                older_period["count"].mean()
-                if len(older_period) > 0
-                else recent_avg
-            )
+            recent_avg = recent_period["count"].mean() if len(recent_period) > 0 else 0
+            historical_avg = older_period["count"].mean() if len(older_period) > 0 else recent_avg
 
             trend_direction = (
-                "improving"
-                if recent_avg > historical_avg
-                else "declining" if recent_avg < historical_avg else "stable"
+                "improving" if recent_avg > historical_avg else "declining" if recent_avg < historical_avg else "stable"
             )
 
             return {
@@ -225,13 +184,11 @@ class AIContextGenerator(Calculator):
 
     def _analyze_wip_stability(self) -> Dict:
         """Analyze WIP stability and net flow patterns."""
-        from ..calculators.wip import WIPChartCalculator
         from ..calculators.netflow import NetFlowChartCalculator
+        from ..calculators.wip import WIPChartCalculator
 
         try:
-            wip_calc = WIPChartCalculator(
-                self.query_manager, self.settings, self._results
-            )
+            wip_calc = WIPChartCalculator(self.query_manager, self.settings, self._results)
             wip_data = wip_calc.run()
 
             if wip_data is None or wip_data.empty:
@@ -241,9 +198,7 @@ class AIContextGenerator(Calculator):
                 }
 
             wip_values = wip_data["wip"]
-            current_wip = (
-                float(wip_values.iloc[-1]) if not wip_values.empty else 0
-            )
+            current_wip = float(wip_values.iloc[-1]) if not wip_values.empty else 0
             avg_wip = float(wip_values.mean())
             wip_trend = (
                 "increasing"
@@ -261,9 +216,7 @@ class AIContextGenerator(Calculator):
 
             # Add net flow analysis if available
             try:
-                netflow_calc = NetFlowChartCalculator(
-                    self.query_manager, self.settings, self._results
-                )
+                netflow_calc = NetFlowChartCalculator(self.query_manager, self.settings, self._results)
                 netflow_data = netflow_calc.run()
 
                 if netflow_data is not None and not netflow_data.empty:
@@ -274,11 +227,7 @@ class AIContextGenerator(Calculator):
                             "net_flow_trend": (
                                 "growing"
                                 if recent_netflow > 0.5
-                                else (
-                                    "shrinking"
-                                    if recent_netflow < -0.5
-                                    else "balanced"
-                                )
+                                else ("shrinking" if recent_netflow < -0.5 else "balanced")
                             ),
                         }
                     )
@@ -295,9 +244,7 @@ class AIContextGenerator(Calculator):
         from ..calculators.cfd import CFDCalculator
 
         try:
-            cfd_calc = CFDCalculator(
-                self.query_manager, self.settings, self._results
-            )
+            cfd_calc = CFDCalculator(self.query_manager, self.settings, self._results)
             cfd_data = cfd_calc.run()
 
             if cfd_data is None or cfd_data.empty:
@@ -312,25 +259,17 @@ class AIContextGenerator(Calculator):
 
             for stage in workflow_stages:
                 if stage in cfd_data.columns:
-                    stage_data = (
-                        cfd_data[stage].diff().tail(7)
-                    )  # last week's changes
+                    stage_data = cfd_data[stage].diff().tail(7)  # last week's changes
                     avg_growth = stage_data.mean()
                     stage_analysis[stage] = {
                         "avg_weekly_growth": float(avg_growth),
-                        "current_count": (
-                            float(cfd_data[stage].iloc[-1])
-                            if len(cfd_data) > 0
-                            else 0
-                        ),
+                        "current_count": (float(cfd_data[stage].iloc[-1]) if len(cfd_data) > 0 else 0),
                     }
 
             # Identify potential bottlenecks (stages with high growth)
             bottlenecks = []
             for stage, metrics in stage_analysis.items():
-                if (
-                    metrics["avg_weekly_growth"] > 2
-                ):  # growing by more than 2 items per week
+                if metrics["avg_weekly_growth"] > 2:  # growing by more than 2 items per week
                     bottlenecks.append(
                         {
                             "stage": stage,
@@ -353,9 +292,7 @@ class AIContextGenerator(Calculator):
 
         try:
             done_column = self.settings["done_column"]
-            completed_items = cycle_data[
-                pd.notna(cycle_data[done_column])
-            ].copy()
+            completed_items = cycle_data[pd.notna(cycle_data[done_column])].copy()
 
             if completed_items.empty:
                 return {
@@ -367,20 +304,16 @@ class AIContextGenerator(Calculator):
             patterns = {}
             if "issue_type" in completed_items.columns:
                 # Convert to days before aggregation to avoid Timedelta rounding issues
-                completed_items["cycle_time_days"] = (
-                    completed_items["cycle_time"] / pd.Timedelta(days=1)
+                completed_items["cycle_time_days"] = completed_items["cycle_time"] / pd.Timedelta(days=1)
+                type_analysis = completed_items.groupby("issue_type")["cycle_time_days"].agg(
+                    ["count", "mean", "median", "std"]
                 )
-                type_analysis = completed_items.groupby("issue_type")[
-                    "cycle_time_days"
-                ].agg(["count", "mean", "median", "std"])
                 patterns["by_issue_type"] = type_analysis.to_dict("index")
 
             # Analyze recent vs historical performance
             if len(completed_items) > 10:
                 recent_items = completed_items.tail(10)
-                historical_items = completed_items.head(
-                    len(completed_items) - 10
-                )
+                historical_items = completed_items.head(len(completed_items) - 10)
 
                 if pd.api.types.is_timedelta64_dtype(recent_items["cycle_time"]):
                     recent_avg = (recent_items["cycle_time"] / pd.Timedelta(days=1)).mean()
@@ -395,11 +328,7 @@ class AIContextGenerator(Calculator):
                     "trend": (
                         "improving"
                         if recent_avg < historical_avg
-                        else (
-                            "declining"
-                            if recent_avg > historical_avg
-                            else "stable"
-                        )
+                        else ("declining" if recent_avg > historical_avg else "stable")
                     ),
                 }
 
@@ -443,33 +372,21 @@ class AIContextGenerator(Calculator):
                 cycle_times = completed_items["cycle_time"].dropna()
                 if not cycle_times.empty:
                     if pd.api.types.is_timedelta64_dtype(cycle_times):
-                        outlier_threshold = (
-                            cycle_times.quantile(0.85) / pd.Timedelta(days=1)
-                        )
+                        outlier_threshold = cycle_times.quantile(0.85) / pd.Timedelta(days=1)
                     else:
                         outlier_threshold = cycle_times.quantile(0.85)
 
                     outliers = wip_items[wip_items["age"] > outlier_threshold]
 
-                    for _, item in outliers.head(
-                        5
-                    ).iterrows():  # top 5 outliers
+                    for _, item in outliers.head(5).iterrows():  # top 5 outliers
                         actionable_items.append(
                             {
                                 "key": item["key"],
-                                "summary": (
-                                    item["summary"][:100]
-                                    if pd.notna(item.get("summary"))
-                                    else "No summary"
-                                ),
+                                "summary": (item["summary"][:100] if pd.notna(item.get("summary")) else "No summary"),
                                 "age_days": int(item["age"]),
                                 "reason": "ageing_outlier",
                                 "threshold_exceeded": float(outlier_threshold),
-                                "priority": (
-                                    "high"
-                                    if item["age"] > outlier_threshold * 1.5
-                                    else "medium"
-                                ),
+                                "priority": ("high" if item["age"] > outlier_threshold * 1.5 else "medium"),
                             }
                         )
 

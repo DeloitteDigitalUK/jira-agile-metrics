@@ -1,26 +1,26 @@
-import logging
-import yaml
 import datetime
+import logging
 import os.path
 
+import yaml
 from pydicti import odicti
 
-from .calculators.cycletime import CycleTimeCalculator
-from .calculators.cfd import CFDCalculator
-from .calculators.scatterplot import ScatterplotCalculator
-from .calculators.histogram import HistogramCalculator
-from .calculators.percentiles import PercentilesCalculator
-from .calculators.throughput import ThroughputCalculator
-from .calculators.burnup import BurnupCalculator
-from .calculators.wip import WIPChartCalculator
-from .calculators.netflow import NetFlowChartCalculator
 from .calculators.ageingwip import AgeingWIPChartCalculator
-from .calculators.forecast import BurnupForecastCalculator
-from .calculators.impediments import ImpedimentsCalculator
+from .calculators.burnup import BurnupCalculator
+from .calculators.cfd import CFDCalculator
+from .calculators.cycletime import CycleTimeCalculator
 from .calculators.debt import DebtCalculator
 from .calculators.defects import DefectsCalculator
-from .calculators.waste import WasteCalculator
+from .calculators.forecast import BurnupForecastCalculator
+from .calculators.histogram import HistogramCalculator
+from .calculators.impediments import ImpedimentsCalculator
+from .calculators.netflow import NetFlowChartCalculator
+from .calculators.percentiles import PercentilesCalculator
 from .calculators.progressreport import ProgressReportCalculator
+from .calculators.scatterplot import ScatterplotCalculator
+from .calculators.throughput import ThroughputCalculator
+from .calculators.waste import WasteCalculator
+from .calculators.wip import WIPChartCalculator
 
 CALCULATORS = (
     CycleTimeCalculator,  # should come first
@@ -60,9 +60,7 @@ def ordered_load(stream, Loader=yaml.Loader, object_pairs_hook=odicti):
         loader.flatten_mapping(node)
         return object_pairs_hook(loader.construct_pairs(node))
 
-    OrderedLoader.add_constructor(
-        yaml.resolver.BaseResolver.DEFAULT_MAPPING_TAG, construct_mapping
-    )
+    OrderedLoader.add_constructor(yaml.resolver.BaseResolver.DEFAULT_MAPPING_TAG, construct_mapping)
 
     return yaml.load(stream, OrderedLoader)
 
@@ -126,14 +124,8 @@ def expand_key(key):
 def to_progress_report_teams_list(value):
     return [
         {
-            "name": (
-                val[expand_key("name")] if expand_key("name") in val else None
-            ),
-            "wip": (
-                force_int("wip", val[expand_key("wip")])
-                if expand_key("wip") in val
-                else 1
-            ),
+            "name": (val[expand_key("name")] if expand_key("name") in val else None),
+            "wip": (force_int("wip", val[expand_key("wip")]) if expand_key("wip") in val else 1),
             "min_throughput": (
                 force_int("min_throughput", val[expand_key("min_throughput")])
                 if expand_key("min_throughput") in val
@@ -145,9 +137,7 @@ def to_progress_report_teams_list(value):
                 else None
             ),
             "throughput_samples": (
-                val[expand_key("throughput_samples")]
-                if expand_key("throughput_samples") in val
-                else None
+                val[expand_key("throughput_samples")] if expand_key("throughput_samples") in val else None
             ),
             "throughput_samples_window": (
                 force_int(
@@ -165,22 +155,12 @@ def to_progress_report_teams_list(value):
 def to_progress_report_outcomes_list(value):
     return [
         {
-            "name": (
-                val[expand_key("name")] if expand_key("name") in val else None
-            ),
-            "key": (
-                val[expand_key("key")] if expand_key("key") in val else None
-            ),
+            "name": (val[expand_key("name")] if expand_key("name") in val else None),
+            "key": (val[expand_key("key")] if expand_key("key") in val else None),
             "deadline": (
-                force_date("deadline", val[expand_key("deadline")])
-                if expand_key("deadline") in val
-                else None
+                force_date("deadline", val[expand_key("deadline")]) if expand_key("deadline") in val else None
             ),
-            "epic_query": (
-                val[expand_key("epic_query")]
-                if expand_key("epic_query") in val
-                else None
-            ),
+            "epic_query": (val[expand_key("epic_query")] if expand_key("epic_query") in val else None),
         }
         for val in value
     ]
@@ -323,16 +303,11 @@ def config_to_options(data, cwd=None, extended=False):
             raise ConfigError("`extends` is not supported here.")
 
         extends_filename = os.path.abspath(
-            os.path.normpath(
-                os.path.join(cwd, config["extends"].replace("/", os.path.sep))
-            )
+            os.path.normpath(os.path.join(cwd, config["extends"].replace("/", os.path.sep)))
         )
 
         if not os.path.exists(extends_filename):
-            raise ConfigError(
-                "File `%s` referenced in `extends` not found."
-                % extends_filename
-            ) from None
+            raise ConfigError("File `%s` referenced in `extends` not found." % extends_filename) from None
 
         logger.debug("Extending file %s" % extends_filename)
         with open(extends_filename) as extends_file:
@@ -353,14 +328,10 @@ def config_to_options(data, cwd=None, extended=False):
             options["connection"]["type"] = config["connection"]["type"]
 
         if "username" in config["connection"]:
-            options["connection"]["username"] = config["connection"][
-                "username"
-            ]
+            options["connection"]["username"] = config["connection"]["username"]
 
         if "password" in config["connection"]:
-            options["connection"]["password"] = config["connection"][
-                "password"
-            ]
+            options["connection"]["password"] = config["connection"]["password"]
 
         if "key" in config["connection"]:
             options["connection"]["key"] = config["connection"]["key"]
@@ -369,39 +340,26 @@ def config_to_options(data, cwd=None, extended=False):
             options["connection"]["token"] = config["connection"]["token"]
 
         if "http proxy" in config["connection"]:
-            options["connection"]["http_proxy"] = config["connection"][
-                "http proxy"
-            ]
+            options["connection"]["http_proxy"] = config["connection"]["http proxy"]
 
         if "https proxy" in config["connection"]:
-            options["connection"]["https_proxy"] = config["connection"][
-                "https proxy"
-            ]
+            options["connection"]["https_proxy"] = config["connection"]["https proxy"]
 
         if "jira client options" in config["connection"]:
-            options["connection"]["jira_client_options"] = config[
-                "connection"
-            ]["jira client options"]
+            options["connection"]["jira_client_options"] = config["connection"]["jira client options"]
 
         if "jira server version check" in config["connection"]:
-            options["connection"]["jira_server_version_check"] = config[
-                "connection"
-            ]["jira server version check"]
+            options["connection"]["jira_server_version_check"] = config["connection"]["jira server version check"]
 
     # Parse and validate output options
     if "output" in config:
 
         if "quantiles" in config["output"]:
             try:
-                options["settings"]["quantiles"] = list(
-                    map(float, config["output"]["quantiles"])
-                )
+                options["settings"]["quantiles"] = list(map(float, config["output"]["quantiles"]))
             except ValueError:
                 raise ConfigError(
-                    (
-                        "Could not convert value `%s` for "
-                        "key `quantiles` to a list of decimals"
-                    )
+                    ("Could not convert value `%s` for " "key `quantiles` to a list of decimals")
                     % (config["output"]["quantiles"],)
                 ) from None
 
@@ -424,18 +382,14 @@ def config_to_options(data, cwd=None, extended=False):
             "waste_window",
         ]:
             if expand_key(key) in config["output"]:
-                options["settings"][key] = force_int(
-                    key, config["output"][expand_key(key)]
-                )
+                options["settings"][key] = force_int(key, config["output"][expand_key(key)])
 
         # float values
         for key in [
             "burnup_forecast_chart_deadline_confidence",
         ]:
             if expand_key(key) in config["output"]:
-                options["settings"][key] = force_float(
-                    key, config["output"][expand_key(key)]
-                )
+                options["settings"][key] = force_float(key, config["output"][expand_key(key)])
 
         # date values
         for key in [
@@ -443,9 +397,7 @@ def config_to_options(data, cwd=None, extended=False):
             "burnup_forecast_chart_deadline",
         ]:
             if expand_key(key) in config["output"]:
-                options["settings"][key] = force_date(
-                    key, config["output"][expand_key(key)]
-                )
+                options["settings"][key] = force_date(key, config["output"][expand_key(key)])
 
         # file name values
         for key in [
@@ -471,26 +423,18 @@ def config_to_options(data, cwd=None, extended=False):
             "progress_report",
         ]:
             if expand_key(key) in config["output"]:
-                options["settings"][key] = os.path.basename(
-                    config["output"][expand_key(key)]
-                )
+                options["settings"][key] = os.path.basename(config["output"][expand_key(key)])
 
         # Handle AI Context file (new format) - this should take precedence over old format
         if "ai context" in config["output"]:
-            options["settings"]["ai_context_file"] = os.path.basename(
-                config["output"]["ai context"]
-            )
+            options["settings"]["ai_context_file"] = os.path.basename(config["output"]["ai context"])
 
         # Handle AI Insights file
         if "copilot context" in config["output"]:
-            options["settings"]["ai_context_file"] = os.path.basename(
-                config["output"]["copilot context"]
-            )
+            options["settings"]["ai_context_file"] = os.path.basename(config["output"]["copilot context"])
 
         if "copilot insights" in config["output"]:
-            options["settings"]["ai_insights_file"] = os.path.basename(
-                config["output"]["copilot insights"]
-            )
+            options["settings"]["ai_insights_file"] = os.path.basename(config["output"]["copilot insights"])
 
         # file name list values
         for key in [
@@ -519,9 +463,7 @@ def config_to_options(data, cwd=None, extended=False):
             "debt_age_chart_bins",
         ]:
             if expand_key(key) in config["output"]:
-                options["settings"][key] = force_list(
-                    config["output"][expand_key(key)]
-                )
+                options["settings"][key] = force_list(config["output"][expand_key(key)])
 
         # string values that copy straight over
         for key in [
@@ -574,24 +516,18 @@ def config_to_options(data, cwd=None, extended=False):
 
         # Special objects for progress reports
         if expand_key("progress_report_teams") in config["output"]:
-            options["settings"]["progress_report_teams"] = (
-                to_progress_report_teams_list(
-                    config["output"][expand_key("progress_report_teams")]
-                )
+            options["settings"]["progress_report_teams"] = to_progress_report_teams_list(
+                config["output"][expand_key("progress_report_teams")]
             )
         if expand_key("progress_report_outcomes") in config["output"]:
-            options["settings"]["progress_report_outcomes"] = (
-                to_progress_report_outcomes_list(
-                    config["output"][expand_key("progress_report_outcomes")]
-                )
+            options["settings"]["progress_report_outcomes"] = to_progress_report_outcomes_list(
+                config["output"][expand_key("progress_report_outcomes")]
             )
 
     # Parse Queries and/or a single Query
 
     if "queries" in config:
-        options["settings"]["query_attribute"] = config["queries"].get(
-            "attribute", None
-        )
+        options["settings"]["query_attribute"] = config["queries"].get("attribute", None)
         options["settings"]["queries"] = [
             {
                 "value": q.get("value", None),
@@ -609,28 +545,19 @@ def config_to_options(data, cwd=None, extended=False):
         ]
 
     if not extended and len(options["settings"]["queries"]) == 0:
-        logger.warning(
-            (
-                "No `Query` value or `Queries` section found. "
-                "Many calculators rely on one of these."
-            )
-        )
+        logger.warning(("No `Query` value or `Queries` section found. " "Many calculators rely on one of these."))
 
     # Parse Workflow. Assume first status is backlog
     # and last status is complete.
 
     if "workflow" in config:
         if len(config["workflow"].keys()) < 3:
-            raise ConfigError(
-                "`Workflow` section must contain at least three statuses"
-            )
+            raise ConfigError("`Workflow` section must contain at least three statuses")
 
         column_names = []
         for name, statuses in config["workflow"].items():
             statuses = force_list(statuses)
-            options["settings"]["cycle"].append(
-                {"name": name, "statuses": statuses}
-            )
+            options["settings"]["cycle"].append({"name": name, "statuses": statuses})
             column_names.append(name)
 
         if options["settings"]["backlog_column"] is None:
@@ -654,15 +581,9 @@ def config_to_options(data, cwd=None, extended=False):
                             column_names,
                         )
                     )
-                elif (
-                    column_names.index(options["settings"]["committed_column"])
-                    > 0
-                ):
+                elif column_names.index(options["settings"]["committed_column"]) > 0:
                     options["settings"]["backlog_column"] = column_names[
-                        column_names.index(
-                            options["settings"]["committed_column"]
-                        )
-                        - 1
+                        column_names.index(options["settings"]["committed_column"]) - 1
                     ]
                     logger.info(
                         "`Backlog column` automatically set to `%s`",
@@ -670,10 +591,7 @@ def config_to_options(data, cwd=None, extended=False):
                     )
                 else:
                     raise ConfigError(
-                        (
-                            "There must be at least 1 column before "
-                            "`Committed column` (%s) in `Workflow`: %s"
-                        )
+                        ("There must be at least 1 column before " "`Committed column` (%s) in `Workflow`: %s")
                         % (
                             options["settings"]["committed_column"],
                             column_names,
@@ -685,12 +603,9 @@ def config_to_options(data, cwd=None, extended=False):
                     "`Backlog column` (%s) must exist in `Workflow`: %s"
                     % (options["settings"]["backlog_column"], column_names)
                 )
-            elif column_names.index(options["settings"]["backlog_column"]) < (
-                len(column_names) - 2
-            ):
+            elif column_names.index(options["settings"]["backlog_column"]) < (len(column_names) - 2):
                 options["settings"]["committed_column"] = column_names[
-                    column_names.index(options["settings"]["backlog_column"])
-                    + 1
+                    column_names.index(options["settings"]["backlog_column"]) + 1
                 ]
                 logger.info(
                     "`Committed column` automatically set to `%s`",
@@ -698,10 +613,7 @@ def config_to_options(data, cwd=None, extended=False):
                 )
             else:
                 raise ConfigError(
-                    (
-                        "There must be at least 2 columns after "
-                        "`Backlog column` (%s) in `Workflow`: %s"
-                    )
+                    ("There must be at least 2 columns after " "`Backlog column` (%s) in `Workflow`: %s")
                     % (options["settings"]["committed_column"], column_names)
                 )
 
@@ -713,19 +625,15 @@ def config_to_options(data, cwd=None, extended=False):
             )
         elif options["settings"]["done_column"] not in column_names:
             raise ConfigError(
-                "`Done column` (%s) must exist in `Workflow`: %s"
-                % (options["settings"]["done_column"], column_names)
+                "`Done column` (%s) must exist in `Workflow`: %s" % (options["settings"]["done_column"], column_names)
             )
 
         # backlog column must come before committed column
-        if not (
-            column_names.index(options["settings"]["backlog_column"]) + 1
-        ) == column_names.index(options["settings"]["committed_column"]):
+        if not (column_names.index(options["settings"]["backlog_column"]) + 1) == column_names.index(
+            options["settings"]["committed_column"]
+        ):
             raise ConfigError(
-                (
-                    "`Backlog column` (%s) must come immediately "
-                    "before `Committed column` (%s) in `Workflow`"
-                )
+                ("`Backlog column` (%s) must come immediately " "before `Committed column` (%s) in `Workflow`")
                 % (
                     options["settings"]["backlog_column"],
                     options["settings"]["committed_column"],
@@ -733,14 +641,11 @@ def config_to_options(data, cwd=None, extended=False):
             )
 
         # committed column must come before done column
-        if not column_names.index(
-            options["settings"]["committed_column"]
-        ) < column_names.index(options["settings"]["done_column"]):
+        if not column_names.index(options["settings"]["committed_column"]) < column_names.index(
+            options["settings"]["done_column"]
+        ):
             raise ConfigError(
-                (
-                    "`Committed column` (%s) must come before "
-                    "`Done column` (%s) in `Workflow`: %s"
-                )
+                ("`Committed column` (%s) must come before " "`Done column` (%s) in `Workflow`: %s")
                 % (
                     options["settings"]["committed_column"],
                     options["settings"]["done_column"],
@@ -779,8 +684,6 @@ def config_to_options(data, cwd=None, extended=False):
 
     # Handle Copilot Context file from Output section
     if "output" in config and "copilot context" in config["output"]:
-        options["settings"]["ai_context_file"] = os.path.basename(
-            config["output"]["copilot context"]
-        )
+        options["settings"]["ai_context_file"] = os.path.basename(config["output"]["copilot context"])
 
     return options

@@ -16,11 +16,12 @@ AI context generation:
 from __future__ import annotations
 
 import json
+import logging
 import os
 import warnings
-import logging
+from typing import Dict, List
+
 import pandas as pd
-from typing import List, Dict
 
 logger = logging.getLogger(__name__)
 
@@ -35,34 +36,32 @@ HEADER_RENAME = {
 }
 
 
-
-
 def _parse_dates_robust(date_series: pd.Series) -> pd.Series:
     """
     Robust date parsing that handles multiple formats:
     - ISO format (YYYY-MM-DD) - tool-generated CSV files
     - DD/MM/YYYY format - European/UK format
     - MM/DD/YYYY format - US format
-    
+
     Uses format detection and fallback parsing to maximize compatibility.
     """
     if date_series.isna().all():
         return pd.to_datetime(date_series, errors="coerce")
-    
+
     # Replace empty strings with NaN for consistent handling
-    date_series = date_series.replace('', pd.NaT)
-    
+    date_series = date_series.replace("", pd.NaT)
+
     # Get non-null values for testing
     non_null_series = date_series.dropna()
     if len(non_null_series) == 0:
         return pd.to_datetime(date_series, errors="coerce")
-    
+
     # Helper function to check if parsing was successful
     def _parsing_success_rate(result: pd.Series) -> float:
         non_null_input = len(non_null_series)
         valid_parsed = len(result.dropna())
         return valid_parsed / non_null_input if non_null_input > 0 else 0
-    
+
     # Try ISO format first (tool default output: YYYY-MM-DD)
     try:
         result = pd.to_datetime(date_series, format="%Y-%m-%d", errors="coerce")
@@ -71,7 +70,7 @@ def _parse_dates_robust(date_series: pd.Series) -> pd.Series:
             return result
     except (ValueError, TypeError):
         pass
-    
+
     # Try DD/MM/YYYY format (European/UK)
     try:
         result = pd.to_datetime(date_series, format="%d/%m/%Y", errors="coerce")
@@ -80,7 +79,7 @@ def _parse_dates_robust(date_series: pd.Series) -> pd.Series:
             return result
     except (ValueError, TypeError):
         pass
-    
+
     # Try MM/DD/YYYY format (US)
     try:
         result = pd.to_datetime(date_series, format="%m/%d/%Y", errors="coerce")
@@ -89,7 +88,7 @@ def _parse_dates_robust(date_series: pd.Series) -> pd.Series:
             return result
     except (ValueError, TypeError):
         pass
-    
+
     # Try default pandas parsing (handles many formats automatically)
     try:
         with warnings.catch_warnings():
@@ -100,7 +99,7 @@ def _parse_dates_robust(date_series: pd.Series) -> pd.Series:
             return result
     except (ValueError, TypeError):
         pass
-    
+
     # Final fallback with dayfirst=True for ambiguous cases
     logger.warning("Using fallback date parsing with dayfirst=True")
     with warnings.catch_warnings():

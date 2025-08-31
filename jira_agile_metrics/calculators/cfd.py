@@ -1,11 +1,11 @@
 import logging
-import pandas as pd
-import numpy as np
+
 import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
 
 from ..calculator import Calculator
 from ..utils import get_extension, set_chart_style
-
 from .cycletime import CycleTimeCalculator
 
 logger = logging.getLogger(__name__)
@@ -109,9 +109,7 @@ def calculate_cfd_data(cycle_data, cycle_names):
 
     # Strip out times from all dates
     cfd_data = pd.DataFrame(
-        np.array(cfd_data.values, dtype="<M8[ns]")
-        .astype("<M8[D]")
-        .astype("<M8[ns]"),
+        np.array(cfd_data.values, dtype="<M8[ns]").astype("<M8[D]").astype("<M8[ns]"),
         columns=cfd_data.columns,
         index=cfd_data.index,
     )
@@ -121,9 +119,7 @@ def calculate_cfd_data(cycle_data, cycle_names):
     cfd_data = cfd_data.bfill(axis=1)
 
     # Count number of times each date occurs, preserving column order
-    cfd_data = pd.concat(
-        {col: cfd_data[col].value_counts() for col in cfd_data}, axis=1
-    )[cycle_names]
+    cfd_data = pd.concat({col: cfd_data[col].value_counts() for col in cfd_data}, axis=1)[cycle_names]
 
     # Fill missing dates with 0 and run a cumulative sum
     cfd_data = cfd_data.fillna(0).cumsum(axis=0).sort_index()
@@ -131,8 +127,6 @@ def calculate_cfd_data(cycle_data, cycle_names):
     # Reindex to make sure we have all dates
     start, end = cfd_data.index.min(), cfd_data.index.max()
     if start is not pd.NaT and end is not pd.NaT:
-        cfd_data = cfd_data.reindex(
-            pd.date_range(start, end, freq="D"), method="ffill"
-        )
+        cfd_data = cfd_data.reindex(pd.date_range(start, end, freq="D"), method="ffill")
 
     return cfd_data

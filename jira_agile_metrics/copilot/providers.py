@@ -3,11 +3,12 @@ LLM provider abstraction layer for AI copilot functionality.
 Supports multiple providers with bring-your-own-API-key design.
 """
 
-import os
 import json
 import logging
+import os
 from abc import ABC, abstractmethod
 from typing import Dict, List
+
 import requests
 
 logger = logging.getLogger(__name__)
@@ -50,11 +51,7 @@ Your recommendations should be:
 
     def _format_user_message(self, prompt: str, context: Dict) -> str:
         """Format user message with context data and query."""
-        context_str = (
-            json.dumps(context, indent=2)
-            if context
-            else "No context data provided"
-        )
+        context_str = json.dumps(context, indent=2) if context else "No context data provided"
         return f"Context Data:\n{context_str}\n\nQuery: {prompt}"
 
 
@@ -71,9 +68,7 @@ class OpenAIProvider(LLMProvider):
 
     def generate_insights(self, prompt: str, context: Dict) -> str:
         if not self.api_key and not self.dry_run:
-            raise ValueError(
-                "OpenAI API key not found. Set OPENAI_API_KEY environment variable."
-            )
+            raise ValueError("OpenAI API key not found. Set OPENAI_API_KEY environment variable.")
 
         headers = {
             "Authorization": f"Bearer {self.api_key}",
@@ -110,9 +105,7 @@ class OpenAIProvider(LLMProvider):
             )
 
             if response.status_code != 200:
-                raise Exception(
-                    f"OpenAI API error ({response.status_code}): {response.text}"
-                )
+                raise Exception(f"OpenAI API error ({response.status_code}): {response.text}")
 
             result = response.json()
             return result["choices"][0]["message"]["content"]
@@ -128,18 +121,14 @@ class AnthropicProvider(LLMProvider):
     """Anthropic Claude provider implementation."""
 
     def __init__(self, config: Dict):
-        self.api_key = os.getenv(
-            config.get("api_key_env", "ANTHROPIC_API_KEY")
-        )
+        self.api_key = os.getenv(config.get("api_key_env", "ANTHROPIC_API_KEY"))
         self.model = config.get("model", "claude-3-5-sonnet-20241022")
         self.max_tokens = config.get("max_tokens", 2000)
         self.dry_run = config.get("dry_run", False)
 
     def generate_insights(self, prompt: str, context: Dict) -> str:
         if not self.api_key and not self.dry_run:
-            raise ValueError(
-                "Anthropic API key not found. Set ANTHROPIC_API_KEY environment variable."
-            )
+            raise ValueError("Anthropic API key not found. Set ANTHROPIC_API_KEY environment variable.")
 
         headers = {
             "x-api-key": self.api_key,
@@ -173,9 +162,7 @@ class AnthropicProvider(LLMProvider):
             )
 
             if response.status_code != 200:
-                raise Exception(
-                    f"Anthropic API error ({response.status_code}): {response.text}"
-                )
+                raise Exception(f"Anthropic API error ({response.status_code}): {response.text}")
 
             result = response.json()
             return result["content"][0]["text"]
@@ -191,25 +178,17 @@ class AzureOpenAIProvider(LLMProvider):
     """Azure OpenAI provider implementation."""
 
     def __init__(self, config: Dict):
-        self.api_key = os.getenv(
-            config.get("api_key_env", "AZURE_OPENAI_API_KEY")
-        )
+        self.api_key = os.getenv(config.get("api_key_env", "AZURE_OPENAI_API_KEY"))
         self.api_base = config.get("api_base")
         self.api_version = config.get("api_version", "2024-02-15-preview")
-        self.deployment_name = config.get(
-            "model"
-        )  # In Azure, this is the deployment name
+        self.deployment_name = config.get("model")  # In Azure, this is the deployment name
         self.max_tokens = config.get("max_tokens", 2000)
         self.temperature = config.get("temperature", 0.1)
         self.dry_run = config.get("dry_run", False)
 
     def generate_insights(self, prompt: str, context: Dict) -> str:
-        if (
-            not self.api_key or not self.api_base or not self.deployment_name
-        ) and not self.dry_run:
-            raise ValueError(
-                "Azure OpenAI requires api_key, api_base, and deployment name (model)."
-            )
+        if (not self.api_key or not self.api_base or not self.deployment_name) and not self.dry_run:
+            raise ValueError("Azure OpenAI requires api_key, api_base, and deployment name (model).")
 
         headers = {"api-key": self.api_key, "Content-Type": "application/json"}
 
@@ -225,7 +204,9 @@ class AzureOpenAIProvider(LLMProvider):
             "max_tokens": self.max_tokens,
         }
 
-        url = f"{self.api_base}/openai/deployments/{self.deployment_name}/chat/completions?api-version={self.api_version}"
+        url = (
+            f"{self.api_base}/openai/deployments/{self.deployment_name}/chat/completions?api-version={self.api_version}"
+        )
 
         if self.dry_run:
             print("--- PAYLOAD (Azure OpenAI) ---")
@@ -234,27 +215,19 @@ class AzureOpenAIProvider(LLMProvider):
             print("--- END PAYLOAD ---")
             return "Dry run mode: Azure OpenAI API not called."
 
-        logger.debug(
-            f"Calling Azure OpenAI API with deployment {self.deployment_name}"
-        )
+        logger.debug(f"Calling Azure OpenAI API with deployment {self.deployment_name}")
 
         try:
-            response = requests.post(
-                url, headers=headers, json=payload, timeout=30
-            )
+            response = requests.post(url, headers=headers, json=payload, timeout=30)
 
             if response.status_code != 200:
-                raise Exception(
-                    f"Azure OpenAI API error ({response.status_code}): {response.text}"
-                )
+                raise Exception(f"Azure OpenAI API error ({response.status_code}): {response.text}")
 
             result = response.json()
             return result["choices"][0]["message"]["content"]
 
         except requests.exceptions.RequestException as e:
-            raise Exception(
-                f"Network error calling Azure OpenAI API: {str(e)}"
-            )
+            raise Exception(f"Network error calling Azure OpenAI API: {str(e)}")
 
     def validate_config(self) -> bool:
         return all([self.api_key, self.api_base, self.deployment_name])
@@ -276,9 +249,7 @@ class LLMFactory:
 
         if provider_type not in cls.PROVIDERS:
             available = ", ".join(cls.PROVIDERS.keys())
-            raise ValueError(
-                f"Unsupported provider: {provider_type}. Available: {available}"
-            )
+            raise ValueError(f"Unsupported provider: {provider_type}. Available: {available}")
 
         provider_class = cls.PROVIDERS[provider_type]
         return provider_class(config)

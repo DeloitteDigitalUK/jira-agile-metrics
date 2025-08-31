@@ -2,7 +2,6 @@ import logging
 
 from ..calculator import Calculator
 from ..utils import get_extension
-
 from .cycletime import CycleTimeCalculator
 
 logger = logging.getLogger(__name__)
@@ -36,8 +35,6 @@ class PercentilesCalculator(Calculator):
             if output_extension == ".json":
                 file_data.to_json(output_file, date_format="iso")
             elif output_extension == ".xlsx":
-                file_data.to_frame(name="percentiles").to_excel(
-                    output_file, "Percentiles", header=True
-                )
+                file_data.to_frame(name="percentiles").to_excel(output_file, "Percentiles", header=True)
             else:
                 file_data.to_csv(output_file, header=True)

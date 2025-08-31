@@ -1,9 +1,9 @@
 import logging
+
 import matplotlib.pyplot as plt
 
 from ..calculator import Calculator
 from ..utils import set_chart_style
-
 from .cfd import CFDCalculator
 
 logger = logging.getLogger(__name__)
@@ -29,24 +29,10 @@ class NetFlowChartCalculator(Calculator):
         frequency = self.settings["net_flow_frequency"]
         logger.debug("Calculating net flow at frequency %s", frequency)
 
-        net_flow_data = (
-            cfd_data[[start_column, done_column]]
-            .resample(frequency, label="left")
-            .max()
-        )
-        net_flow_data["arrivals"] = (
-            net_flow_data[start_column]
-            .diff()
-            .fillna(net_flow_data[start_column])
-        )
-        net_flow_data["departures"] = (
-            net_flow_data[done_column]
-            .diff()
-            .fillna(net_flow_data[done_column])
-        )
-        net_flow_data["net_flow"] = (
-            net_flow_data["arrivals"] - net_flow_data["departures"]
-        )
+        net_flow_data = cfd_data[[start_column, done_column]].resample(frequency, label="left").max()
+        net_flow_data["arrivals"] = net_flow_data[start_column].diff().fillna(net_flow_data[start_column])
+        net_flow_data["departures"] = net_flow_data[done_column].diff().fillna(net_flow_data[done_column])
+        net_flow_data["net_flow"] = net_flow_data["arrivals"] - net_flow_data["departures"]
         net_flow_data["positive"] = net_flow_data["net_flow"] >= 0
 
         return net_flow_data
@@ -82,10 +68,7 @@ class NetFlowChartCalculator(Calculator):
             color=net_flow_data["positive"].map({True: "r", False: "b"}),
         )
 
-        labels = [
-            d.strftime(self.settings["date_format"])
-            for d in net_flow_data.index
-        ]
+        labels = [d.strftime(self.settings["date_format"]) for d in net_flow_data.index]
         ax.set_xticklabels(labels, rotation=70, size="small")
 
         set_chart_style()

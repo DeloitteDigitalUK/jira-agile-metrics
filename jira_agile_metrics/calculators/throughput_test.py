@@ -1,10 +1,9 @@
 import pytest
 from pandas import DataFrame
 
+from ..utils import extend_dict
 from .cycletime import CycleTimeCalculator
 from .throughput import ThroughputCalculator
-
-from ..utils import extend_dict
 
 
 @pytest.fixture
@@ -29,11 +28,7 @@ def results(large_cycle_time_results):
 
 
 def test_empty(query_manager, settings, minimal_cycle_time_columns):
-    results = {
-        CycleTimeCalculator: DataFrame(
-            [], columns=minimal_cycle_time_columns, index=[]
-        )
-    }
+    results = {CycleTimeCalculator: DataFrame([], columns=minimal_cycle_time_columns, index=[])}
 
     calculator = ThroughputCalculator(query_manager, settings, results)
 
@@ -62,9 +57,7 @@ def test_calculate_throughput(query_manager, settings, results):
     ]
 
 
-def test_calculate_throughput_with_wider_window(
-    query_manager, settings, results
-):
+def test_calculate_throughput_with_wider_window(query_manager, settings, results):
 
     settings = extend_dict(
         settings,
@@ -87,9 +80,7 @@ def test_calculate_throughput_with_wider_window(
     ]
 
 
-def test_calculate_throughput_with_narrower_window(
-    query_manager, settings, results
-):
+def test_calculate_throughput_with_narrower_window(query_manager, settings, results):
 
     settings = extend_dict(
         settings,

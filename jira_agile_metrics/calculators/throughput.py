@@ -1,11 +1,11 @@
 import logging
-import pandas as pd
+
 import matplotlib.pyplot as plt
+import pandas as pd
 import statsmodels.formula.api as sm
 
 from ..calculator import Calculator
 from ..utils import get_extension, set_chart_style
-
 from .cycletime import CycleTimeCalculator
 
 logger = logging.getLogger(__name__)
@@ -57,9 +57,7 @@ class ThroughputCalculator(Calculator):
         chart_data = data.copy()
 
         if len(chart_data.index) == 0:
-            logger.warning(
-                "Cannot draw throughput chart with no completed items"
-            )
+            logger.warning("Cannot draw throughput chart with no completed items")
             return
 
         fig, ax = plt.subplots()
@@ -85,10 +83,7 @@ class ThroughputCalculator(Calculator):
         ax.plot(chart_data.index, chart_data["count"], marker="o")
         plt.xticks(
             chart_data.index,
-            [
-                d.date().strftime(self.settings["date_format"])
-                for d in chart_data.index
-            ],
+            [d.date().strftime(self.settings["date_format"]) for d in chart_data.index],
             rotation=70,
             size="small",
         )
@@ -136,13 +131,9 @@ def calculate_throughput(cycle_data, frequency, window=None):
     window_end = throughput.index.max()
 
     if window:
-        window_start = window_end - (
-            pd.tseries.frequencies.to_offset(frequency) * (window - 1)
-        )
+        window_start = window_end - (pd.tseries.frequencies.to_offset(frequency) * (window - 1))
 
     if window_start is pd.NaT or window_end is pd.NaT:
         return pd.DataFrame([], columns=["count"], index=[])
 
-    return throughput.reindex(
-        index=pd.date_range(start=window_start, end=window_end, freq=frequency)
-    ).fillna(0)
+    return throughput.reindex(index=pd.date_range(start=window_start, end=window_end, freq=frequency)).fillna(0)

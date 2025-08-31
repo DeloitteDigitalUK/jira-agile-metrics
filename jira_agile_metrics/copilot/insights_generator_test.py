@@ -3,7 +3,8 @@ Unit tests for AI insights generator with offline mocks.
 """
 
 import json
-from unittest.mock import patch, mock_open
+from unittest.mock import mock_open, patch
+
 from .insights_generator import InsightsGenerator
 from .providers import LLMProvider
 
@@ -31,9 +32,7 @@ class TestInsightsGenerator:
     def test_init(self):
         ai_config = {"provider": "openai", "model": "gpt-4o"}
 
-        with patch(
-            "jira_agile_metrics.copilot.insights_generator.LLMFactory.create_provider"
-        ) as mock_factory:
+        with patch("jira_agile_metrics.copilot.insights_generator.LLMFactory.create_provider") as mock_factory:
             mock_provider = MockLLMProvider()
             mock_factory.return_value = mock_provider
 
@@ -107,12 +106,8 @@ Current flow shows declining throughput with 2 stuck items requiring attention.
             generator = InsightsGenerator(ai_config)
 
             # Mock file operations
-            with patch(
-                "builtins.open", mock_open(read_data=json.dumps(test_context))
-            ):
-                result = generator.generate_daily_insights(
-                    "test-context.json", "test-output.md"
-                )
+            with patch("builtins.open", mock_open(read_data=json.dumps(test_context))):
+                result = generator.generate_daily_insights("test-context.json", "test-output.md")
 
             # Verify the result contains expected flow-focused elements
             assert "Daily Flow Metrics Briefing" in result
@@ -154,9 +149,7 @@ Current flow shows declining throughput with 2 stuck items requiring attention.
             ],
         }
 
-        mock_ai_response = (
-            "Based on the data, PROJ-456 is completed and in Done status."
-        )
+        mock_ai_response = "Based on the data, PROJ-456 is completed and in Done status."
 
         ai_config = {"provider": "test"}
         mock_provider = MockLLMProvider(mock_ai_response)
@@ -167,12 +160,8 @@ Current flow shows declining throughput with 2 stuck items requiring attention.
         ):
             generator = InsightsGenerator(ai_config)
 
-            with patch(
-                "builtins.open", mock_open(read_data=json.dumps(test_context))
-            ):
-                result = generator.generate_chat_response(
-                    "What is the status of PROJ-456?", "test-context.json"
-                )
+            with patch("builtins.open", mock_open(read_data=json.dumps(test_context))):
+                result = generator.generate_chat_response("What is the status of PROJ-456?", "test-context.json")
 
             assert result["answer"] == mock_ai_response
             assert result["context_timestamp"] == "2025-08-29T10:00:00Z"
@@ -192,15 +181,12 @@ Current flow shows declining throughput with 2 stuck items requiring attention.
             sprint_info = {"sprint_start": "2025-08-25T00:00:00Z"}
 
             # Mock datetime.now() to return a fixed date (timezone-aware)
-            with patch(
-                "jira_agile_metrics.copilot.insights_generator.datetime"
-            ) as mock_datetime:
-                from datetime import datetime as real_datetime, timezone
+            with patch("jira_agile_metrics.copilot.insights_generator.datetime") as mock_datetime:
+                from datetime import datetime as real_datetime
+                from datetime import timezone
 
                 # Set up the mock to behave like the real datetime class
-                mock_datetime.now.return_value = real_datetime(
-                    2025, 8, 29, 10, 0, 0, tzinfo=timezone.utc
-                )
+                mock_datetime.now.return_value = real_datetime(2025, 8, 29, 10, 0, 0, tzinfo=timezone.utc)
                 mock_datetime.fromisoformat = real_datetime.fromisoformat
 
                 day = generator._calculate_sprint_day(sprint_info)

@@ -1,14 +1,12 @@
-import pytest
 import datetime
-from pandas import NaT, Timestamp, Timedelta
 
-from ..conftest import (
-    FauxJIRA as JIRA,
-    FauxIssue as Issue,
-    FauxChange as Change,
-    FauxFieldValue as Value,
-)
+import pytest
+from pandas import NaT, Timedelta, Timestamp
 
+from ..conftest import FauxChange as Change
+from ..conftest import FauxFieldValue as Value
+from ..conftest import FauxIssue as Issue
+from ..conftest import FauxJIRA as JIRA
 from ..querymanager import QueryManager
 from .cycletime import CycleTimeCalculator
 
@@ -49,9 +47,7 @@ def jira(custom_fields):
                         "2018-01-02 10:01:01",
                         [("Flagged", None, "Impediment")],
                     ),
-                    Change(
-                        "2018-01-03 01:00:00", [("Flagged", "Impediment", "")]
-                    ),  # blocked 1 day in the backlog
+                    Change("2018-01-03 01:00:00", [("Flagged", "Impediment", "")]),  # blocked 1 day in the backlog
                     # (doesn't count towards blocked days)
                     Change(
                         "2018-01-03 01:01:01",
@@ -63,15 +59,9 @@ def jira(custom_fields):
                             )
                         ],
                     ),
-                    Change(
-                        "2018-01-04 10:01:01", [("Flagged", "", "Impediment")]
-                    ),
-                    Change(
-                        "2018-01-05 08:01:01", [("Flagged", "Impediment", "")]
-                    ),  # was blocked 1 day
-                    Change(
-                        "2018-01-08 10:01:01", [("Flagged", "", "Impediment")]
-                    ),  # stays blocked until today
+                    Change("2018-01-04 10:01:01", [("Flagged", "", "Impediment")]),
+                    Change("2018-01-05 08:01:01", [("Flagged", "Impediment", "")]),  # was blocked 1 day
+                    Change("2018-01-08 10:01:01", [("Flagged", "", "Impediment")]),  # stays blocked until today
                 ],
             ),
             Issue(

@@ -7,6 +7,7 @@ import json
 import logging
 from datetime import datetime
 from typing import Dict, List
+
 from .providers import LLMFactory
 
 logger = logging.getLogger(__name__)
@@ -19,9 +20,7 @@ class InsightsGenerator:
         self.config = ai_config
         self.llm = LLMFactory.create_provider(ai_config)
 
-    def generate_daily_insights(
-        self, context_file: str, output_file: str = "daily-insights.md"
-    ) -> str:
+    def generate_daily_insights(self, context_file: str, output_file: str = "daily-insights.md") -> str:
         """Generate daily insights from context file."""
         try:
             with open(context_file, "r") as f:
@@ -151,9 +150,7 @@ CONSTRAINTS:
                 return 1
 
             if isinstance(start_date, str):
-                start = datetime.fromisoformat(
-                    start_date.replace("Z", "+00:00")
-                )
+                start = datetime.fromisoformat(start_date.replace("Z", "+00:00"))
             else:
                 start = start_date
 
@@ -169,15 +166,11 @@ CONSTRAINTS:
         if "cycle_time" in metrics:
             ct = metrics["cycle_time"]
             if "error" not in ct:
-                lines.append(
-                    f"- Cycle Time: {ct.get('current_average', 'N/A')} days average"
-                )
+                lines.append(f"- Cycle Time: {ct.get('current_average', 'N/A')} days average")
 
         if "throughput" in metrics:
             tp = metrics["throughput"]
-            lines.append(
-                f"- Throughput: {tp.get('current_week', 'N/A')} items/week"
-            )
+            lines.append(f"- Throughput: {tp.get('current_week', 'N/A')} items/week")
 
         if "wip" in metrics:
             wip = metrics["wip"]
@@ -187,9 +180,7 @@ CONSTRAINTS:
 
         if "aging_wip" in metrics:
             aging = metrics["aging_wip"]
-            lines.append(
-                f"- Aging WIP: {aging.get('items_over_10_days', 0)} items >10 days"
-            )
+            lines.append(f"- Aging WIP: {aging.get('items_over_10_days', 0)} items >10 days")
 
         return "\n".join(lines) if lines else "No metrics available"
 
@@ -206,12 +197,8 @@ CONSTRAINTS:
 
             blocked_info = " [BLOCKED]" if issue.get("blocked") else ""
 
-            lines.append(
-                f"- {issue.get('ticket_id', 'Unknown')}: {issue.get('title', 'No title')[:60]}..."
-            )
-            lines.append(
-                f"  {status_info}, Assignee: {issue.get('assignee', 'Unassigned')}{blocked_info}"
-            )
+            lines.append(f"- {issue.get('ticket_id', 'Unknown')}: {issue.get('title', 'No title')[:60]}...")
+            lines.append(f"  {status_info}, Assignee: {issue.get('assignee', 'Unassigned')}{blocked_info}")
 
         return "\n".join(lines)
 
@@ -241,12 +228,8 @@ CONSTRAINTS:
 
         # Extract key metrics for header
         flow_health = context.get("flow_health", {})
-        wip_count = context.get("ageing_wip_analysis", {}).get(
-            "total_wip_items", 0
-        )
-        throughput_trend = context.get("throughput_trends", {}).get(
-            "trend_direction", "unknown"
-        )
+        wip_count = context.get("ageing_wip_analysis", {}).get("total_wip_items", 0)
+        throughput_trend = context.get("throughput_trends", {}).get("trend_direction", "unknown")
 
         formatted = f"""# Daily Flow Metrics Briefing - {timestamp}
 
@@ -286,9 +269,7 @@ CONSTRAINTS:
 
         predictability = flow_health.get("predictability_ratio", 0)
         predictability_status = (
-            "🟢 Excellent"
-            if predictability < 2
-            else "🟡 Moderate" if predictability < 3 else "🔴 Poor"
+            "🟢 Excellent" if predictability < 2 else "🟡 Moderate" if predictability < 3 else "🔴 Poor"
         )
 
         return f"""- Completed Items: {flow_health.get('total_completed_items', 0)}
@@ -298,9 +279,7 @@ CONSTRAINTS:
 - Predictability Ratio: {predictability:.1f} {predictability_status}
 - Cycle Time Std Dev: {flow_health.get('cycle_time_std', 0):.1f} days"""
 
-    def _format_wip_analysis_for_prompt(
-        self, ageing_wip: Dict, wip_stability: Dict
-    ) -> str:
+    def _format_wip_analysis_for_prompt(self, ageing_wip: Dict, wip_stability: Dict) -> str:
         """Format WIP analysis for prompt."""
         wip_section = []
 
@@ -308,14 +287,10 @@ CONSTRAINTS:
         if ageing_wip.get("status") == "no_wip_items":
             wip_section.append("✅ No work in progress items")
         elif ageing_wip.get("status") == "error":
-            wip_section.append(
-                f"❌ WIP Analysis Error: {ageing_wip.get('message')}"
-            )
+            wip_section.append(f"❌ WIP Analysis Error: {ageing_wip.get('message')}")
         else:
             stuck_count = ageing_wip.get("stuck_items_count", 0)
-            stuck_status = (
-                "🔴" if stuck_count > 3 else "🟡" if stuck_count > 1 else "🟢"
-            )
+            stuck_status = "🔴" if stuck_count > 3 else "🟡" if stuck_count > 1 else "🟢"
 
             wip_section.append(
                 f"""Current WIP: {ageing_wip.get('total_wip_items', 0)} items
@@ -329,44 +304,26 @@ Stuck Items: {stuck_count} {stuck_status}"""
             if stuck_items:
                 wip_section.append("\nStuck Items:")
                 for item in stuck_items[:5]:  # Top 5
-                    wip_section.append(
-                        f"  - {item['key']} ({item['age_days']}d): {item['summary']}"
-                    )
+                    wip_section.append(f"  - {item['key']} ({item['age_days']}d): {item['summary']}")
 
         # WIP Stability
         if wip_stability.get("status") != "error":
             trend_emoji = (
                 "📈"
                 if wip_stability.get("wip_trend") == "increasing"
-                else (
-                    "📉"
-                    if wip_stability.get("wip_trend") == "decreasing"
-                    else "➡️"
-                )
+                else ("📉" if wip_stability.get("wip_trend") == "decreasing" else "➡️")
             )
-            wip_section.append(
-                f"\nWIP Trend: {wip_stability.get('wip_trend', 'unknown')} {trend_emoji}"
-            )
-            wip_section.append(
-                f"Current WIP: {wip_stability.get('current_wip', 0):.0f}"
-            )
-            wip_section.append(
-                f"Average WIP: {wip_stability.get('avg_wip', 0):.1f}"
-            )
+            wip_section.append(f"\nWIP Trend: {wip_stability.get('wip_trend', 'unknown')} {trend_emoji}")
+            wip_section.append(f"Current WIP: {wip_stability.get('current_wip', 0):.0f}")
+            wip_section.append(f"Average WIP: {wip_stability.get('avg_wip', 0):.1f}")
 
             if "net_flow_trend" in wip_stability:
                 flow_emoji = (
                     "⚠️"
                     if wip_stability.get("net_flow_trend") == "growing"
-                    else (
-                        "✅"
-                        if wip_stability.get("net_flow_trend") == "shrinking"
-                        else "🔄"
-                    )
+                    else ("✅" if wip_stability.get("net_flow_trend") == "shrinking" else "🔄")
                 )
-                wip_section.append(
-                    f"Net Flow: {wip_stability.get('net_flow_trend', 'unknown')} {flow_emoji}"
-                )
+                wip_section.append(f"Net Flow: {wip_stability.get('net_flow_trend', 'unknown')} {flow_emoji}")
 
         return "\n".join(wip_section)
 
@@ -379,18 +336,10 @@ Stuck Items: {stuck_count} {stuck_status}"""
             return f"❌ Throughput Analysis Error: {throughput.get('message')}"
 
         trend = throughput.get("trend_direction", "unknown")
-        trend_emoji = (
-            "📈"
-            if trend == "improving"
-            else "📉" if trend == "declining" else "➡️"
-        )
+        trend_emoji = "📈" if trend == "improving" else "📉" if trend == "declining" else "➡️"
 
         volatility = throughput.get("throughput_volatility", 0)
-        volatility_status = (
-            "🟢 Stable"
-            if volatility < 2
-            else "🟡 Moderate" if volatility < 4 else "🔴 Volatile"
-        )
+        volatility_status = "🟢 Stable" if volatility < 2 else "🟡 Moderate" if volatility < 4 else "🔴 Volatile"
 
         return f"""Recent Avg Throughput: {throughput.get('recent_avg_throughput', 0):.1f} items/period
 Historical Avg: {throughput.get('historical_avg_throughput', 0):.1f} items/period
@@ -404,18 +353,14 @@ Range: {throughput.get('min_throughput', 0):.0f} - {throughput.get('max_throughp
             return "⚠️  No CFD data available for bottleneck analysis"
 
         if bottlenecks.get("status") == "error":
-            return (
-                f"❌ Bottleneck Analysis Error: {bottlenecks.get('message')}"
-            )
+            return f"❌ Bottleneck Analysis Error: {bottlenecks.get('message')}"
 
         bottleneck_list = bottlenecks.get("potential_bottlenecks", [])
 
         if not bottleneck_list:
             return "✅ No significant bottlenecks detected"
 
-        result = [
-            f"🚨 {len(bottleneck_list)} potential bottleneck(s) detected:"
-        ]
+        result = [f"🚨 {len(bottleneck_list)} potential bottleneck(s) detected:"]
 
         for bottleneck in bottleneck_list:
             result.append(
@@ -424,9 +369,7 @@ Range: {throughput.get('min_throughput', 0):.0f} - {throughput.get('max_throughp
 
         return "\n".join(result)
 
-    def _format_actionable_items_for_prompt(
-        self, actionable_items: List[Dict]
-    ) -> str:
+    def _format_actionable_items_for_prompt(self, actionable_items: List[Dict]) -> str:
         """Format actionable items for prompt."""
         if not actionable_items:
             return "✅ No items requiring immediate attention"
@@ -435,9 +378,7 @@ Range: {throughput.get('min_throughput', 0):.0f} - {throughput.get('max_throughp
 
         for item in actionable_items:
             priority_emoji = "🔴" if item.get("priority") == "high" else "🟡"
-            result.append(
-                f"  {priority_emoji} {item['key']} ({item['age_days']}d): {item['summary']}"
-            )
+            result.append(f"  {priority_emoji} {item['key']} ({item['age_days']}d): {item['summary']}")
             result.append(
                 f"     Reason: {item.get('reason', 'unknown')} (threshold: {item.get('threshold_exceeded', 0):.1f}d)"
             )

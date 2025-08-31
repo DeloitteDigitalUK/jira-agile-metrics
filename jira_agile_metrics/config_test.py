@@ -1,8 +1,8 @@
 import datetime
-import tempfile
 import os.path
+import tempfile
 
-from .config import force_list, expand_key, config_to_options, ConfigError
+from .config import ConfigError, config_to_options, expand_key, force_list
 
 
 def test_force_list():
@@ -291,9 +291,7 @@ ABC AND type = Outcome AND resolution IS EMPTY"
         "burnup_forecast_chart_deadline_confidence": 0.85,
         "burnup_forecast_chart_target": 100,
         "burnup_forecast_chart_throughput_window": 30,
-        "burnup_forecast_chart_throughput_window_end": datetime.date(
-            2018, 3, 1
-        ),
+        "burnup_forecast_chart_throughput_window_end": datetime.date(2018, 3, 1),
         "burnup_forecast_chart_title": "Burn-up forecast",
         "burnup_forecast_chart_trials": 50,
         "cfd_window": 30,
@@ -355,21 +353,15 @@ ABC AND type = Outcome AND resolution IS EMPTY"
         "debt_age_chart": "tech-debt-age.png",
         "debt_age_chart_title": "Technical debt age",
         "debt_age_chart_bins": [10, 20, 30],
-        "waste_query": (
-            "issueType = Story AND resolution IN (Withdrawn, Invalid)"
-        ),
+        "waste_query": ("issueType = Story AND resolution IN (Withdrawn, Invalid)"),
         "waste_window": 3,
         "waste_frequency": "2W-WED",
         "waste_chart": "waste.png",
         "waste_chart_title": "Waste",
         "progress_report": "progress.html",
         "progress_report_title": "Test progress report",
-        "progress_report_epic_query_template": (
-            "project = ABC AND type = Epic AND Outcome = {outcome}"
-        ),
-        "progress_report_story_query_template": (
-            'project = ABC AND type = Story AND "Epic link" = {epic}'
-        ),
+        "progress_report_epic_query_template": ("project = ABC AND type = Epic AND Outcome = {outcome}"),
+        "progress_report_story_query_template": ('project = ABC AND type = Story AND "Epic link" = {epic}'),
         "progress_report_epic_deadline_field": "Due date",
         "progress_report_epic_min_stories_field": "Min stories",
         "progress_report_epic_max_stories_field": "Max stories",
@@ -388,8 +380,7 @@ ABC AND type = Outcome AND resolution IS EMPTY"
                 "max_throughput": None,
                 "min_throughput": None,
                 "throughput_samples": (
-                    "project = ABC AND type = Story AND "
-                    'team = "Team two" AND resolution = "Done"'
+                    "project = ABC AND type = Story AND " 'team = "Team two" AND resolution = "Done"'
                 ),
                 "wip": 2,
                 "throughput_samples_window": 6,
@@ -410,9 +401,7 @@ ABC AND type = Outcome AND resolution IS EMPTY"
             },
         ],
         "progress_report_outcome_deadline_field": "Due date",
-        "progress_report_outcome_query": (
-            "project = ABC AND type = Outcome AND resolution IS EMPTY"
-        ),
+        "progress_report_outcome_query": ("project = ABC AND type = Outcome AND resolution IS EMPTY"),
     }
 
 
@@ -452,9 +441,7 @@ Output:
     assert options["settings"]["cycle_time_data"] == ["cycletime.csv"]
     assert options["settings"]["ageing_wip_chart"] == "ageing-wip.png"
     assert options["settings"]["burnup_chart"] == "burnup.png"
-    assert (
-        options["settings"]["burnup_forecast_chart"] == "burnup-forecast.png"
-    )
+    assert options["settings"]["burnup_forecast_chart"] == "burnup-forecast.png"
     assert options["settings"]["cfd_chart"] == "cfd.png"
     assert options["settings"]["histogram_chart"] == "histogram.png"
     assert options["settings"]["histogram_data"] == ["histogram.csv"]

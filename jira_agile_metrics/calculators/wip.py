@@ -1,10 +1,10 @@
 import logging
+
 import matplotlib.pyplot as plt
 import pandas as pd
 
 from ..calculator import Calculator
 from ..utils import set_chart_style
-
 from .cfd import CFDCalculator
 
 logger = logging.getLogger(__name__)
@@ -48,25 +48,17 @@ class WIPChartCalculator(Calculator):
 
         window = self.settings["wip_window"]
         if window:
-            start = wip_data.index.max().normalize() - (
-                window * pd.tseries.frequencies.to_offset(frequency)
-            )
+            start = wip_data.index.max().normalize() - (window * pd.tseries.frequencies.to_offset(frequency))
             wip_data = wip_data[start:]
 
             if len(wip_data.index) < 2:
-                logger.warning(
-                    "Need at least 2 completed items to draw scatterplot"
-                )
+                logger.warning("Need at least 2 completed items to draw scatterplot")
                 return
 
-        groups = wip_data.groupby(
-            pd.Grouper(freq=frequency, label="left", closed="left")
-        )
+        groups = wip_data.groupby(pd.Grouper(freq=frequency, label="left", closed="left"))
         labels = [x[0].strftime(self.settings["date_format"]) for x in groups]
 
-        groups.boxplot(
-            subplots=False, ax=ax, showmeans=True, return_type="axes"
-        )
+        groups.boxplot(subplots=False, ax=ax, showmeans=True, return_type="axes")
         ax.set_xticklabels(labels, rotation=70, size="small")
 
         ax.set_xlabel("Period starting")

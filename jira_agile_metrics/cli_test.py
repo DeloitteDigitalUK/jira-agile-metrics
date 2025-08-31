@@ -1,12 +1,7 @@
 import json
 import tempfile
 
-from .cli import (
-    override_options,
-    run_command_line,
-    configure_argument_parser,
-    get_trello_client,
-)
+from .cli import configure_argument_parser, get_trello_client, override_options, run_command_line
 
 
 def test_override_options():
@@ -59,9 +54,7 @@ Output:
         - cycletime.json
     CFD data: cfd.csv
 """
-    mock_get_trello_client = mocker.patch(
-        "jira_agile_metrics.cli.get_trello_client"
-    )
+    mock_get_trello_client = mocker.patch("jira_agile_metrics.cli.get_trello_client")
     mocker.patch("jira_agile_metrics.cli.QueryManager")
     # Avoid executing the full calculators pipeline in this unit test
     mocker.patch("jira_agile_metrics.cli.run_calculators")
@@ -78,8 +71,6 @@ def test_get_trello_client(mocker):
 
     mock_trello = mocker.patch("jira_agile_metrics.cli.TrelloClient")
 
-    get_trello_client(
-        {"username": "me", "key": "my_key", "token": "my_token"}, {}
-    )
+    get_trello_client({"username": "me", "key": "my_key", "token": "my_token"}, {})
 
     mock_trello.assert_called_once()

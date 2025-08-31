@@ -1,16 +1,12 @@
 import pytest
 from pandas import Timestamp
 
-from ..conftest import (
-    FauxJIRA as JIRA,
-    FauxIssue as Issue,
-    FauxFieldValue as Value,
-    FauxChange as Change,
-)
-
-from ..utils import extend_dict
-
+from ..conftest import FauxChange as Change
+from ..conftest import FauxFieldValue as Value
+from ..conftest import FauxIssue as Issue
+from ..conftest import FauxJIRA as JIRA
 from ..querymanager import QueryManager
+from ..utils import extend_dict
 from .waste import WasteCalculator
 
 
@@ -24,9 +20,7 @@ def settings(minimal_settings):
     return extend_dict(
         minimal_settings,
         {
-            "waste_query": (
-                "issueType = Story " "AND resolution IN (Withdrawn, Invalid)"
-            ),
+            "waste_query": ("issueType = Story " "AND resolution IN (Withdrawn, Invalid)"),
             "waste_window": 3,
             "waste_frequency": "2W-WED",
             "waste_chart": "waste.png",

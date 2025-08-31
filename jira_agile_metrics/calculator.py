@@ -57,10 +57,7 @@ def run_calculators(calculators, query_manager, settings):
             c.write()
         except Exception:
             logger.exception(
-                (
-                    "Writing file for %s failed with a fatal error. "
-                    "Attempting to run subsequent writers regardless."
-                ),
+                ("Writing file for %s failed with a fatal error. " "Attempting to run subsequent writers regardless."),
                 c.__class__.__name__,
             )
         else:

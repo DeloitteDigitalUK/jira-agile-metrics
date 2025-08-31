@@ -1,11 +1,11 @@
 import logging
-import pandas as pd
-import matplotlib.pyplot as plt
+
 import matplotlib.dates as mdates
+import matplotlib.pyplot as plt
+import pandas as pd
 
 from ..calculator import Calculator
 from ..utils import get_extension, set_chart_style
-
 from .cycletime import CycleTimeCalculator
 
 logger = logging.getLogger(__name__)
@@ -38,9 +38,7 @@ class ScatterplotCalculator(Calculator):
 
     def write_file(self, data, output_files):
         file_data = data.copy()
-        file_data["completed_date"] = file_data["completed_date"].map(
-            pd.Timestamp.date
-        )
+        file_data["completed_date"] = file_data["completed_date"].map(pd.Timestamp.date)
 
         for output_file in output_files:
             output_extension = get_extension(output_file)
@@ -54,16 +52,12 @@ class ScatterplotCalculator(Calculator):
 
     def write_chart(self, data, output_file):
         if len(data.index) < 2:
-            logger.warning(
-                "Need at least 2 completed items to draw scatterplot"
-            )
+            logger.warning("Need at least 2 completed items to draw scatterplot")
             return
 
         chart_data = pd.DataFrame(
             {
-                "completed_date": data["completed_date"].values.astype(
-                    "datetime64[D]"
-                ),
+                "completed_date": data["completed_date"].values.astype("datetime64[D]"),
                 "cycle_time": data["cycle_time"],
             },
             index=data.index,
@@ -71,15 +65,11 @@ class ScatterplotCalculator(Calculator):
 
         window = self.settings["scatterplot_window"]
         if window:
-            start = chart_data[
-                "completed_date"
-            ].max().normalize() - pd.Timedelta(window, "D")
+            start = chart_data["completed_date"].max().normalize() - pd.Timedelta(window, "D")
             chart_data = chart_data[chart_data.completed_date >= start]
 
             if len(data.index) < 2:
-                logger.warning(
-                    "Need at least 2 completed items to draw scatterplot"
-                )
+                logger.warning("Need at least 2 completed items to draw scatterplot")
                 return
 
         quantiles = self.settings["quantiles"]
@@ -97,18 +87,12 @@ class ScatterplotCalculator(Calculator):
         if self.settings["scatterplot_chart_title"]:
             ax.set_title(self.settings["scatterplot_chart_title"])
 
-        ax.plot_date(
-            x=chart_data["completed_date"], y=chart_data["cycle_time"], ms=5
-        )
-        ax.xaxis.set_major_formatter(
-            mdates.DateFormatter(self.settings["date_format"])
-        )
+        ax.plot_date(x=chart_data["completed_date"], y=chart_data["cycle_time"], ms=5)
+        ax.xaxis.set_major_formatter(mdates.DateFormatter(self.settings["date_format"]))
 
         # Add quantiles
         left, right = ax.get_xlim()
-        for quantile, value in (
-            chart_data["cycle_time"].quantile(quantiles).items()
-        ):
+        for quantile, value in chart_data["cycle_time"].quantile(quantiles).items():
             ax.hlines(value, left, right, linestyles="--", linewidths=1)
             ax.annotate(
                 "%.0f%% (%.0f days)"
@@ -150,8 +134,6 @@ def calculate_scatterplot_data(cycle_data):
         # Empty dataframe or non-timedelta dtype, keep as-is
         pass
     else:
-        data["cycle_time"] = data["cycle_time"].dt.total_seconds() / (
-            24 * 3600
-        )
+        data["cycle_time"] = data["cycle_time"].dt.total_seconds() / (24 * 3600)
 
     return data

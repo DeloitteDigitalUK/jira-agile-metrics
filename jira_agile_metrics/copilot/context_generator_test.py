@@ -2,9 +2,10 @@
 Unit tests for AI context generator - Flow Metrics focused.
 """
 
-import pytest
-import pandas as pd
 from unittest.mock import Mock, patch
+
+import pandas as pd
+import pytest
 
 from .context_generator import AIContextGenerator
 
@@ -50,21 +51,15 @@ class TestAIContextGenerator:
         assert generator.settings == test_settings
         assert generator._results == {}
 
-    def test_run_generates_flow_context(
-        self, mock_query_manager, test_settings, tmp_path
-    ):
+    def test_run_generates_flow_context(self, mock_query_manager, test_settings, tmp_path):
         # Mock cycle time data in results to avoid "no data" error
-        from jira_agile_metrics.calculators.cycletime import (
-            CycleTimeCalculator,
-        )
+        from jira_agile_metrics.calculators.cycletime import CycleTimeCalculator
 
         # Use tmp_path for the output file
         output_file = tmp_path / "ai-context.json"
         test_settings["ai_context_file"] = str(output_file)
 
-        mock_cycle_data = pd.DataFrame(
-            [{"key": "PROJ-123", "cycle_time": 5.0}]
-        )
+        mock_cycle_data = pd.DataFrame([{"key": "PROJ-123", "cycle_time": 5.0}])
 
         generator = AIContextGenerator(
             mock_query_manager,
@@ -73,13 +68,9 @@ class TestAIContextGenerator:
         )
 
         # Mock all the analysis methods
-        with patch.object(
-            generator, "_analyze_flow_health"
-        ) as mock_flow_health, patch.object(
+        with patch.object(generator, "_analyze_flow_health") as mock_flow_health, patch.object(
             generator, "_analyze_ageing_wip"
-        ) as mock_ageing_wip, patch.object(
-            generator, "_analyze_throughput_trends"
-        ) as mock_throughput, patch.object(
+        ) as mock_ageing_wip, patch.object(generator, "_analyze_throughput_trends") as mock_throughput, patch.object(
             generator, "_analyze_wip_stability"
         ) as mock_wip_stability, patch.object(
             generator, "_detect_bottlenecks"
@@ -129,9 +120,7 @@ class TestAIContextGenerator:
         assert "done_column" in metadata
         assert "analysis_date" in metadata
 
-    def test_analyze_flow_health_no_data(
-        self, mock_query_manager, test_settings
-    ):
+    def test_analyze_flow_health_no_data(self, mock_query_manager, test_settings):
         generator = AIContextGenerator(mock_query_manager, test_settings, {})
 
         # Mock empty cycle data with proper columns
@@ -141,23 +130,17 @@ class TestAIContextGenerator:
         # Should handle no cycle data gracefully
         assert result["status"] == "no_completed_items"
 
-    def test_analyze_ageing_wip_no_items(
-        self, mock_query_manager, test_settings
-    ):
+    def test_analyze_ageing_wip_no_items(self, mock_query_manager, test_settings):
         generator = AIContextGenerator(mock_query_manager, test_settings, {})
 
-        with patch(
-            "jira_agile_metrics.calculators.ageingwip.AgeingWIPChartCalculator"
-        ) as mock_calc:
+        with patch("jira_agile_metrics.calculators.ageingwip.AgeingWIPChartCalculator") as mock_calc:
             mock_calc.return_value.run.return_value = None
 
             result = generator._analyze_ageing_wip()
 
         assert result["status"] == "no_wip_items"
 
-    def test_analyze_ageing_wip_with_stuck_items(
-        self, mock_query_manager, test_settings
-    ):
+    def test_analyze_ageing_wip_with_stuck_items(self, mock_query_manager, test_settings):
         generator = AIContextGenerator(mock_query_manager, test_settings, {})
 
         # Mock ageing WIP data with required 'status' column
@@ -216,37 +199,27 @@ class TestAIContextGenerator:
             ]
         )
 
-        with patch(
-            "jira_agile_metrics.calculators.ageingwip.AgeingWIPChartCalculator"
-        ) as mock_calc:
+        with patch("jira_agile_metrics.calculators.ageingwip.AgeingWIPChartCalculator") as mock_calc:
             mock_calc.return_value.run.return_value = mock_ageing_data
 
             result = generator._analyze_ageing_wip()
 
         assert result["total_wip_items"] == 8
-        assert (
-            result["stuck_items_count"] == 1
-        )  # PROJ-123 with age 130 > threshold 135
+        assert result["stuck_items_count"] == 1  # PROJ-123 with age 130 > threshold 135
         assert len(result["stuck_items"]) == 1
         assert result["stuck_items"][0]["key"] == "PROJ-123"
 
-    def test_analyze_throughput_trends_no_data(
-        self, mock_query_manager, test_settings
-    ):
+    def test_analyze_throughput_trends_no_data(self, mock_query_manager, test_settings):
         generator = AIContextGenerator(mock_query_manager, test_settings, {})
 
-        with patch(
-            "jira_agile_metrics.calculators.throughput.ThroughputCalculator"
-        ) as mock_calc:
+        with patch("jira_agile_metrics.calculators.throughput.ThroughputCalculator") as mock_calc:
             mock_calc.return_value.run.return_value = None
 
             result = generator._analyze_throughput_trends()
 
         assert result["status"] == "no_throughput_data"
 
-    def test_analyze_throughput_trends_with_data(
-        self, mock_query_manager, test_settings
-    ):
+    def test_analyze_throughput_trends_with_data(self, mock_query_manager, test_settings):
         generator = AIContextGenerator(mock_query_manager, test_settings, {})
 
         # Mock throughput data - improving trend
@@ -259,56 +232,38 @@ class TestAIContextGenerator:
             ]
         )
 
-        with patch(
-            "jira_agile_metrics.calculators.throughput.ThroughputCalculator"
-        ) as mock_calc:
+        with patch("jira_agile_metrics.calculators.throughput.ThroughputCalculator") as mock_calc:
             mock_calc.return_value.run.return_value = mock_throughput_data
 
             result = generator._analyze_throughput_trends()
 
-        assert (
-            result["recent_avg_throughput"] == 2.125
-        )  # avg of all periods (actual implementation)
-        assert (
-            result["historical_avg_throughput"] == 2.125
-        )  # avg of all periods
-        assert (
-            result["trend_direction"] == "stable"
-        )  # Based on actual implementation logic
+        assert result["recent_avg_throughput"] == 2.125  # avg of all periods (actual implementation)
+        assert result["historical_avg_throughput"] == 2.125  # avg of all periods
+        assert result["trend_direction"] == "stable"  # Based on actual implementation logic
         assert result["min_throughput"] == 1.0
         assert result["max_throughput"] == 3.0
 
-    def test_detect_bottlenecks_no_data(
-        self, mock_query_manager, test_settings
-    ):
+    def test_detect_bottlenecks_no_data(self, mock_query_manager, test_settings):
         generator = AIContextGenerator(mock_query_manager, test_settings, {})
 
-        with patch(
-            "jira_agile_metrics.calculators.cfd.CFDCalculator"
-        ) as mock_calc:
+        with patch("jira_agile_metrics.calculators.cfd.CFDCalculator") as mock_calc:
             mock_calc.return_value.run.return_value = None
 
             result = generator._detect_bottlenecks()
 
         assert result["status"] == "no_cfd_data"
 
-    def test_identify_actionable_items_no_wip(
-        self, mock_query_manager, test_settings
-    ):
+    def test_identify_actionable_items_no_wip(self, mock_query_manager, test_settings):
         generator = AIContextGenerator(mock_query_manager, test_settings, {})
 
         # Empty cycle data
-        empty_data = pd.DataFrame(
-            columns=["key", "summary", "In Progress", "Done"]
-        )
+        empty_data = pd.DataFrame(columns=["key", "summary", "In Progress", "Done"])
 
         result = generator._identify_actionable_items(empty_data)
 
         assert result == []
 
-    def test_identify_actionable_items_with_outliers(
-        self, mock_query_manager, test_settings
-    ):
+    def test_identify_actionable_items_with_outliers(self, mock_query_manager, test_settings):
         generator = AIContextGenerator(mock_query_manager, test_settings, {})
 
         # Mock cycle data with WIP items and completed items for threshold calculation
@@ -358,9 +313,7 @@ class TestAIContextGenerator:
         assert result[0]["reason"] == "ageing_outlier"
         assert result[0]["age_days"] == 28
 
-    def test_analysis_with_timedelta_cycle_time(
-        self, mock_query_manager, test_settings
-    ):
+    def test_analysis_with_timedelta_cycle_time(self, mock_query_manager, test_settings):
         """Test that analysis functions handle Timedelta cycle times correctly."""
         generator = AIContextGenerator(mock_query_manager, test_settings, {})
 
@@ -396,20 +349,11 @@ class TestAIContextGenerator:
 
         # 2. Test _analyze_cycle_time_patterns (with enough data)
         cycle_data_for_patterns = pd.DataFrame(
-            [
-                {
-                    "cycle_time": pd.Timedelta(days=d), "Done": pd.Timestamp.now()
-                }
-                for d in range(1, 12)
-            ]
+            [{"cycle_time": pd.Timedelta(days=d), "Done": pd.Timestamp.now()} for d in range(1, 12)]
         )
-        patterns_result = generator._analyze_cycle_time_patterns(
-            cycle_data_for_patterns
-        )
+        patterns_result = generator._analyze_cycle_time_patterns(cycle_data_for_patterns)
         assert "performance_trend" in patterns_result
-        assert isinstance(
-            patterns_result["performance_trend"]["recent_avg_cycle_time"], float
-        )
+        assert isinstance(patterns_result["performance_trend"]["recent_avg_cycle_time"], float)
 
         # 3. Test _identify_actionable_items
         with patch("pandas.Timestamp.now") as mock_now:
@@ -418,9 +362,7 @@ class TestAIContextGenerator:
 
         # PROJ-3 is 5 days old. 85th percentile of [5, 10] is 9.25. So not an outlier.
         # Let's make it an outlier
-        cycle_data.loc[
-            cycle_data["key"] == "PROJ-3", "In Progress"
-        ] = pd.Timestamp("2025-08-15")
+        cycle_data.loc[cycle_data["key"] == "PROJ-3", "In Progress"] = pd.Timestamp("2025-08-15")
 
         with patch("pandas.Timestamp.now") as mock_now:
             mock_now.return_value = pd.Timestamp("2025-08-30")

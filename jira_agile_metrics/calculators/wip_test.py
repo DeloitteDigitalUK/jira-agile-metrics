@@ -1,11 +1,11 @@
-import pytest
 import datetime
+
+import pytest
 from pandas import DataFrame, Timestamp, date_range
 
+from ..utils import extend_dict
 from .cfd import CFDCalculator
 from .wip import WIPChartCalculator
-
-from ..utils import extend_dict
 
 
 @pytest.fixture
@@ -37,11 +37,7 @@ def results(query_manager, settings, large_cycle_time_results):
 
     return extend_dict(
         large_cycle_time_results,
-        {
-            CFDCalculator: CFDCalculator(
-                query_manager, settings, large_cycle_time_results
-            ).run()
-        },
+        {CFDCalculator: CFDCalculator(query_manager, settings, large_cycle_time_results).run()},
     )
 
 

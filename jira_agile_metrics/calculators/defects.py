@@ -1,8 +1,8 @@
 import logging
-import dateutil.parser
 
-import pandas as pd
+import dateutil.parser
 import matplotlib.pyplot as plt
+import pandas as pd
 
 from ..calculator import Calculator
 from ..utils import breakdown_by_month, set_chart_style
@@ -38,32 +38,18 @@ class DefectsCalculator(Calculator):
 
         # This calculation is expensive. Only run it if we have a query.
         if not query:
-            logger.debug(
-                "Not calculating defects chart data as no query specified"
-            )
+            logger.debug("Not calculating defects chart data as no query specified")
             return None
 
         # Get the fields
         priority_field = self.settings["defects_priority_field"]
-        priority_field_id = (
-            self.query_manager.field_name_to_id(priority_field)
-            if priority_field
-            else None
-        )
+        priority_field_id = self.query_manager.field_name_to_id(priority_field) if priority_field else None
 
         type_field = self.settings["defects_type_field"]
-        type_field_id = (
-            self.query_manager.field_name_to_id(type_field)
-            if type_field
-            else None
-        )
+        type_field_id = self.query_manager.field_name_to_id(type_field) if type_field else None
 
         environment_field = self.settings["defects_environment_field"]
-        environment_field_id = (
-            self.query_manager.field_name_to_id(environment_field)
-            if environment_field
-            else None
-        )
+        environment_field_id = self.query_manager.field_name_to_id(environment_field) if environment_field else None
 
         # Build data frame
         columns = [
@@ -86,31 +72,17 @@ class DefectsCalculator(Calculator):
         for issue in self.query_manager.find_issues(query, expand=None):
             series["key"]["data"].append(issue.key)
             series["priority"]["data"].append(
-                self.query_manager.resolve_field_value(
-                    issue, priority_field_id
-                )
-                if priority_field
-                else None
+                self.query_manager.resolve_field_value(issue, priority_field_id) if priority_field else None
             )
             series["type"]["data"].append(
-                self.query_manager.resolve_field_value(issue, type_field_id)
-                if type_field
-                else None
+                self.query_manager.resolve_field_value(issue, type_field_id) if type_field else None
             )
             series["environment"]["data"].append(
-                self.query_manager.resolve_field_value(
-                    issue, environment_field_id
-                )
-                if environment_field
-                else None
+                self.query_manager.resolve_field_value(issue, environment_field_id) if environment_field else None
             )
-            series["created"]["data"].append(
-                dateutil.parser.parse(issue.fields.created)
-            )
+            series["created"]["data"].append(dateutil.parser.parse(issue.fields.created))
             series["resolved"]["data"].append(
-                dateutil.parser.parse(issue.fields.resolutiondate)
-                if issue.fields.resolutiondate
-                else None
+                dateutil.parser.parse(issue.fields.resolutiondate) if issue.fields.resolutiondate else None
             )
 
         data = {}
@@ -129,19 +101,13 @@ class DefectsCalculator(Calculator):
             return
 
         if self.settings["defects_by_priority_chart"]:
-            self.write_defects_by_priority_chart(
-                chart_data, self.settings["defects_by_priority_chart"]
-            )
+            self.write_defects_by_priority_chart(chart_data, self.settings["defects_by_priority_chart"])
 
         if self.settings["defects_by_type_chart"]:
-            self.write_defects_by_type_chart(
-                chart_data, self.settings["defects_by_type_chart"]
-            )
+            self.write_defects_by_type_chart(chart_data, self.settings["defects_by_type_chart"])
 
         if self.settings["defects_by_environment_chart"]:
-            self.write_defects_by_environment_chart(
-                chart_data, self.settings["defects_by_environment_chart"]
-            )
+            self.write_defects_by_environment_chart(chart_data, self.settings["defects_by_environment_chart"])
 
     def write_defects_by_priority_chart(self, chart_data, output_file):
         window = self.settings["defects_window"]
@@ -160,9 +126,7 @@ class DefectsCalculator(Calculator):
             breakdown = breakdown[-window:]
 
         if len(breakdown.index) == 0 or len(breakdown.columns) == 0:
-            logger.warning(
-                "Cannot draw defects by priority chart with zero items"
-            )
+            logger.warning("Cannot draw defects by priority chart with zero items")
             return
 
         fig, ax = plt.subplots()
@@ -190,9 +154,7 @@ class DefectsCalculator(Calculator):
         window = self.settings["defects_window"]
         type_values = self.settings["defects_type_values"]
 
-        breakdown = breakdown_by_month(
-            chart_data, "created", "resolved", "key", "type", type_values
-        )
+        breakdown = breakdown_by_month(chart_data, "created", "resolved", "key", "type", type_values)
 
         if window:
             breakdown = breakdown[-window:]
@@ -239,9 +201,7 @@ class DefectsCalculator(Calculator):
             breakdown = breakdown[-window:]
 
         if len(breakdown.index) == 0 or len(breakdown.columns) == 0:
-            logger.warning(
-                "Cannot draw defects by environment chart with zero items"
-            )
+            logger.warning("Cannot draw defects by environment chart with zero items")
             return
 
         fig, ax = plt.subplots()

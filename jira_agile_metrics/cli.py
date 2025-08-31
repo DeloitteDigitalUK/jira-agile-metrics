@@ -1,27 +1,23 @@
-import os
 import argparse
+import datetime
 import getpass
 import logging
-import datetime
+import os
 
 from jira import JIRA
 
-from .config import config_to_options, CALCULATORS, ConfigError
-from .webapp.app import app as webapp
-from .querymanager import QueryManager
 from .calculator import run_calculators
-from .utils import set_chart_context, set_current_time_override
-from .trello import TrelloClient
-from .copilot.cli_commands import (
-    AIConfigValidator,
-    AIInsightsCommand,
-    create_ai_config_from_settings_and_args,
-)
-from .datasources.csv_source import CSVDataSource
-from .calculators.defects import DefectsCalculator
 from .calculators.debt import DebtCalculator
-from .calculators.waste import WasteCalculator
+from .calculators.defects import DefectsCalculator
 from .calculators.progressreport import ProgressReportCalculator
+from .calculators.waste import WasteCalculator
+from .config import CALCULATORS, ConfigError, config_to_options
+from .copilot.cli_commands import AIInsightsCommand, create_ai_config_from_settings_and_args
+from .datasources.csv_source import CSVDataSource
+from .querymanager import QueryManager
+from .trello import TrelloClient
+from .utils import set_chart_context, set_current_time_override
+from .webapp.app import app as webapp
 
 logger = logging.getLogger(__name__)
 
@@ -30,19 +26,12 @@ def configure_argument_parser():
     """Configure an ArgumentParser that manages command line options."""
 
     parser = argparse.ArgumentParser(
-        description=(
-            "Extract Agile metrics data from JIRA/"
-            "Trello and produce data and charts."
-        )
+        description=("Extract Agile metrics data from JIRA/" "Trello and produce data and charts.")
     )
 
     # Basic options
-    parser.add_argument(
-        "config", metavar="config.yml", nargs="?", help="Configuration file"
-    )
-    parser.add_argument(
-        "-v", dest="verbose", action="store_true", help="Verbose output"
-    )
+    parser.add_argument("config", metavar="config.yml", nargs="?", help="Configuration file")
+    parser.add_argument("-v", dest="verbose", action="store_true", help="Verbose output")
     parser.add_argument(
         "-vv",
         dest="very_verbose",
@@ -72,25 +61,16 @@ def configure_argument_parser():
         "--output-directory",
         "-o",
         metavar="metrics",
-        help=(
-            "Write output files to this directory,"
-            "rather than the current working directory."
-        ),
+        help=("Write output files to this directory," "rather than the current working directory."),
     )
 
     # Connection options
-    parser.add_argument(
-        "--domain", metavar="https://my.jira.com", help="JIRA domain name"
-    )
-    parser.add_argument(
-        "--username", metavar="user", help="JIRA/Trello user name"
-    )
+    parser.add_argument("--domain", metavar="https://my.jira.com", help="JIRA domain name")
+    parser.add_argument("--username", metavar="user", help="JIRA/Trello user name")
     parser.add_argument("--password", metavar="password", help="JIRA password")
     parser.add_argument("--key", metavar="key", help="Trello API key")
     parser.add_argument("--token", metavar="token", help="Trello API password")
-    parser.add_argument(
-        "--http-proxy", metavar="https://proxy.local", help="URL to HTTP Proxy"
-    )
+    parser.add_argument("--http-proxy", metavar="https://proxy.local", help="URL to HTTP Proxy")
     parser.add_argument(
         "--https-proxy",
         metavar="https://proxy.local",
@@ -100,10 +80,7 @@ def configure_argument_parser():
         "--jira-server-version-check",
         type=bool,
         metavar="True",
-        help=(
-            "If true it will fetch JIRA server version info first"
-            "to determine if some API calls are available"
-        ),
+        help=("If true it will fetch JIRA server version info first" "to determine if some API calls are available"),
     )
 
     # AI Copilot options
@@ -122,9 +99,7 @@ def configure_argument_parser():
     parser.add_argument(
         "--ai-context-file",
         metavar="ai-context.json",
-        help=(
-            "Override the Copilot context file path (defaults to settings.ai_context_file or ai-context.json)"
-        ),
+        help=("Override the Copilot context file path (defaults to settings.ai_context_file or ai-context.json)"),
     )
     # Provider/model are configured in YAML; no CLI overrides required
     parser.add_argument(
@@ -179,11 +154,7 @@ def run_command_line(parser, args):
     logging.basicConfig(
         format="[%(asctime)s %(levelname)s] %(message)s",
         datefmt="%Y-%m-%d %H:%M:%S",
-        level=(
-            logging.DEBUG
-            if args.very_verbose
-            else logging.INFO if args.verbose else logging.WARNING
-        ),
+        level=(logging.DEBUG if args.very_verbose else logging.INFO if args.verbose else logging.WARNING),
     )
 
     # Configuration and settings
@@ -191,9 +162,7 @@ def run_command_line(parser, args):
 
     logger.debug("Parsing options from %s", args.config)
     with open(args.config) as config:
-        options = config_to_options(
-            config.read(), cwd=os.path.dirname(os.path.abspath(args.config))
-        )
+        options = config_to_options(config.read(), cwd=os.path.dirname(os.path.abspath(args.config)))
 
     # Allow command line arguments to override options
     override_options(options["connection"], args)
@@ -207,8 +176,7 @@ def run_command_line(parser, args):
             logger.info("Using override date: %s", args.current_date)
         except ValueError:
             raise ConfigError(
-                f"Invalid date format '{args.current_date}'. "
-                "Expected format: YYYY-MM-DD (e.g., 2024-01-15)"
+                f"Invalid date format '{args.current_date}'. " "Expected format: YYYY-MM-DD (e.g., 2024-01-15)"
             )
 
     # Set charting context, which determines how charts are rendered
@@ -242,11 +210,11 @@ def run_command_line(parser, args):
 
     # Build calculators list
     calculators = list(CALCULATORS)
-    
+
     # Check for unsafe calculators when using CSV data source
     if args.cycle_data_file:
         validate_csv_calculator_compatibility(calculators, options["settings"])
-    
+
     # Append AIContextGenerator only when AI options are configured and core workflow settings exist
     settings_dict = options["settings"]
     has_core_workflow = (
@@ -257,18 +225,15 @@ def run_command_line(parser, args):
     )
     # Copilot configured via settings (ai dict or ai_context_file)
     ai_settings = settings_dict.get("ai", {}) or {}
-    has_ai_options = (
-        bool(ai_settings)  # any copilot settings present
-        or bool(settings_dict.get("ai_context_file"))  # Copilot Context file configured in Output
-    )
+    has_ai_options = bool(ai_settings) or bool(  # any copilot settings present
+        settings_dict.get("ai_context_file")
+    )  # Copilot Context file configured in Output
     if has_core_workflow and has_ai_options:
         from .copilot.context_generator import AIContextGenerator
 
         calculators.append(AIContextGenerator)
     else:
-        logger.info(
-            "Skipping Copilot context generation (copilot options or required workflow settings missing)"
-        )
+        logger.info("Skipping Copilot context generation (copilot options or required workflow settings missing)")
 
     run_calculators(calculators, query_manager, options["settings"])
 
@@ -336,7 +301,6 @@ def get_trello_client(connection, type_mapping):
 
     return TrelloClient(username, key, token, type_mapping=type_mapping)
 
-
     # duplicate removed; single definition exists above
 
 
@@ -360,9 +324,7 @@ def generate_ai_insights(parser, args):
             )
 
         # Create AI config from settings and args
-        ai_config = create_ai_config_from_settings_and_args(
-            options["settings"], args
-        )
+        ai_config = create_ai_config_from_settings_and_args(options["settings"], args)
 
         # Determine context file path (allow override)
         context_file = (
@@ -385,16 +347,14 @@ def generate_ai_insights(parser, args):
             return
 
         # Generate insights
-        print(
-            f"🤖 Generating AI insights using {ai_config.get('provider', 'unknown')} provider..."
-        )
+        print(f"🤖 Generating AI insights using {ai_config.get('provider', 'unknown')} provider...")
         success, result_msg, preview = command.generate_insights(context_file, insights_file)
 
         if success:
             if args.dry_run:
                 print(f"✅ {result_msg}")
                 # Preview in dry run contains the prompt and payload
-                print(preview)  
+                print(preview)
             else:
                 print(f"✅ {result_msg}")
                 print("\nPreview:")
@@ -410,30 +370,27 @@ def generate_ai_insights(parser, args):
 
 def validate_csv_calculator_compatibility(calculators, settings):
     """Validate that calculators are compatible with CSV data source mode.
-    
+
     Raises ConfigError if any unsafe calculators are configured to run.
     """
     # Define calculators that require JIRA connectivity
     JIRA_DEPENDENT_CALCULATORS = {
         DefectsCalculator: "defects_query",
-        DebtCalculator: "debt_query", 
+        DebtCalculator: "debt_query",
         WasteCalculator: "waste_query",
-        ProgressReportCalculator: "progress_report"
+        ProgressReportCalculator: "progress_report",
     }
-    
+
     unsafe_calculators = []
-    
+
     for calculator_class in calculators:
         if calculator_class in JIRA_DEPENDENT_CALCULATORS:
             setting_key = JIRA_DEPENDENT_CALCULATORS[calculator_class]
-            
+
             # Check if this calculator is actually configured to run
             if settings.get(setting_key):
-                unsafe_calculators.append({
-                    'name': calculator_class.__name__,
-                    'setting': setting_key
-                })
-    
+                unsafe_calculators.append({"name": calculator_class.__name__, "setting": setting_key})
+
     if unsafe_calculators:
         error_msg = (
             "Cannot use --cycle-data-file with calculators that require JIRA connectivity.\n"
@@ -441,7 +398,7 @@ def validate_csv_calculator_compatibility(calculators, settings):
         )
         for calc in unsafe_calculators:
             error_msg += f"  - {calc['name']} (configured via '{calc['setting']}')\n"
-        
+
         error_msg += (
             "\nTo use CSV mode, either:\n"
             "  1. Remove/comment out the incompatible settings from your config file, or\n"
@@ -449,7 +406,7 @@ def validate_csv_calculator_compatibility(calculators, settings):
             "\nCompatible calculators include: cycle time, CFD, scatterplot, histogram, "
             "percentiles, throughput, burnup, WIP, net flow, ageing WIP, forecast, and impediments."
         )
-        
+
         raise ConfigError(error_msg)
 
 

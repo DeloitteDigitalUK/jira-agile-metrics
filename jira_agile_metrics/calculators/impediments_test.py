@@ -1,13 +1,12 @@
-import pytest
 from datetime import date
+
+import pytest
 from pandas import DataFrame, NaT, Timestamp
 
+from ..conftest import _issues
+from ..utils import extend_dict
 from .cycletime import CycleTimeCalculator
 from .impediments import ImpedimentsCalculator
-
-from ..utils import extend_dict
-
-from ..conftest import _issues
 
 
 def _ts(datestring, timestring="00:00:00", freq=None):
@@ -143,9 +142,7 @@ def test_only_runs_if_charts_set(query_manager, settings, cycle_time_results):
         },
     )
 
-    calculator = ImpedimentsCalculator(
-        query_manager, test_settings, cycle_time_results
-    )
+    calculator = ImpedimentsCalculator(query_manager, test_settings, cycle_time_results)
     data = calculator.run()
     assert data is None
 
@@ -160,9 +157,7 @@ def test_only_runs_if_charts_set(query_manager, settings, cycle_time_results):
         },
     )
 
-    calculator = ImpedimentsCalculator(
-        query_manager, test_settings, cycle_time_results
-    )
+    calculator = ImpedimentsCalculator(query_manager, test_settings, cycle_time_results)
     data = calculator.run()
     assert data is not None
 
@@ -177,9 +172,7 @@ def test_only_runs_if_charts_set(query_manager, settings, cycle_time_results):
         },
     )
 
-    calculator = ImpedimentsCalculator(
-        query_manager, test_settings, cycle_time_results
-    )
+    calculator = ImpedimentsCalculator(query_manager, test_settings, cycle_time_results)
     data = calculator.run()
     assert data is not None
 
@@ -194,9 +187,7 @@ def test_only_runs_if_charts_set(query_manager, settings, cycle_time_results):
         },
     )
 
-    calculator = ImpedimentsCalculator(
-        query_manager, test_settings, cycle_time_results
-    )
+    calculator = ImpedimentsCalculator(query_manager, test_settings, cycle_time_results)
     data = calculator.run()
     assert data is not None
 
@@ -211,9 +202,7 @@ def test_only_runs_if_charts_set(query_manager, settings, cycle_time_results):
         },
     )
 
-    calculator = ImpedimentsCalculator(
-        query_manager, test_settings, cycle_time_results
-    )
+    calculator = ImpedimentsCalculator(query_manager, test_settings, cycle_time_results)
     data = calculator.run()
     assert data is not None
 
@@ -228,9 +217,7 @@ def test_only_runs_if_charts_set(query_manager, settings, cycle_time_results):
         },
     )
 
-    calculator = ImpedimentsCalculator(
-        query_manager, test_settings, cycle_time_results
-    )
+    calculator = ImpedimentsCalculator(query_manager, test_settings, cycle_time_results)
     data = calculator.run()
     assert data is not None
 
@@ -245,9 +232,7 @@ def test_empty(query_manager, settings, columns):
 
 
 def test_columns(query_manager, settings, cycle_time_results):
-    calculator = ImpedimentsCalculator(
-        query_manager, settings, cycle_time_results
-    )
+    calculator = ImpedimentsCalculator(query_manager, settings, cycle_time_results)
 
     data = calculator.run()
 
@@ -255,9 +240,7 @@ def test_columns(query_manager, settings, cycle_time_results):
 
 
 def test_calculate_impediments(query_manager, settings, cycle_time_results):
-    calculator = ImpedimentsCalculator(
-        query_manager, settings, cycle_time_results
-    )
+    calculator = ImpedimentsCalculator(query_manager, settings, cycle_time_results)
 
     data = calculator.run()
 
@@ -294,9 +277,7 @@ def test_different_backlog_column(query_manager, settings, cycle_time_results):
             "committed_column": "Build",
         },
     )
-    calculator = ImpedimentsCalculator(
-        query_manager, settings, cycle_time_results
-    )
+    calculator = ImpedimentsCalculator(query_manager, settings, cycle_time_results)
 
     data = calculator.run()
 
@@ -318,9 +299,7 @@ def test_different_done_column(query_manager, settings, cycle_time_results):
             "done_column": "Build",
         },
     )
-    calculator = ImpedimentsCalculator(
-        query_manager, settings, cycle_time_results
-    )
+    calculator = ImpedimentsCalculator(query_manager, settings, cycle_time_results)
 
     data = calculator.run()
 

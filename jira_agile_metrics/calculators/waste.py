@@ -1,4 +1,5 @@
 import logging
+
 import dateutil
 import pandas as pd
 from matplotlib import pyplot as plt
@@ -22,19 +23,13 @@ class WasteCalculator(Calculator):
 
         query = self.settings["waste_query"]
         if not query:
-            logger.debug(
-                "Not calculating waste chart data as no query specified"
-            )
+            logger.debug("Not calculating waste chart data as no query specified")
             return None
 
         cycle_names = [s["name"] for s in self.settings["cycle"]]
         committed_column = self.settings["committed_column"]
         done_column = self.settings["done_column"]
-        active_columns = cycle_names[
-            cycle_names.index(committed_column) : cycle_names.index(
-                done_column
-            )
-        ]
+        active_columns = cycle_names[cycle_names.index(committed_column) : cycle_names.index(done_column)]
 
         cycle_lookup = {}
         for idx, cycle_step in enumerate(self.settings["cycle"]):
@@ -59,9 +54,7 @@ class WasteCalculator(Calculator):
                 continue
 
             last_status = None
-            status_changes = list(
-                self.query_manager.iter_changes(issue, ["status"])
-            )
+            status_changes = list(self.query_manager.iter_changes(issue, ["status"]))
             if len(status_changes) > 0:
                 last_status = status_changes[-1].from_string
 
@@ -81,9 +74,7 @@ class WasteCalculator(Calculator):
             series["key"]["data"].append(issue.key)
             series["last_status"]["data"].append(last_status)
             series["resolution"]["data"].append(issue.fields.resolution.name)
-            series["withdrawn_date"]["data"].append(
-                dateutil.parser.parse(issue.fields.resolutiondate)
-            )
+            series["withdrawn_date"]["data"].append(dateutil.parser.parse(issue.fields.resolutiondate))
 
         data = {}
         for k, v in series.items():
@@ -111,11 +102,7 @@ class WasteCalculator(Calculator):
         cycle_names = [s["name"] for s in self.settings["cycle"]]
         committed_column = self.settings["committed_column"]
         done_column = self.settings["done_column"]
-        active_columns = cycle_names[
-            cycle_names.index(committed_column) : cycle_names.index(
-                done_column
-            )
-        ]
+        active_columns = cycle_names[cycle_names.index(committed_column) : cycle_names.index(done_column)]
 
         breakdown = (
             chart_data.pivot_table(

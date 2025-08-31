@@ -2,15 +2,11 @@
 Unit tests for LLM providers with offline mocks.
 """
 
-import pytest
 from unittest.mock import Mock, patch
-from .providers import (
-    OpenAIProvider,
-    AnthropicProvider,
-    AzureOpenAIProvider,
-    LLMFactory,
-)
 
+import pytest
+
+from .providers import AnthropicProvider, AzureOpenAIProvider, LLMFactory, OpenAIProvider
 
 # Realistic JIRA metrics context data for testing
 SAMPLE_CONTEXT = {
@@ -108,13 +104,7 @@ class TestOpenAIProvider:
         mock_response = Mock()
         mock_response.status_code = 200
         mock_response.json.return_value = {
-            "choices": [
-                {
-                    "message": {
-                        "content": "Test AI insight: Focus on reducing cycle time for PROJ-123."
-                    }
-                }
-            ]
+            "choices": [{"message": {"content": "Test AI insight: Focus on reducing cycle time for PROJ-123."}}]
         }
         mock_post.return_value = mock_response
 
@@ -122,23 +112,16 @@ class TestOpenAIProvider:
 
         with patch.dict("os.environ", {"TEST_OPENAI_KEY": "test-key-123"}):
             provider = OpenAIProvider(config)
-            result = provider.generate_insights(
-                "Analyze team performance", SAMPLE_CONTEXT
-            )
+            result = provider.generate_insights("Analyze team performance", SAMPLE_CONTEXT)
 
-        assert (
-            result
-            == "Test AI insight: Focus on reducing cycle time for PROJ-123."
-        )
+        assert result == "Test AI insight: Focus on reducing cycle time for PROJ-123."
 
         # Verify API call was made correctly
         mock_post.assert_called_once()
         call_args = mock_post.call_args
         assert call_args[0][0] == "https://api.openai.com/v1/chat/completions"
         assert "Authorization" in call_args[1]["headers"]
-        assert (
-            call_args[1]["headers"]["Authorization"] == "Bearer test-key-123"
-        )
+        assert call_args[1]["headers"]["Authorization"] == "Bearer test-key-123"
 
         # Verify context data is included in the request
         payload = call_args[1]["json"]
@@ -183,9 +166,7 @@ class TestOpenAIProvider:
         # Test handling of empty context
         mock_response = Mock()
         mock_response.status_code = 200
-        mock_response.json.return_value = {
-            "choices": [{"message": {"content": "Response with no context"}}]
-        }
+        mock_response.json.return_value = {"choices": [{"message": {"content": "Response with no context"}}]}
         mock_post.return_value = mock_response
 
         config = {"api_key_env": "TEST_OPENAI_KEY"}
@@ -208,9 +189,7 @@ class TestOpenAIProvider:
         # No API key in environment
         with patch.dict("os.environ", {}, clear=True):
             provider = OpenAIProvider(config)
-            result = provider.generate_insights(
-                "Dry run test", SAMPLE_CONTEXT
-            )
+            result = provider.generate_insights("Dry run test", SAMPLE_CONTEXT)
 
         # 1. Verify API was not called
         mock_post.assert_not_called()
@@ -236,11 +215,7 @@ class TestAnthropicProvider:
         mock_response = Mock()
         mock_response.status_code = 200
         mock_response.json.return_value = {
-            "content": [
-                {
-                    "text": "Anthropic AI insight: Review bottleneck detected in PROJ-456."
-                }
-            ]
+            "content": [{"text": "Anthropic AI insight: Review bottleneck detected in PROJ-456."}]
         }
         mock_post.return_value = mock_response
 
@@ -251,14 +226,9 @@ class TestAnthropicProvider:
 
         with patch.dict("os.environ", {"TEST_ANTHROPIC_KEY": "test-key-456"}):
             provider = AnthropicProvider(config)
-            result = provider.generate_insights(
-                "Identify bottlenecks", SAMPLE_CONTEXT
-            )
+            result = provider.generate_insights("Identify bottlenecks", SAMPLE_CONTEXT)
 
-        assert (
-            result
-            == "Anthropic AI insight: Review bottleneck detected in PROJ-456."
-        )
+        assert result == "Anthropic AI insight: Review bottleneck detected in PROJ-456."
 
         # Verify API call was made correctly
         mock_post.assert_called_once()
@@ -280,9 +250,7 @@ class TestAnthropicProvider:
 
         with patch.dict("os.environ", {}, clear=True):
             provider = AnthropicProvider(config)
-            result = provider.generate_insights(
-                "Dry run test", SAMPLE_CONTEXT
-            )
+            result = provider.generate_insights("Dry run test", SAMPLE_CONTEXT)
 
         mock_post.assert_not_called()
 
@@ -304,13 +272,7 @@ class TestAzureOpenAIProvider:
         mock_response = Mock()
         mock_response.status_code = 200
         mock_response.json.return_value = {
-            "choices": [
-                {
-                    "message": {
-                        "content": "Azure AI insight: WIP limit exceeded, consider pausing new work."
-                    }
-                }
-            ]
+            "choices": [{"message": {"content": "Azure AI insight: WIP limit exceeded, consider pausing new work."}}]
         }
         mock_post.return_value = mock_response
 
@@ -323,14 +285,9 @@ class TestAzureOpenAIProvider:
 
         with patch.dict("os.environ", {"TEST_AZURE_KEY": "test-azure-key"}):
             provider = AzureOpenAIProvider(config)
-            result = provider.generate_insights(
-                "Analyze WIP levels", SAMPLE_CONTEXT
-            )
+            result = provider.generate_insights("Analyze WIP levels", SAMPLE_CONTEXT)
 
-        assert (
-            result
-            == "Azure AI insight: WIP limit exceeded, consider pausing new work."
-        )
+        assert result == "Azure AI insight: WIP limit exceeded, consider pausing new work."
 
         # Verify correct URL construction
         mock_post.assert_called_once()
@@ -356,9 +313,7 @@ class TestAzureOpenAIProvider:
 
         with patch.dict("os.environ", {}, clear=True):
             provider = AzureOpenAIProvider(config)
-            result = provider.generate_insights(
-                "Dry run test", SAMPLE_CONTEXT
-            )
+            result = provider.generate_insights("Dry run test", SAMPLE_CONTEXT)
 
         mock_post.assert_not_called()
 
@@ -450,13 +405,8 @@ class TestSystemPrompt:
             system_prompt = provider._get_system_prompt()
 
         # Verify anti-hallucination constraints are present
-        assert (
-            "ONLY reference ticket IDs that exist in the provided context"
-            in system_prompt
-        )
+        assert "ONLY reference ticket IDs that exist in the provided context" in system_prompt
         assert "ONLY use metrics that are explicitly provided" in system_prompt
         assert "Always cite the source data" in system_prompt
         assert "Never invent or extrapolate ticket numbers" in system_prompt
-        assert (
-            "Include specific ticket IDs in recommendations" in system_prompt
-        )
+        assert "Include specific ticket IDs in recommendations" in system_prompt

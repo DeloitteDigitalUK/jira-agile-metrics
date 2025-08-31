@@ -1,19 +1,16 @@
-import pytest
 import datetime
+
+import pytest
 from pandas import DataFrame
 
-from ..conftest import (
-    FauxJIRA as JIRA,
-    FauxIssue as Issue,
-    FauxChange as Change,
-    FauxFieldValue as Value,
-)
-
+from ..conftest import FauxChange as Change
+from ..conftest import FauxFieldValue as Value
+from ..conftest import FauxIssue as Issue
+from ..conftest import FauxJIRA as JIRA
 from ..querymanager import QueryManager
-from .cycletime import CycleTimeCalculator
-from .ageingwip import AgeingWIPChartCalculator
-
 from ..utils import extend_dict
+from .ageingwip import AgeingWIPChartCalculator
+from .cycletime import CycleTimeCalculator
 
 
 @pytest.fixture
@@ -152,11 +149,7 @@ def now(today):
 
 
 def test_empty(query_manager, settings, minimal_cycle_time_columns, today):
-    results = {
-        CycleTimeCalculator: DataFrame(
-            [], columns=minimal_cycle_time_columns, index=[]
-        )
-    }
+    results = {CycleTimeCalculator: DataFrame([], columns=minimal_cycle_time_columns, index=[])}
 
     calculator = AgeingWIPChartCalculator(query_manager, settings, results)
 
@@ -207,9 +200,7 @@ def test_calculate_ageing_wip(query_manager, settings, results, today):
     ]
 
 
-def test_calculate_ageing_wip_with_different_done_column(
-    query_manager, settings, results, today
-):
+def test_calculate_ageing_wip_with_different_done_column(query_manager, settings, results, today):
     settings.update(
         {
             "done_column": "Test",
@@ -230,16 +221,12 @@ def test_calculate_ageing_wip_with_different_done_column(
     ]
 
 
-def test_calculate_ageing_wip_with_skipped_columns(
-    jira_with_skipped_columns, settings, today, now
-):
+def test_calculate_ageing_wip_with_skipped_columns(jira_with_skipped_columns, settings, today, now):
     query_manager = QueryManager(jira_with_skipped_columns, settings)
     results = {}
     cycle_time_calc = CycleTimeCalculator(query_manager, settings, results)
     results[CycleTimeCalculator] = cycle_time_calc.run(now=now)
-    ageing_wip_calc = AgeingWIPChartCalculator(
-        query_manager, settings, results
-    )
+    ageing_wip_calc = AgeingWIPChartCalculator(query_manager, settings, results)
     data = ageing_wip_calc.run(today=today)
 
     assert data[["key", "status", "age"]].to_dict("records") == [

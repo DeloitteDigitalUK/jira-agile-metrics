@@ -1,14 +1,14 @@
-import pytest
 import datetime
+
 import numpy as np
+import pytest
 from pandas import DataFrame, Timestamp, date_range
 
-from .cycletime import CycleTimeCalculator
-from .cfd import CFDCalculator
-from .burnup import BurnupCalculator
-from .forecast import BurnupForecastCalculator
-
 from ..utils import extend_dict
+from .burnup import BurnupCalculator
+from .cfd import CFDCalculator
+from .cycletime import CycleTimeCalculator
+from .forecast import BurnupForecastCalculator
 
 
 @pytest.fixture
@@ -37,16 +37,8 @@ def query_manager(minimal_query_manager):
 @pytest.fixture
 def results(query_manager, settings, large_cycle_time_results):
     results = large_cycle_time_results.copy()
-    results.update(
-        {CFDCalculator: CFDCalculator(query_manager, settings, results).run()}
-    )
-    results.update(
-        {
-            BurnupCalculator: BurnupCalculator(
-                query_manager, settings, results
-            ).run()
-        }
-    )
+    results.update({CFDCalculator: CFDCalculator(query_manager, settings, results).run()})
+    results.update({BurnupCalculator: BurnupCalculator(query_manager, settings, results).run()})
     return results
 
 
@@ -56,9 +48,7 @@ def test_empty(query_manager, settings, minimal_cycle_time_columns):
         BurnupCalculator: DataFrame(
             [],
             columns=["Backlog", "Committed", "Build", "Test", "Done"],
-            index=date_range(
-                start=datetime.date(2018, 1, 1), periods=0, freq="D"
-            ),
+            index=date_range(start=datetime.date(2018, 1, 1), periods=0, freq="D"),
         ),
     }
 
@@ -95,14 +85,8 @@ def test_calculate_forecast(query_manager, settings, results):
     # we don't know exactly how many records
     # there will be, but will assume at least two
     assert len(data.index) > 0
-    assert (
-        list(data.index)[0]
-        == Timestamp("2018-01-09 00:00:00").to_period("D").to_timestamp()
-    )
-    assert (
-        list(data.index)[1]
-        == Timestamp("2018-01-10 00:00:00").to_period("D").to_timestamp()
-    )
+    assert list(data.index)[0] == Timestamp("2018-01-09 00:00:00").to_period("D").to_timestamp()
+    assert list(data.index)[1] == Timestamp("2018-01-10 00:00:00").to_period("D").to_timestamp()
 
     for i in range(10):
         trial_values = data["Trial %d" % i]
@@ -128,9 +112,7 @@ def test_calculate_forecast_settings(query_manager, settings, results):
         {
             "backlog_column": "Committed",
             "done_column": "Test",
-            "burnup_forecast_chart_throughput_window_end": datetime.date(
-                2018, 1, 6
-            ),
+            "burnup_forecast_chart_throughput_window_end": datetime.date(2018, 1, 6),
             "burnup_forecast_chart_throughput_window": 4,
             "burnup_forecast_chart_target": None,
             # use max of backlog column -- 15
@@ -141,16 +123,8 @@ def test_calculate_forecast_settings(query_manager, settings, results):
         }
     )
 
-    results.update(
-        {CFDCalculator: CFDCalculator(query_manager, settings, results).run()}
-    )
-    results.update(
-        {
-            BurnupCalculator: BurnupCalculator(
-                query_manager, settings, results
-            ).run()
-        }
-    )
+    results.update({CFDCalculator: CFDCalculator(query_manager, settings, results).run()})
+    results.update({BurnupCalculator: BurnupCalculator(query_manager, settings, results).run()})
 
     calculator = BurnupForecastCalculator(query_manager, settings, results)
 
@@ -160,14 +134,8 @@ def test_calculate_forecast_settings(query_manager, settings, results):
     # know exactly how many records
     # there will be, but will assume at least two
     assert len(data.index) > 0
-    assert (
-        list(data.index)[0]
-        == Timestamp("2018-01-09 00:00:00").to_period("D").to_timestamp()
-    )
-    assert (
-        list(data.index)[1]
-        == Timestamp("2018-01-10 00:00:00").to_period("D").to_timestamp()
-    )
+    assert list(data.index)[0] == Timestamp("2018-01-09 00:00:00").to_period("D").to_timestamp()
+    assert list(data.index)[1] == Timestamp("2018-01-10 00:00:00").to_period("D").to_timestamp()
 
     for i in range(10):
         trial_values = data["Trial %d" % i]

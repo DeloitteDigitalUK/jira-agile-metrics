@@ -1,12 +1,12 @@
 import logging
+
+import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-import matplotlib.pyplot as plt
 import seaborn as sns
 
 from ..calculator import Calculator
 from ..utils import get_extension, set_chart_style
-
 from .cycletime import CycleTimeCalculator
 
 logger = logging.getLogger(__name__)
@@ -24,11 +24,7 @@ class HistogramCalculator(Calculator):
         if len(cycle_data) == 0 or not hasattr(cycle_data["cycle_time"], "dt"):
             cycle_times = []
         else:
-            cycle_times = (
-                (cycle_data["cycle_time"].dt.total_seconds() / (24 * 3600))
-                .dropna()
-                .tolist()
-            )
+            cycle_times = (cycle_data["cycle_time"].dt.total_seconds() / (24 * 3600)).dropna().tolist()
 
         if not cycle_times:
             bins = range(11)
@@ -74,17 +70,13 @@ class HistogramCalculator(Calculator):
             if output_extension == ".json":
                 file_data.to_json(output_file, date_format="iso")
             elif output_extension == ".xlsx":
-                file_data.to_frame(name="histogram").to_excel(
-                    output_file, "Histogram", header=True
-                )
+                file_data.to_frame(name="histogram").to_excel(output_file, "Histogram", header=True)
             else:
                 file_data.to_csv(output_file, header=True)
 
     def write_chart(self, data, output_file):
         cycle_data = self.get_result(CycleTimeCalculator)
-        chart_data = cycle_data[["cycle_time", "completed_timestamp"]].dropna(
-            subset=["cycle_time"]
-        )
+        chart_data = cycle_data[["cycle_time", "completed_timestamp"]].dropna(subset=["cycle_time"])
 
         # The `window` calculation and the chart output will fail if we don't
         # have at least two valid data points.
@@ -96,17 +88,13 @@ class HistogramCalculator(Calculator):
         # Slice off items before the window
         window = self.settings["histogram_window"]
         if window:
-            start = chart_data[
-                "completed_timestamp"
-            ].max().normalize() - pd.Timedelta(window, "D")
+            start = chart_data["completed_timestamp"].max().normalize() - pd.Timedelta(window, "D")
             chart_data = chart_data[chart_data.completed_timestamp >= start]
 
             # Re-check that we have enough data
             ct_days = chart_data["cycle_time"].dt.days
             if len(ct_days.index) < 2:
-                logger.warning(
-                    "Need at least 2 completed items to draw histogram"
-                )
+                logger.warning("Need at least 2 completed items to draw histogram")
                 return
 
         quantiles = self.settings["quantiles"]
@@ -118,9 +106,7 @@ class HistogramCalculator(Calculator):
         fig, ax = plt.subplots()
         bins = range(int(ct_days.max()) + 2)
 
-        sns.histplot(
-            ct_days, bins=bins, ax=ax, kde=False
-        )
+        sns.histplot(ct_days, bins=bins, ax=ax, kde=False)
         ax.set_xlabel("Cycle time (days)")
 
         if self.settings["histogram_chart_title"]:
@@ -132,9 +118,7 @@ class HistogramCalculator(Calculator):
         # Add quantiles
         bottom, top = ax.get_ylim()
         for quantile, value in ct_days.quantile(quantiles).items():
-            ax.vlines(
-                value, bottom, top - 0.001, linestyles="--", linewidths=1
-            )
+            ax.vlines(value, bottom, top - 0.001, linestyles="--", linewidths=1)
             ax.annotate(
                 "%.0f%% (%.0f days)"
                 % (

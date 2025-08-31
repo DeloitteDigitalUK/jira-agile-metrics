@@ -1,21 +1,21 @@
-import logging
+import base64
 import contextlib
 import io
+import logging
 import os
 import os.path
 import shutil
 import tempfile
-import base64
 import zipfile
-import jinja2
 
+import jinja2
 from flask import Flask, render_template, request
 from jira import JIRA
 from jira.exceptions import JIRAError
 
-from ..config import config_to_options, CALCULATORS, ConfigError
-from ..querymanager import QueryManager
 from ..calculator import run_calculators
+from ..config import CALCULATORS, ConfigError, config_to_options
+from ..querymanager import QueryManager
 
 template_folder = os.path.join(os.path.dirname(__file__), "templates")
 static_folder = os.path.join(os.path.dirname(__file__), "static")
@@ -26,18 +26,14 @@ app = Flask(
     static_folder=static_folder,
 )
 
-app.jinja_loader = jinja2.PackageLoader(
-    "jira_agile_metrics.webapp", "templates"
-)
+app.jinja_loader = jinja2.PackageLoader("jira_agile_metrics.webapp", "templates")
 
 logger = logging.getLogger(__name__)
 
 
 @app.route("/")
 def index():
-    return render_template(
-        "index.html", max_results=request.args.get("max_results", "")
-    )
+    return render_template("index.html", max_results=request.args.get("max_results", ""))
 
 
 @app.route("/run", methods=["POST"])
@@ -61,17 +57,13 @@ def run():
             # parameter for faster debugging
             if request.form.get("max_results"):
                 try:
-                    options["settings"]["max_results"] = int(
-                        request.form.get("max_results")
-                    )
+                    options["settings"]["max_results"] = int(request.form.get("max_results"))
                 except ValueError:
                     options["settings"]["max_results"] = None
 
             jira = get_jira_client(options["connection"])
             query_manager = QueryManager(jira, options["settings"])
-            zip_data = get_archive(
-                CALCULATORS, query_manager, options["settings"]
-            )
+            zip_data = get_archive(CALCULATORS, query_manager, options["settings"])
             data = base64.b64encode(zip_data).decode("ascii")
         except Exception as e:
             logger.error("%s", e)
@@ -145,11 +137,7 @@ def get_jira_client(connection):
     except JIRAError as e:
         if e.status_code == 401:
             raise ConfigError(
-                (
-                    "JIRA authentication failed. "
-                    "Check URL and credentials, "
-                    "and ensure the account is not locked."
-                )
+                ("JIRA authentication failed. " "Check URL and credentials, " "and ensure the account is not locked.")
             )
         else:
             raise

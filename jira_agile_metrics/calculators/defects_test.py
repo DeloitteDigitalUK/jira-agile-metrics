@@ -1,15 +1,11 @@
 import pytest
-from pandas import Timestamp, NaT
+from pandas import NaT, Timestamp
 
-from ..conftest import (
-    FauxJIRA as JIRA,
-    FauxIssue as Issue,
-    FauxFieldValue as Value,
-)
-
-from ..utils import extend_dict
-
+from ..conftest import FauxFieldValue as Value
+from ..conftest import FauxIssue as Issue
+from ..conftest import FauxJIRA as JIRA
 from ..querymanager import QueryManager
+from ..utils import extend_dict
 from .defects import DefectsCalculator
 
 
