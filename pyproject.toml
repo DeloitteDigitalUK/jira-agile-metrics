@@ -16,3 +16,41 @@ exclude = '''
   | venv
 )/
 '''
+
+[tool.mypy]
+# Very lenient mypy config for gradual typing adoption
+python_version = "3.11"
+ignore_missing_imports = true
+show_error_codes = true
+pretty = true
+color_output = true
+
+# Turn off most strict checks for gradual adoption
+disallow_untyped_defs = false
+disallow_incomplete_defs = false
+disallow_untyped_decorators = false
+disallow_any_generics = false
+disallow_subclassing_any = false
+disallow_untyped_calls = false
+check_untyped_defs = false
+no_implicit_optional = false
+warn_return_any = false
+warn_unused_ignores = false
+warn_redundant_casts = false
+warn_unused_configs = true
+warn_no_return = false
+warn_unreachable = false
+strict_equality = false
+
+# Only show serious errors
+show_none_errors = false
+show_error_context = false
+show_column_numbers = false
+
+[[tool.mypy.overrides]]
+module = "*_test"
+ignore_errors = true
+
+[[tool.mypy.overrides]]
+module = "tests.*"
+ignore_errors = true
