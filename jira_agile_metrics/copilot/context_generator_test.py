@@ -353,3 +353,76 @@ class TestAIContextGenerator:
         assert result[0]["key"] == "PROJ-123"
         assert result[0]["reason"] == "ageing_outlier"
         assert result[0]["age_days"] == 28
+
+    def test_analysis_with_timedelta_cycle_time(
+        self, mock_query_manager, test_settings
+    ):
+        """Test that analysis functions handle Timedelta cycle times correctly."""
+        generator = AIContextGenerator(mock_query_manager, test_settings, {})
+
+        # Mock cycle data with Timedelta objects
+        cycle_data = pd.DataFrame(
+            [
+                {
+                    "key": "PROJ-1",
+                    "In Progress": pd.Timestamp("2025-08-01"),
+                    "Done": pd.Timestamp("2025-08-06"),
+                    "cycle_time": pd.Timedelta(days=5),
+                },
+                {
+                    "key": "PROJ-2",
+                    "In Progress": pd.Timestamp("2025-08-10"),
+                    "Done": pd.Timestamp("2025-08-20"),
+                    "cycle_time": pd.Timedelta(days=10),
+                },
+                {
+                    "key": "PROJ-3",
+                    "In Progress": pd.Timestamp("2025-08-25"),
+                    "Done": pd.NaT,  # WIP
+                    "cycle_time": None,
+                },
+            ]
+        )
+
+        # 1. Test _analyze_flow_health
+        health_result = generator._analyze_flow_health(cycle_data)
+        assert health_result["avg_cycle_time"] == 7.5
+        assert health_result["median_cycle_time"] == 7.5
+        assert isinstance(health_result["avg_cycle_time"], float)
+
+        # 2. Test _analyze_cycle_time_patterns (with enough data)
+        cycle_data_for_patterns = pd.DataFrame(
+            [
+                {
+                    "cycle_time": pd.Timedelta(days=d), "Done": pd.Timestamp.now()
+                }
+                for d in range(1, 12)
+            ]
+        )
+        patterns_result = generator._analyze_cycle_time_patterns(
+            cycle_data_for_patterns
+        )
+        assert "performance_trend" in patterns_result
+        assert isinstance(
+            patterns_result["performance_trend"]["recent_avg_cycle_time"], float
+        )
+
+        # 3. Test _identify_actionable_items
+        with patch("pandas.Timestamp.now") as mock_now:
+            mock_now.return_value = pd.Timestamp("2025-08-30")
+            actionable_result = generator._identify_actionable_items(cycle_data)
+
+        # PROJ-3 is 5 days old. 85th percentile of [5, 10] is 9.25. So not an outlier.
+        # Let's make it an outlier
+        cycle_data.loc[
+            cycle_data["key"] == "PROJ-3", "In Progress"
+        ] = pd.Timestamp("2025-08-15")
+
+        with patch("pandas.Timestamp.now") as mock_now:
+            mock_now.return_value = pd.Timestamp("2025-08-30")
+            actionable_result = generator._identify_actionable_items(cycle_data)
+
+        assert len(actionable_result) == 1
+        assert actionable_result[0]["key"] == "PROJ-3"
+        assert actionable_result[0]["age_days"] == 15
+        assert actionable_result[0]["threshold_exceeded"] > 8.0

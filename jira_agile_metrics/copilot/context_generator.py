@@ -84,25 +84,34 @@ class AIContextGenerator(Calculator):
         # Calculate key metrics
         cycle_times = completed_items["cycle_time"].dropna()
 
+        # Convert to days if Timedelta
+        if pd.api.types.is_timedelta64_dtype(cycle_times):
+            cycle_times_days = cycle_times / pd.Timedelta(days=1)
+        else:
+            cycle_times_days = cycle_times
+
         return {
             "total_completed_items": len(completed_items),
             "avg_cycle_time": (
-                float(cycle_times.mean()) if not cycle_times.empty else 0
+                float(cycle_times_days.mean()) if not cycle_times_days.empty else 0
             ),
             "median_cycle_time": (
-                float(cycle_times.median()) if not cycle_times.empty else 0
+                float(cycle_times_days.median()) if not cycle_times_days.empty else 0
             ),
             "cycle_time_std": (
-                float(cycle_times.std()) if not cycle_times.empty else 0
+                float(cycle_times_days.std()) if not cycle_times_days.empty else 0
             ),
             "percentile_85": (
-                float(cycle_times.quantile(0.85))
-                if not cycle_times.empty
+                float(cycle_times_days.quantile(0.85))
+                if not cycle_times_days.empty
                 else 0
             ),
             "predictability_ratio": (
-                float(cycle_times.quantile(0.85) / cycle_times.median())
-                if not cycle_times.empty and cycle_times.median() > 0
+                float(
+                    cycle_times_days.quantile(0.85)
+                    / cycle_times_days.median()
+                )
+                if not cycle_times_days.empty and cycle_times_days.median() > 0
                 else 0
             ),
         }
@@ -371,8 +380,12 @@ class AIContextGenerator(Calculator):
                     len(completed_items) - 10
                 )
 
-                recent_avg = recent_items["cycle_time"].mean()
-                historical_avg = historical_items["cycle_time"].mean()
+                if pd.api.types.is_timedelta64_dtype(recent_items["cycle_time"]):
+                    recent_avg = (recent_items["cycle_time"] / pd.Timedelta(days=1)).mean()
+                    historical_avg = (historical_items["cycle_time"] / pd.Timedelta(days=1)).mean()
+                else:
+                    recent_avg = recent_items["cycle_time"].mean()
+                    historical_avg = historical_items["cycle_time"].mean()
 
                 patterns["performance_trend"] = {
                     "recent_avg_cycle_time": float(recent_avg),
@@ -427,7 +440,13 @@ class AIContextGenerator(Calculator):
             if not completed_items.empty:
                 cycle_times = completed_items["cycle_time"].dropna()
                 if not cycle_times.empty:
-                    outlier_threshold = cycle_times.quantile(0.85)
+                    if pd.api.types.is_timedelta64_dtype(cycle_times):
+                        outlier_threshold = (
+                            cycle_times.quantile(0.85) / pd.Timedelta(days=1)
+                        )
+                    else:
+                        outlier_threshold = cycle_times.quantile(0.85)
+
                     outliers = wip_items[wip_items["age"] > outlier_threshold]
 
                     for _, item in outliers.head(
