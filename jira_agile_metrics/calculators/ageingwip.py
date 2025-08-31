@@ -38,7 +38,10 @@ class AgeingWIPChartCalculator(Calculator):
 
         # calculate current status and age for each item
         def extract_status(row):
-            last_valid = row.last_valid_index()
+            # Only consider cycle columns to determine current workflow status
+            # to avoid picking non-cycle fields (e.g., blocked_days, impediments, age)
+            cycle_slice = row.loc[committed_column:last_active_column]
+            last_valid = cycle_slice.last_valid_index()
             if last_valid is None:
                 return np.nan
             return last_valid
