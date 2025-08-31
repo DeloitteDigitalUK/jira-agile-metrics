@@ -299,6 +299,14 @@ If you are using Trello then your configuration file needs to look like this:
     # Board to get data from
     Query: Web Services
 
+### Using a pre-exported cycle data file (offline mode)
+
+You can run the core calculators without contacting JIRA/Trello by supplying a previously exported `cycletime.csv` or `cycletime.json` file:
+
+  $ jira-agile-metrics --cycle-data-file testing/cycletime.csv config.yaml
+
+Notes:
+- In offline mode, calculators that require live queries are not supported: defects, debt, waste, and the progress report.
 
 ## Reusing elements of a config file
 
@@ -362,7 +370,7 @@ corresponding command line option.
 
 **Note:** In the configuration file, you can specify output file *names*, but
 not absolute or relative paths. Files will always be written to the current
-working directory. This is to prevent unexpeced behaviour and the potential of
+working directory. This is to prevent unexpecdted behaviour and the potential of
 overwriting other files when configuration files are moved around or used on
 a remote machine. No such restriction applies to output files specified in
 command line arguments.
@@ -631,7 +639,7 @@ To only show the 30 most recent days in the chart:
 
         Burnup forecast window: 30
 
-## Impediments
+### Impediments
 
 *Note this feature is not available in Trello.*
 
@@ -690,7 +698,7 @@ Note that:
   day count will run to today's date.
 - Blocking time is always rounded up to the nearest whole day.
 
-## Defect density
+### Defect density
 
 Three charts for analysing the amount of defects that have been open
 historically, grouped in various ways into stacked bar graphs.
@@ -750,7 +758,7 @@ If you omit any of the chart names, the relevant chart will not be produced. If
 you omit any of the field names, the relevant chart will not be stacked. If you
 omit the values list, all unique values will be shown.
 
-### Defects in Trello
+#### Defects in Trello
 
 As Trello does not have different issue types you need to use a different way 
 of identifying failure demand. The tool allows you to map a Trello label to an
@@ -766,7 +774,7 @@ ActionableAgile:
 ![](./docs/images/trello-agile-actionable.png)
 ![](./docs/images/trello-source.png)
 
-## Technical debt
+### Technical debt
 
 Two charts that show the nature and age of recorded (unresolved) technical debt.
 
@@ -809,7 +817,7 @@ age in days, broken down by priority, and stacked into "bins":
 This will use the age brackets 0-30 days, 31-60 days, 61-90 days, and over 90
 days (which also happens to be the default).
 
-## Waste (withdrawn items)
+### Waste (withdrawn items)
 
 This chart shows how many work items are withdrawn or cancelled after work
 has started. It relies on a separate JIRA query, and assumes that withdrawn
@@ -833,7 +841,7 @@ monthlyasfd, but here we have set it to `2W-WED`, which means a two-week period
 starting on a Wednesday. `Waste window` and `Waste frequency` are both
 optional.
 
-## Progress report
+### Progress report
 
 An status report that uses Monte Carlo simulation forecasting at the epic
 level.
@@ -1069,6 +1077,134 @@ forecasting or grouping.
 Also note that if you do specify a list of teams and an epic team field, the
 list of teams will be automatically extended with any team names found that are
 not explicitly listed in the configuration.
+
+## AI Copilot
+
+The AI Copilot feature uses artificial intelligence to analyze your agile metrics and generate actionable insights about team performance, workflow bottlenecks, and improvement opportunities. This can help teams understand what their data is telling them without requiring deep expertise in flow metrics interpretation.
+
+### What it does
+
+The AI Copilot analyzes key flow metrics including:
+- Cycle time patterns and trends
+- Work-in-progress (WIP) levels and variations  
+- Throughput consistency and predictability
+- Workflow bottlenecks and queue buildup
+- Outliers and exceptional cases
+
+It then generates human-readable insights with specific recommendations for process improvements.
+
+### Data privacy and LLM usage
+
+The AI Copilot integrates with cloud-based Large Language Models (LLMs) of your choice, including OpenAI's GPT models, Anthropic's Claude, or Azure. **You must provide your own API key** for the service you wish to use.
+
+**Important**: Only aggregated summary data is sent to the LLM, not your raw JIRA export. The AI context file contains statistical summaries, trend analysis, and may reference specific ticket keys for illustration, but it can include selected ticket titles. You can see use `--dry-run` mode to understand what would be sent before committing to using it.
+
+### How to use it
+
+Using the AI Copilot is a two-step process:
+
+First, run your normal metrics generation with copilot configured in the config file (see below):
+
+    $ jira-agile-metrics config.yml
+
+This will generate all your usual charts and data files, plus an AI context file (e.g., `ai-context.json`) containing the structured summary data that will be sent to the LLM.
+
+Next, generate the insights using the `--generate-insights` flag:
+
+    $ jira-agile-metrics config.yml --generate-insights
+
+This will read the AI context file, send the structured data to your chosen LLM provider, and save the generated insights to an output file. You can use the `--ai-context-file` command line option to provide a specific context file. It will default to the file generated by the export step as specified in the configuration.
+
+**Note:** If you use `--output-directory` when generating metrics, the generated AI context file will live here. You should use the same `--output-directory` argument for the `--generate-insights` call to ensure the correct file can be located.
+
+### Using dry-run mode
+
+Before sending data to an external LLM service, you can preview exactly what will be sent using the `--dry-run` flag:
+
+    $ jira-agile-metrics config.yml --generate-insights --dry-run
+
+This will display the complete prompt and data payload that would be sent to the LLM without actually making the API call. This is useful for:
+- Reviewing what data will be shared with the LLM service
+- Testing your configuration without using API credits
+- Manually testing prompts with your preferred AI interface
+
+### Configuration example
+
+Here's a complete example showing how to add AI Copilot to your existing configuration file:
+
+```yaml
+# Standard JIRA connection and workflow settings
+Connection:
+  type: jira
+  domain: https://your-company.atlassian.net
+  # other settings as needed
+
+Queries:
+  - value: Team Alpha
+    jql: project = PROJ AND fixVersion in unreleasedVersions()
+
+Cycle:
+  - To Do
+  - In Progress
+  - Code Review
+  - Testing
+  - Done
+
+Workflow:
+  committed_column: In Progress
+  done_column: Done
+
+# AI Copilot configuration block
+Copilot:
+  Provider: openai                           # or 'anthropic', 'azure'
+  Model: gpt-4o                             # or 'gpt-3.5-turbo', 'claude-3-sonnet-20240229', etc.
+  API Key Environment Variable: OPENAI_API_KEY
+  Max Tokens: 2000                          # Optional: defaults to 2000
+  Temperature: 0.1                          # Optional: defaults to 0.1 for analytical output
+
+# For Azure OpenAI, use this instead:
+# Copilot:
+#   Provider: azure
+#   Model: your-deployment-name              # Your Azure deployment name
+#   API Key Environment Variable: AZURE_OPENAI_API_KEY
+#   Azure Endpoint: https://your-resource.openai.azure.com/
+#   Azure API Version: 2024-02-15-preview   # Optional: defaults to this version
+#   Max Tokens: 2000
+#   Temperature: 0.1
+
+# Output settings - add AI context to your existing outputs
+Output:
+  # Your existing outputs
+  Cycle time data: cycletime.csv
+  CFD chart: cfd.png
+  Scatterplot chart: scatterplot.png
+  Throughput chart: throughput.png
+  
+  # Add this line to enable AI context generation
+  Copilot Context: ai-context.json          # The AI will analyze data from this file
+```
+
+**Important setup steps:**
+
+1. **Set your API key**: Export your API key as an environment variable before running:
+   ```bash
+   export OPENAI_API_KEY="your-api-key-here"
+   # or for Anthropic:
+   export ANTHROPIC_API_KEY="your-api-key-here"
+   # or for Azure:
+   export AZURE_OPENAI_API_KEY="your-api-key-here"
+   ```
+
+2. **Run the two-step process**:
+   ```bash
+   # Step 1: Generate metrics and AI context
+   jira-agile-metrics config.yml
+   
+   # Step 2: Generate insights
+   jira-agile-metrics config.yml --generate-insights
+   ```
+
+The AI insights will be saved to a file alongside your other outputs, containing analysis and recommendations based on your team's flow metrics.
 
 ## More details about the configuration file format
 
@@ -1314,7 +1450,7 @@ of filenames, or a single filename.
 - `Net flow chart: <filename>.png` – Draw weekly net flow bar chart.
 - `Net flow chart title: <title>` – Title for net flow bar chart.
 
-## Impediments chart
+### Impediments chart
 
 - `Impediments window: <number>` – How many months to show.
 - `Impediments chart: <filename>.png` – Draw a bar chart of the number of
@@ -1448,6 +1584,49 @@ of filenames, or a single filename.
 - `Progress report epic deadline field: <fieldname>` – Name of a date field
    giving the deadline of an outcome. Used as a fallback if no epic-level
    deadline is set. Optional.
+
+### AI Copilot
+
+These options configure the AI Copilot functionality for automated insights generation.
+
+- `Copilot Context: <filename>.json` – Output file for the AI context data. This
+  file contains structured summaries of your metrics that will be sent to the
+  LLM. Typically named `ai-context.json`.
+
+The `Copilot:` configuration section (separate from `Output:`) configures the AI
+provider and model settings:
+
+- `Provider: <provider>` – AI provider to use. Supported values are `openai`,
+  `anthropic`, or `azure`.
+- `Model: <model>` – Model name to use with the provider. Examples: `gpt-4o`,
+  `gpt-3.5-turbo` (OpenAI), `claude-3-sonnet-20240229` (Anthropic), or your
+  Azure deployment name.
+- `API Key Environment Variable: <variable>` – Name of the environment variable
+  containing your API key. Examples: `OPENAI_API_KEY`, `ANTHROPIC_API_KEY`,
+  `AZURE_OPENAI_API_KEY`.
+- `Max Tokens: <number>` – Maximum number of tokens for the AI response.
+  Defaults to 2000.
+- `Temperature: <number>` – Controls randomness in AI responses. Use values
+  between 0 (deterministic) and 1 (creative). Defaults to 0.1 for consistent
+  analytical output.
+- `Azure Endpoint: <url>` – Required for Azure provider. The endpoint URL for
+  your Azure OpenAI service.
+- `Azure API Version: <version>` – API version for Azure OpenAI. Defaults to
+  `2024-02-15-preview`.
+
+Example configuration:
+```yaml
+Copilot:
+  Provider: openai
+  Model: gpt-4o
+  API Key Environment Variable: OPENAI_API_KEY
+  Max Tokens: 2000
+  Temperature: 0.1
+
+Output:
+  Copilot Context: ai-context.json
+  # ... other output files
+```
 
 ## Changelog
 
