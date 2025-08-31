@@ -65,7 +65,7 @@ class AIInsightsCommand:
         return True, ""
 
     def generate_insights(
-        self, context_file: str, output_file: str = "daily-insights.md"
+        self, context_file: str, output_file: str
     ) -> Tuple[bool, str, str]:
         """
         Generate AI insights.
@@ -88,7 +88,7 @@ class AIInsightsCommand:
 
             # Handle dry run case
             if self.ai_config.get("dry_run", False):
-                return True, "Dry run complete. No insights generated.", insights
+                return True, f"Dry run complete. Would write insights to: {output_file_path}", insights
 
             # Create preview for actual insights
             preview = (

@@ -1172,7 +1172,7 @@ Copilot:
 #   Max Tokens: 2000
 #   Temperature: 0.1
 
-# Output settings - add AI context to your existing outputs
+# Output settings - add AI outputs to your existing configuration
 Output:
   # Your existing outputs
   Cycle time data: cycletime.csv
@@ -1180,8 +1180,9 @@ Output:
   Scatterplot chart: scatterplot.png
   Throughput chart: throughput.png
   
-  # Add this line to enable AI context generation
-  Copilot Context: ai-context.json          # The AI will analyze data from this file
+  # Add these lines to enable AI functionality
+  Copilot Context: ai-context.json          # Context data sent to the AI
+  Copilot Insights: daily-insights.md       # AI-generated insights output
 ```
 
 **Important setup steps:**
@@ -1592,6 +1593,9 @@ These options configure the AI Copilot functionality for automated insights gene
 - `Copilot Context: <filename>.json` – Output file for the AI context data. This
   file contains structured summaries of your metrics that will be sent to the
   LLM. Typically named `ai-context.json`.
+- `Copilot Insights: <filename>.md` – Output file for the generated AI insights.
+  Contains the analysis and recommendations produced by the LLM in Markdown format.
+  Defaults to `daily-insights.md` if not specified.
 
 The `Copilot:` configuration section (separate from `Output:`) configures the AI
 provider and model settings:

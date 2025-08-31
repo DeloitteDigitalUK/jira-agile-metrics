@@ -651,6 +651,7 @@ Copilot:
 
 Output:
     Copilot Context: ai-context.json
+    Copilot Insights: daily-insights.md
 """
     )
 
@@ -663,6 +664,7 @@ Output:
         "temperature": 0.1,
     }
     assert options["settings"]["ai_context_file"] == "ai-context.json"
+    assert options["settings"]["ai_insights_file"] == "daily-insights.md"
 
 
 def test_config_to_options_copilot_spaced_keys():

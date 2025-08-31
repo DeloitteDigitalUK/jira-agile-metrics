@@ -481,6 +481,17 @@ def config_to_options(data, cwd=None, extended=False):
                 config["output"]["ai context"]
             )
 
+        # Handle AI Insights file
+        if "copilot context" in config["output"]:
+            options["settings"]["ai_context_file"] = os.path.basename(
+                config["output"]["copilot context"]
+            )
+
+        if "copilot insights" in config["output"]:
+            options["settings"]["ai_insights_file"] = os.path.basename(
+                config["output"]["copilot insights"]
+            )
+
         # file name list values
         for key in [
             "cycle_time_data",

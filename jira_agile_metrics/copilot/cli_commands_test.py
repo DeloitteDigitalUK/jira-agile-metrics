@@ -190,7 +190,7 @@ class TestAIInsightsCommand:
         ai_config = {"provider": "openai"}
         command = AIInsightsCommand(ai_config)
 
-        success, message, preview = command.generate_insights("context.json")
+        success, message, preview = command.generate_insights("context.json", "insights.md")
 
         assert success is False
         assert "Error generating insights" in message
@@ -278,7 +278,7 @@ class TestIntegration:
 
                     # Generate insights
                     success, message, preview = command.generate_insights(
-                        "context.json"
+                        "context.json", "insights.md"
                     )
                     assert success is True
                     assert "Test insights" in preview

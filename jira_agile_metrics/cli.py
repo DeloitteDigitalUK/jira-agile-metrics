@@ -371,6 +371,9 @@ def generate_ai_insights(parser, args):
             else options["settings"].get("ai_context_file", "ai-context.json")
         )
 
+        # Determine insights output file path
+        insights_file = options["settings"].get("ai_insights_file", "daily-insights.md")
+
         # Create command handler
         output_dir = args.output_directory
         command = AIInsightsCommand(ai_config, output_dir)
@@ -385,7 +388,7 @@ def generate_ai_insights(parser, args):
         print(
             f"🤖 Generating AI insights using {ai_config.get('provider', 'unknown')} provider..."
         )
-        success, result_msg, preview = command.generate_insights(context_file)
+        success, result_msg, preview = command.generate_insights(context_file, insights_file)
 
         if success:
             if args.dry_run:
