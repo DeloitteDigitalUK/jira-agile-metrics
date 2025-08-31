@@ -2,6 +2,7 @@
 Unit tests for CLI command handlers.
 """
 
+import os
 from unittest.mock import Mock, patch
 from .cli_commands import (
     AIConfigValidator,
@@ -152,6 +153,31 @@ class TestAIInsightsCommand:
         assert "Daily insights generated" in message
         assert "Test insights content" in preview
         mock_insights_generator_class.assert_called_once_with(ai_config)
+
+    @patch("jira_agile_metrics.copilot.cli_commands.InsightsGenerator")
+    def test_generate_insights_with_output_dir(self, mock_insights_generator_class):
+        """Test that file paths are correctly constructed when an output dir is given."""
+        ai_config = {"dry_run": True}
+        output_dir = "test_output"
+        context_filename = "context.json"
+        insights_filename = "insights.md"
+
+        # Mock generator
+        mock_generator = Mock()
+        mock_generator.generate_daily_insights.return_value = "Dry run insights"
+        mock_insights_generator_class.return_value = mock_generator
+
+        command = AIInsightsCommand(ai_config, output_dir=output_dir)
+
+        # Test insights generation
+        command.generate_insights(context_filename, insights_filename)
+
+        # Verify that the generator was called with correctly joined paths
+        expected_context_path = os.path.join(output_dir, context_filename)
+        expected_insights_path = os.path.join(output_dir, insights_filename)
+        mock_generator.generate_daily_insights.assert_called_once_with(
+            expected_context_path, expected_insights_path
+        )
 
     @patch("jira_agile_metrics.copilot.cli_commands.InsightsGenerator")
     def test_generate_insights_error(self, mock_insights_generator_class):

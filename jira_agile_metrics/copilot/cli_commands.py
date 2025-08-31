@@ -39,6 +39,12 @@ class AIInsightsCommand:
         self.ai_config = ai_config
         self.output_dir = output_dir
 
+    def _get_context_file_path(self, context_file: str) -> str:
+        """Return the full path to the context file."""
+        if self.output_dir and not os.path.isabs(context_file):
+            return os.path.join(self.output_dir, context_file)
+        return context_file
+
     def validate_prerequisites(self, context_file: str) -> Tuple[bool, str]:
         """Check if all prerequisites are met. Returns (is_valid, error_message)."""
         # Validate AI configuration, skipping if in dry-run mode
@@ -49,10 +55,11 @@ class AIInsightsCommand:
                 return False, f"AI Configuration Errors: {'; '.join(errors)}"
 
         # Check context file exists
-        if not os.path.exists(context_file):
+        full_path = self._get_context_file_path(context_file)
+        if not os.path.exists(full_path):
             return (
                 False,
-                f"Context file not found: {context_file}. Run regular metrics analysis first.",
+                f"Context file not found: {full_path}. Run regular metrics analysis first.",
             )
 
         return True, ""
@@ -65,14 +72,18 @@ class AIInsightsCommand:
         Returns (success, result_message, preview_text).
         """
         try:
-            # Change to output directory if specified
-            if self.output_dir:
-                os.chdir(self.output_dir)
+            # Get full paths for context and output files
+            context_file_path = self._get_context_file_path(context_file)
+            output_file_path = (
+                os.path.join(self.output_dir, output_file)
+                if self.output_dir
+                else output_file
+            )
 
             # Generate insights
             generator = InsightsGenerator(self.ai_config)
             insights = generator.generate_daily_insights(
-                context_file, output_file
+                context_file_path, output_file_path
             )
 
             # Handle dry run case
@@ -84,7 +95,7 @@ class AIInsightsCommand:
                 insights[:500] + "..." if len(insights) > 500 else insights
             )
 
-            return True, f"Daily insights generated: {output_file}", preview
+            return True, f"Daily insights generated: {output_file_path}", preview
 
         except Exception as e:
             logger.exception("Error generating insights")
