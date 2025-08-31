@@ -92,12 +92,14 @@ class AgeingWIPChartCalculator(Calculator):
         if self.settings["ageing_wip_chart_title"]:
             ax.set_title(self.settings["ageing_wip_chart_title"])
 
-        sns.swarmplot(
+        sns.stripplot(
             x="status",
             y="age",
             order=chart_data.columns[4:],
             data=chart_data,
             ax=ax,
+            jitter=True,
+            alpha=0.7
         )
 
         ax.set_xlabel("Status")
