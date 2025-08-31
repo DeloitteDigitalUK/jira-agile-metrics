@@ -91,7 +91,4 @@ ENV/
 **/.DS_Store
 
 # Debug outputs that should not be committed
-progress*.html
-# *.csv
-# *.json
-#testing/
+testing/output

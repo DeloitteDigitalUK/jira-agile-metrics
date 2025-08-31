@@ -1,0 +1,158 @@
+# How to connect to JIRA?
+Connection:
+    Domain: https://jira.example.org
+
+# Search criteria
+Query: Project=EE AND IssueType=Story AND (Resolution IS NULL OR Resolution IN (Completed, Withdrawn))
+
+# Describe the workflow. Each step can be mapped to either a single JIRA
+# status, or a list of statuses that will be treated as equivalent
+Workflow:
+    Backlog:
+       - Backlog
+       - Soon
+       - New
+       - In Triage
+    Next: Next
+    Analysis in Progress: Analysis in Progress
+    Analysis Done: Analysis Done
+    Sign Off in Progress: Sign Off in Progress
+    Sign Off Done: Sign Off Done
+    Development in Progress:
+       - Development in Progress
+       - In Progress
+    Development Done: Development Done
+    Tech QA in Progress: Tech QA in Progress
+    Tech QA Done: Tech QA Done
+    Test QA in Progress:
+        - Test QA in Progress
+        - In Test
+        - Test
+        - Ready for AutoSIT
+        - Ready for PRP1
+        - Test in PRP1
+        - In Auto SIT
+        - Test In PRP2
+    Test QA Done:
+        - Test QA Done
+        - Ready To Amaze
+    Done:
+        - Done
+        - Amazing
+        - Live
+
+# Map field names to additional attributes to extract
+Attributes:
+    Priority: Priority
+    Release: Fix version/s
+
+# Copilot configuration - used for accessing a cloud LLM
+Copilot:
+  Provider: openai  # openai, anthropic, azure
+  Model: gpt-4o
+  API Key Environment Variable: OPENAI_API_KEY  # Environment variable name containing API key
+  Max Tokens: 2000
+  Temperature: 0.1
+
+# Output options
+Output:
+
+    Quantiles:
+        - 0.5
+        - 0.85
+        - 0.95
+
+    ## Output data files to produce
+    Cycle time data: cycletime.json
+    Copilot Context: ai-context.json
+    CFD data: cfd.csv
+    
+    # Scatterplot data: scatterplot.csv
+    # Histogram data: histogram.csv
+    # Throughput data: throughput.csv
+    # Percentiles data: percentiles.csv
+
+    ## Output charts and related options
+
+    Scatterplot window: 90
+    Scatterplot chart: scatterplot.png
+    Scatterplot chart title: Cycle time scatter plot
+    
+    Histogram window: 90
+    Histogram chart: histogram.png
+    Histogram chart title: Cycle time histogram
+    
+    CFD window: 90
+    CFD chart: cfd.png
+    CFD chart title: Cumulative Flow Diagram
+    
+    Throughput window: 6
+    Throughput chart: throughput.png
+    Throughput chart title: Throughput trend
+    
+    Burnup window: 90
+    Burnup chart: burnup.png
+    Burnup chart title: Burn-up
+
+    # Burnup forecast window: 60
+    # Burnup forecast chart: burnup-forecast.png
+    # Burnup forecast chart title: Burn-up forecast
+    # Burnup forecast chart target: 400
+    # Burnup forecast chart deadline: 2018-12-01
+    # Burnup forecast chart deadline confidence: .85
+    # Burnup forecast chart trials: 100
+
+    WIP window: 6
+    WIP chart: wip.png
+    WIP chart title: Work in Progress
+
+    Ageing WIP chart: ageing-wip.png
+    Ageing WIP chart title: Ageing WIP
+
+    Net flow window: 6
+    Net flow chart: net-flow.png
+    Net flow chart title: Net flow
+
+    # Impediments data: impediments.csv
+    # Impediments window: 6
+    # Impediments chart: impediments.png
+    # Impediments chart title: Impediments
+    # Impediments days chart: impediments-days.png
+    # Impediments days chart title: Total impeded days
+
+    # Waste query: project = EE AND type in (Story) AND status = Closed AND resolution in (Withdrawn) AND resolved > -200D
+    # Waste window: 6
+    # Waste chart: waste.png
+    # Waste chart title: Withdrawn stories (waste)
+
+    # Debt query: filter=27801
+    # Debt window: 6
+    # Debt priority field: Priority
+    # Debt priority values:
+    #     - N/A
+    #     - Trivial
+    #     - Minor
+    #     - Major
+    #     - Critical
+    #     - Blocker
+    # Debt chart: tech-debt.png
+    # Debt chart title: Technical debt    
+    # Debt age chart: tech-debt-age.png
+    # Debt age chart title: Technical debt by age
+    # Debt age chart bins:
+    #     - 30
+    #     - 60
+    #     - 90
+    
+    # Defects query: project = EE AND type in (Bug) AND createdDate >= -180D
+    # Defects window: 6
+    # Defects priority field: Bug Priority
+    # Defects type field: Resolution
+    # Defects environment field: Feature State
+    # Defects by priority chart: defects-by-priority.png
+    # Defects by priority chart title: Defects by priority
+    # Defects by type chart: defects-by-type.png
+    # Defects by type chart title: Defects by type
+    # Defects by environment chart: defects-by-environment.png
+    # Defects by environment chart title: Defects by environment
+
