@@ -653,6 +653,7 @@ Output:
         "temperature": 0.1,
         "azure_endpoint": None,
         "azure_api_version": None,
+        "analysis_depth": "basic",
     }
     assert options["settings"]["copilot_context"] == "ai-context.json"
     assert options["settings"]["copilot_insights"] == "daily-insights.md"
@@ -712,6 +713,7 @@ Copilot:
         "temperature": 0.1,
         "azure_endpoint": None,
         "azure_api_version": None,
+        "analysis_depth": "basic",
     }
     # copilot_context should be None when not specified
     assert options["settings"]["copilot_context"] is None
@@ -737,3 +739,119 @@ Workflow:
     assert options["copilot"]["provider"] is None
     # copilot_context should be None by default
     assert options["settings"]["copilot_context"] is None
+
+
+def test_config_to_options_copilot_with_analysis_depth():
+
+    options = config_to_options(
+        """\
+Connection:
+    Domain: https://foo.com
+
+Query: (filter=123)
+
+Workflow:
+    Backlog: Backlog
+    In progress: Build
+    Done: Done
+
+Copilot:
+    Provider: openai
+    Model: gpt-4o
+    API Key Environment Variable: OPENAI_API_KEY
+    Max Tokens: 2000
+    Temperature: 0.1
+    Analysis Depth: enhanced
+"""
+    )
+
+    assert options["connection"]["domain"] == "https://foo.com"
+    assert options["copilot"] == {
+        "provider": "openai",
+        "model": "gpt-4o",
+        "api_key_environment_variable": "OPENAI_API_KEY",
+        "max_tokens": 2000,
+        "temperature": 0.1,
+        "azure_endpoint": None,
+        "azure_api_version": None,
+        "analysis_depth": "enhanced",
+    }
+
+
+def test_config_to_options_copilot_default_analysis_depth():
+
+    options = config_to_options(
+        """\
+Connection:
+    Domain: https://foo.com
+
+Query: (filter=123)
+
+Workflow:
+    Backlog: Backlog
+    In progress: Build
+    Done: Done
+
+Copilot:
+    Provider: openai
+    Model: gpt-4o
+"""
+    )
+
+    assert options["copilot"] == {
+        "provider": "openai",
+        "model": "gpt-4o",
+        "api_key_environment_variable": None,
+        "max_tokens": 200,
+        "temperature": 0.1,
+        "azure_endpoint": None,
+        "azure_api_version": None,
+        "analysis_depth": "basic",  # Default value
+    }
+
+
+def test_config_to_options_copilot_analysis_depth_options():
+
+    for depth in ["disabled", "basic", "enhanced", "experimental"]:
+        options = config_to_options(
+            f"""\
+Connection:
+    Domain: https://foo.com
+
+Query: (filter=123)
+
+Workflow:
+    Backlog: Backlog
+    In progress: Build
+    Done: Done
+
+Copilot:
+    Provider: openai
+    Model: gpt-4o
+    Analysis Depth: {depth}
+"""
+        )
+
+        assert options["copilot"]["analysis_depth"] == depth
+
+
+def test_config_to_options_no_copilot_analysis_depth():
+
+    options = config_to_options(
+        """\
+Connection:
+    Domain: https://foo.com
+
+Query: (filter=123)
+
+Workflow:
+    Backlog: Backlog
+    In progress: Build
+    Done: Done
+"""
+    )
+
+    # No copilot provider should be set when not configured
+    assert options["copilot"]["provider"] is None
+    # analysis_depth should have default value
+    assert options["copilot"]["analysis_depth"] == "basic"

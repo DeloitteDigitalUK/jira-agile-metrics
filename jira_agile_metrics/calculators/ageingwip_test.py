@@ -153,7 +153,7 @@ def test_empty(query_manager, settings, minimal_cycle_time_columns, today):
 
     calculator = AgeingWIPChartCalculator(query_manager, settings, results)
 
-    data = calculator.run(today)
+    data = calculator.run(today=today)
     assert data is not None  # Since ageing_wip_chart is configured
     assert list(data.columns) == [
         "key",
@@ -170,7 +170,7 @@ def test_empty(query_manager, settings, minimal_cycle_time_columns, today):
 def test_columns(query_manager, settings, results, today):
     calculator = AgeingWIPChartCalculator(query_manager, settings, results)
 
-    data = calculator.run(today)
+    data = calculator.run(today=today)
     assert data is not None  # Since ageing_wip_chart is configured
 
     assert list(data.columns) == [
@@ -187,7 +187,7 @@ def test_columns(query_manager, settings, results, today):
 def test_calculate_ageing_wip(query_manager, settings, results, today):
     calculator = AgeingWIPChartCalculator(query_manager, settings, results)
 
-    data = calculator.run(today)
+    data = calculator.run(today=today)
     assert data is not None  # Since ageing_wip_chart is configured
 
     assert data[["key", "status", "age"]].to_dict("records") == [
@@ -212,7 +212,7 @@ def test_calculate_ageing_wip_with_different_done_column(query_manager, settings
 
     calculator = AgeingWIPChartCalculator(query_manager, settings, results)
 
-    data = calculator.run(today)
+    data = calculator.run(today=today)
     assert data is not None  # Since ageing_wip_chart is configured
 
     assert data[["key", "status", "age"]].to_dict("records") == [

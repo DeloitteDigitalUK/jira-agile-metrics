@@ -53,6 +53,7 @@ Copilot:
   API Key Environment Variable: OPENAI_API_KEY  # Environment variable name containing API key
   Max Tokens: 2000
   Temperature: 0.1
+  Analysis Depth: enhanced
 
 # Output options
 Output:

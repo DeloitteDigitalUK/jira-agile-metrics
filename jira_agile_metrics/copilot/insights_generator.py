@@ -8,7 +8,10 @@ import logging
 from datetime import datetime
 from typing import Dict, List
 
+import pandas as pd
+
 from .providers import LLMFactory
+from .pattern_analyzer import PatternAnalyzer
 
 logger = logging.getLogger(__name__)
 
@@ -26,10 +29,15 @@ class InsightsGenerator:
             with open(context_file, "r") as f:
                 context = json.load(f)
 
+            # Run AI pattern analysis first (all LLM calls happen here now)
+            ai_patterns = self._run_pattern_analysis(context)
+            if ai_patterns:
+                context["ai_detected_patterns"] = ai_patterns
+
             prompt = self._build_daily_insights_prompt(context)
 
             if self.dry_run:
-                print("--- PROMPT ---")
+                print("--- INSIGHTS GENERATION PROMPT ---")
                 print(prompt)
                 print("--- END PROMPT ---")
                 return "Dry run mode: Insights not generated."
@@ -50,9 +58,126 @@ class InsightsGenerator:
             logger.error(error_msg)
             return f"Error: {error_msg}"
         except Exception as e:
-            error_msg = f"Error generating insights: {str(e)}"
-            logger.error(error_msg)
-            return f"Error: {error_msg}"
+            logger.exception("Error generating insights")
+            raise
+
+    def _show_pattern_detection_dry_run(self, context: Dict):
+        """Show summary of AI pattern detection that already ran during context generation."""
+        print("\n" + "="*80)
+        print(" AI PATTERN DETECTION SUMMARY")
+        print("="*80)
+        
+        # Check if pattern detection was configured and ran
+        ai_patterns = context.get("ai_detected_patterns")
+        if not ai_patterns:
+            print("  AI pattern detection was not configured or failed during context generation")
+            print("  To enable pattern detection, ensure AI configuration is properly set")
+            print("  in your config file with 'Analysis Depth: enhanced'")
+            print("="*80)
+            return
+        
+        if ai_patterns.get("status") == "error":
+            print(f"  AI pattern detection failed: {ai_patterns.get('message', 'Unknown error')}")
+            print("="*80)
+            return
+        
+        if ai_patterns.get("status") == "dry_run":
+            print("  Pattern detection already ran in dry-run mode during context generation")
+            print("  (Prompts were displayed in the previous step)")
+            print("="*80)
+            return
+            
+        # Show summary of what pattern detection found
+        analysis_depth = self.config.get("analysis_depth", "basic")
+        print(f"Analysis Depth: {analysis_depth}")
+        
+        patterns = ai_patterns.get("patterns", [])
+        if patterns:
+            print(f"\nPattern detection found {len(patterns)} pattern(s):")
+            for i, pattern in enumerate(patterns, 1):
+                confidence = pattern.get("confidence", 0.0)
+                print(f"  {i}. {pattern.get('type', 'unknown').replace('_', ' ').title()}")
+                print(f"     Confidence: {confidence:.1%}")
+                print(f"     {pattern.get('description', 'No description')}")
+        else:
+            print("\nPattern detection completed but found no significant patterns")
+        
+        print("="*80)
+
+    def _run_pattern_analysis(self, context: Dict) -> Dict:
+        """Run AI pattern analysis using raw data from context."""
+        try:
+            # Check if AI pattern detection is enabled and configured
+            if not self.config:
+                logger.debug("No AI configuration found, skipping pattern detection")
+                return {}
+
+            analysis_depth = self.config.get("analysis_depth", "basic")
+            if analysis_depth == "disabled":
+                return {}
+
+            # Extract raw data from context
+            raw_data = self._deserialize_raw_data(context.get("raw_data", {}))
+            if not raw_data:
+                logger.debug("No raw data available for pattern analysis")
+                return {}
+
+            # Create pattern analyzer
+            llm_provider = None if self.dry_run else self.llm
+            pattern_analyzer = PatternAnalyzer(llm_provider, analysis_depth)
+
+            # Prepare imperative insights (context without raw_data)
+            imperative_insights = context.copy()
+            if "raw_data" in imperative_insights:
+                del imperative_insights["raw_data"]
+
+            # Run AI pattern detection
+            logger.debug(f"Running AI pattern detection with depth: {analysis_depth}")
+            ai_patterns = pattern_analyzer.analyze_flow_patterns(
+                raw_data, 
+                imperative_insights, 
+                dry_run=self.dry_run
+            )
+
+            return ai_patterns
+
+        except Exception as e:
+            logger.warning(f"AI pattern detection failed: {e}")
+            return {"status": "error", "message": str(e)}
+
+    def _deserialize_raw_data(self, serialized_data: Dict) -> Dict:
+        """Deserialize raw data from JSON format back to DataFrames."""
+        raw_data = {}
+        
+        for key, data_info in serialized_data.items():
+            try:
+                data_type = data_info.get('type', 'unknown')
+                
+                if data_type == 'dataframe':
+                    # Reconstruct DataFrame from records
+                    df_data = data_info.get('data', [])
+                    if df_data:
+                        raw_data[key] = pd.DataFrame(df_data)
+                    else:
+                        # Empty DataFrame with columns
+                        columns = data_info.get('columns', [])
+                        raw_data[key] = pd.DataFrame(columns=columns)
+                        
+                elif data_type == 'dict':
+                    raw_data[key] = data_info.get('data', {})
+                    
+                elif data_type == 'other':
+                    # For now, just store as string - could be enhanced later
+                    raw_data[key] = data_info.get('data', '')
+                    
+                # Skip error entries
+                elif data_type == 'error':
+                    logger.debug(f"Skipping {key} due to serialization error: {data_info.get('error')}")
+                    
+            except Exception as e:
+                logger.debug(f"Could not deserialize {key}: {e}")
+        
+        return raw_data
 
     def generate_chat_response(self, question: str, context_file: str) -> Dict:
         """Generate response to a specific question about the metrics."""
@@ -85,45 +210,44 @@ class InsightsGenerator:
         wip_stability = context.get("wip_stability", {})
         bottlenecks = context.get("bottleneck_detection", {})
         actionable_items = context.get("actionable_items", [])
+        ai_patterns = context.get("ai_detected_patterns", {})
 
         prompt = f"""You are an experienced agile team lead with deep expertise in flow metrics and Actionable Agile principles.
-Generate a daily team briefing based on the following flow analysis:
+Generate a daily team briefing based on the following LAYERED ANALYSIS:
 
-FLOW HEALTH OVERVIEW:
-{self._format_flow_health_for_prompt(flow_health)}
+IMPERATIVE ANALYSIS (Rule-based):
+Flow Health: {self._format_flow_health_for_prompt(flow_health)}
+WIP Analysis: {self._format_wip_analysis_for_prompt(ageing_wip, wip_stability)}
+Throughput: {self._format_throughput_for_prompt(throughput)}
+Bottlenecks: {self._format_bottlenecks_for_prompt(bottlenecks)}
+Actionable Items: {self._format_actionable_items_for_prompt(actionable_items)}
 
-WORK IN PROGRESS ANALYSIS:
-{self._format_wip_analysis_for_prompt(ageing_wip, wip_stability)}
-
-THROUGHPUT & PREDICTABILITY:
-{self._format_throughput_for_prompt(throughput)}
-
-BOTTLENECK DETECTION:
-{self._format_bottlenecks_for_prompt(bottlenecks)}
-
-ITEMS REQUIRING IMMEDIATE ATTENTION:
-{self._format_actionable_items_for_prompt(actionable_items)}
+AI PATTERN DETECTION:
+{self._format_ai_patterns_for_prompt(ai_patterns)}
 
 WORKFLOW CONFIGURATION:
 - Stages: {' → '.join(metadata.get('workflow_stages', []))}
 - Committed Stage: {metadata.get('committed_column', 'Unknown')}
 - Done Stage: {metadata.get('done_column', 'Unknown')}
 
-As an experienced flow metrics expert, provide:
+SYNTHESIS INSTRUCTIONS:
+You have TWO layers of analysis:
+1. **Imperative Analysis**: Reliable, rule-based insights (always trust these)
+2. **AI Pattern Detection**: Subtle patterns that might be missed (evaluate confidence)
 
-1. **Flow Health Assessment**: Overall team flow health with specific metrics
-2. **Priority Actions**: 3-4 specific, actionable recommendations with ticket IDs
-3. **Bottleneck Analysis**: Primary constraint and concrete steps to address it
-4. **Predictability Insights**: Team's delivery predictability and improvement areas
-5. **Leading Indicators**: Early warning signs to watch for
+Your task: Synthesize both layers into actionable insights, giving priority to:
+- High-confidence AI patterns that complement imperative findings
+- Contradictions between layers (investigate these)
+- Novel insights from AI that imperative analysis missed
 
-Focus on:
-- Actionable insights that improve flow efficiency
-- Specific ticket IDs for verification
-- Evidence-based recommendations using provided metrics
-- Practical steps the team can take today/this week
+Provide:
+1. **Flow Health Assessment**: Synthesized view from both analysis layers
+2. **Priority Actions**: 3-4 recommendations combining both insights
+3. **Pattern Insights**: Highlight any subtle patterns detected by AI
+4. **Confidence Assessment**: Note reliability of different insights
+5. **Investigation Areas**: Where AI and imperative analysis diverge
 
-Format as a professional team lead briefing."""
+Focus on actionable insights with evidence from both analysis layers."""
 
         return prompt
 
@@ -383,4 +507,34 @@ Range: {throughput.get('min_throughput', 0):.0f} - {throughput.get('max_throughp
                 f"     Reason: {item.get('reason', 'unknown')} (threshold: {item.get('threshold_exceeded', 0):.1f}d)"
             )
 
+        return "\n".join(result)
+
+    def _format_ai_patterns_for_prompt(self, ai_patterns: Dict) -> str:
+        """Format AI-detected patterns for prompt."""
+        if not ai_patterns or ai_patterns.get("status") == "error":
+            return "⚠️  AI pattern detection unavailable or failed"
+        
+        if ai_patterns.get("status") == "dry_run":
+            return "🔍 AI pattern detection (dry run mode)"
+        
+        patterns = ai_patterns.get("patterns", [])
+        if not patterns:
+            return "✅ No additional patterns detected by AI analysis"
+        
+        result = [f"🤖 AI detected {len(patterns)} pattern(s):"]
+        
+        for pattern in patterns:
+            confidence = pattern.get("confidence", 0.0)
+            confidence_emoji = "🟢" if confidence > 0.8 else "🟡" if confidence > 0.6 else "🔴"
+            
+            result.append(f"  {confidence_emoji} {pattern.get('type', 'unknown').replace('_', ' ').title()}")
+            result.append(f"     {pattern.get('description', 'No description')}")
+            result.append(f"     Confidence: {confidence:.1%}")
+            
+            if pattern.get("evidence"):
+                result.append(f"     Evidence: {pattern['evidence']}")
+            
+            if pattern.get("impact"):
+                result.append(f"     Impact: {pattern['impact']}")
+        
         return "\n".join(result)

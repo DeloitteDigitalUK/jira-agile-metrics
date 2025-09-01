@@ -1,0 +1,93 @@
+# Enhanced AI Pattern Detection Configuration Example
+# This shows how to enable the new layered AI analysis features
+
+# Standard JIRA connection settings
+Connection:
+  Domain: https://mycompany.atlassian.net
+  Username: user@company.com
+  Password: !ENV ${JIRA_PASSWORD}
+
+# Query configuration
+Query:
+  Project: MYPROJ
+  Issue types:
+    - Story
+    - Bug
+    - Task
+  Valid resolutions:
+    - Done
+    - Fixed
+  JQL: project = "MYPROJ" AND status WAS "In Progress"
+
+# Workflow configuration
+Workflow:
+  cycle:
+    - name: Backlog
+      statuses:
+        - Open
+        - To Do
+    - name: Analysis
+      statuses:
+        - Analysis
+        - Refinement
+    - name: Development
+      statuses:
+        - In Progress
+        - Development
+    - name: Code Review
+      statuses:
+        - Code Review
+        - Peer Review
+    - name: Testing
+      statuses:
+        - Testing
+        - QA
+    - name: Done
+      statuses:
+        - Done
+        - Closed
+
+  committed_column: Analysis
+  done_column: Done
+  backlog_column: Backlog
+
+# Output configuration
+Output:
+  # Standard outputs
+  Cycle time scatter plot: cycletime.png
+  Throughput chart: throughput.png
+  CFD chart: cfd.png
+  
+  # Copilot Context and Insights
+  Copilot Context: ai-context.json
+  Copilot Insights: daily-insights.md
+
+# Enhanced Copilot Configuration
+Copilot:
+  # Provider settings (same as before)
+  provider: openai
+  model: gpt-4o
+  api_key_env: OPENAI_API_KEY
+  max_tokens: 2000
+  temperature: 0.1
+  
+  # NEW: Enhanced pattern detection settings
+  analysis_depth: enhanced  # Options: disabled, basic, enhanced, experimental
+  
+  # Cost control settings
+  dry_run: false  # Set to true to see prompts without API calls
+  
+  # Advanced settings (optional)
+  # pattern_detection: true    # Explicitly enable/disable (default: true if analysis_depth != disabled)
+  # cross_correlation: false   # Phase 2 feature (not yet implemented)
+
+# Team settings
+Settings:
+  team_name: "Backend Team Alpha"
+  timezone: "America/New_York"
+  
+  # Optional: Custom thresholds for pattern detection
+  # pattern_thresholds:
+  #   stuck_item_days: 14
+  #   bottleneck_growth_rate: 2.0
+  #   confidence_minimum: 0.6

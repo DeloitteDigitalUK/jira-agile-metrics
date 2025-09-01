@@ -48,16 +48,128 @@ class TestAIContextGenerator:
         generator = AIContextGenerator(mock_query_manager, test_settings, {})
 
         assert generator.query_manager == mock_query_manager
+
+    # AI pattern detection tests removed - functionality moved to InsightsGenerator
+
+    def test_collect_raw_data_success(self, mock_query_manager, test_settings):
+        """Test raw data collection from calculators."""
+        # Mock calculator results
+        mock_results = {
+            'CycleTimeCalculator': pd.DataFrame({'cycle_time': [1, 2, 3]}),
+            'ThroughputCalculator': pd.DataFrame({'count': [5, 4, 6]}),
+            'WIPChartCalculator': pd.DataFrame({'wip': [10, 12, 11]}),
+            'CFDCalculator': pd.DataFrame({'stage1': [5, 6, 7], 'stage2': [3, 4, 5]}),
+            'AgeingWIPChartCalculator': pd.DataFrame({'age': [1, 5, 10]})
+        }
+        
+        generator = AIContextGenerator(mock_query_manager, test_settings, mock_results)
+        
+        raw_data = generator._collect_raw_data()
+        
+        assert 'cycle_time' in raw_data
+        assert 'throughput' in raw_data
+        assert 'wip' in raw_data
+        assert 'cfd' in raw_data
+        assert 'ageing_wip' in raw_data
+        
+        # Verify data integrity
+        assert len(raw_data['cycle_time']) == 3
+        assert len(raw_data['throughput']) == 3
+
+    def test_collect_raw_data_missing_calculators(self, mock_query_manager, test_settings):
+        """Test raw data collection when some calculators are missing."""
+        # Only provide some calculator results
+        mock_results = {
+            'CycleTimeCalculator': pd.DataFrame({'cycle_time': [1, 2, 3]})
+        }
+        
+        generator = AIContextGenerator(mock_query_manager, test_settings, mock_results)
+        
+        raw_data = generator._collect_raw_data()
+        
+        assert 'cycle_time' in raw_data
+        assert len(raw_data) == 1  # Only one calculator had data
+
+    def test_run_with_raw_data_collection(self, mock_query_manager, test_settings):
+        """Test that run() method collects raw data for later AI analysis."""
+        # Add copilot_context to settings to enable the generator
+        test_settings['copilot_context'] = 'test-output.json'
+
+        mock_cycle_data = pd.DataFrame({
+            'key': ['PROJ-1', 'PROJ-2'],
+            'cycle_time': [5, 8],
+            'Done': [pd.Timestamp('2024-01-01'), pd.Timestamp('2024-01-02')]
+        })
+
+        mock_results = {
+            'CycleTimeCalculator': mock_cycle_data,
+            'AgeingWIPChartCalculator': pd.DataFrame({'age': [1, 5], 'key': ['PROJ-3', 'PROJ-4']}),
+            'ThroughputCalculator': pd.DataFrame({'count': [2, 3, 1]}),
+            'WIPChartCalculator': pd.DataFrame({'wip': [5, 6, 4]}),
+            'CFDCalculator': pd.DataFrame({'stage1': [2, 3], 'stage2': [1, 2]})
+        }
+
+        generator = AIContextGenerator(mock_query_manager, test_settings, mock_results)
+
+        result = generator.run()
+
+        # Verify result is not None and contains expected data
+        assert result is not None
+        assert 'metadata' in result
+        assert 'flow_health' in result
+        assert 'ageing_wip_analysis' in result
+
+        # Verify raw data is collected for later AI analysis
+        assert 'raw_data' in result
+        assert 'cycle_time' in result['raw_data']
+        assert 'throughput' in result['raw_data']
+        assert 'wip' in result['raw_data']
+        assert 'cfd' in result['raw_data']
+        assert 'ageing_wip' in result['raw_data']
+
+    def test_run_without_copilot_context(self, mock_query_manager, test_settings):
+        """Test that run() method returns None when copilot_context is not configured."""
+        # Don't add copilot_context to settings - should return None
+        mock_cycle_data = pd.DataFrame({
+            'key': ['PROJ-1'],
+            'cycle_time': [5],
+            'Done': [pd.Timestamp('2024-01-01')]
+        })
+
+        mock_results = {'CycleTimeCalculator': mock_cycle_data}
+        generator = AIContextGenerator(mock_query_manager, test_settings, mock_results)
+
+        result = generator.run()
+
+        # Should return None when copilot_context is not configured
+        assert result is None
         assert generator.settings == test_settings
-        assert generator._results == {}
+
+    def test_run_skips_when_no_output_configured(self, mock_query_manager, test_settings):
+        """Test that run() returns None when no copilot context output is configured."""
+        # Don't set copilot_context in settings
+        mock_cycle_data = pd.DataFrame({
+            'key': ['PROJ-1'],
+            'cycle_time': [5],
+            'Done': [pd.Timestamp('2024-01-01')]
+        })
+        
+        mock_results = {'CycleTimeCalculator': mock_cycle_data}
+        generator = AIContextGenerator(mock_query_manager, test_settings, mock_results)
+        
+        result = generator.run()
+        
+        # Verify that the generator skips execution and returns None
+        assert result is None
 
     def test_run_generates_flow_context(self, mock_query_manager, test_settings, tmp_path):
         # Mock cycle time data in results to avoid "no data" error
         from jira_agile_metrics.calculators.cycletime import CycleTimeCalculator
 
-        # Use tmp_path for the output file
+        # Use tmp_path for the output file and enable copilot context
         output_file = tmp_path / "ai-context.json"
         test_settings["ai_context_file"] = str(output_file)
+        test_settings["copilot_context"] = str(output_file)
 
         mock_cycle_data = pd.DataFrame([{"key": "PROJ-123", "cycle_time": 5.0}])
 
@@ -103,7 +215,8 @@ class TestAIContextGenerator:
 
             result = generator.run()
 
-        # Verify flow-focused structure
+        # Verify result is not None and has flow-focused structure
+        assert result is not None
         assert "metadata" in result
         assert "flow_health" in result
         assert "ageing_wip_analysis" in result
@@ -113,8 +226,9 @@ class TestAIContextGenerator:
         assert "cycle_time_patterns" in result
         assert "actionable_items" in result
 
-        # Verify metadata
+        # Verify metadata structure
         metadata = result["metadata"]
+        assert "analysis_date" in metadata
         assert "workflow_stages" in metadata
         assert "committed_column" in metadata
         assert "done_column" in metadata
@@ -128,7 +242,7 @@ class TestAIContextGenerator:
         result = generator._analyze_flow_health(empty_data)
 
         # Should handle no cycle data gracefully
-        assert result["status"] == "no_completed_items"
+        assert result["status"] == "no_data"
 
     def test_analyze_ageing_wip_no_items(self, mock_query_manager, test_settings):
         generator = AIContextGenerator(mock_query_manager, test_settings, {})

@@ -197,6 +197,7 @@ def config_to_options(data, cwd=None, extended=False):
             "temperature": 0.1,
             "azure_endpoint": None,
             "azure_api_version": None,
+            "analysis_depth": "basic",
         },
         "settings": {
             "queries": [],
@@ -684,7 +685,8 @@ def config_to_options(data, cwd=None, extended=False):
             "model",
             "api_key_environment_variable",
             "azure_endpoint",
-            "azure_api_version"
+            "azure_api_version",
+            "analysis_depth"
         ):
             if expand_key(key) in config["copilot"]:
                 options["copilot"][key] = config["copilot"][expand_key(key)]
@@ -700,5 +702,9 @@ def config_to_options(data, cwd=None, extended=False):
         ):
             if expand_key(key) in config["copilot"]:
                 options["copilot"][key] = force_float(key, config["copilot"][expand_key(key)])
+
+    # Copy copilot config to settings for AIContextGenerator access
+    if options["copilot"]["provider"]:
+        options["settings"]["copilot"] = options["copilot"]
 
     return options

@@ -19,6 +19,7 @@ from ..calculators.wip import WIPChartCalculator
 from ..calculators.cfd import CFDCalculator
 
 from ..utils import get_current_time, get_current_timestamp
+# Pattern analysis moved to InsightsGenerator - no LLM calls in context generation
 
 logger = logging.getLogger(__name__)
 
@@ -30,14 +31,20 @@ class AIContextGenerator(Calculator):
         super().__init__(query_manager, settings, results)
         self.context_data = {}
 
-    def run(self):
+    def run(self, dry_run=False):
         """Generate AI context from existing calculator results focused on flow analysis."""
+        
+        # Short circuit if no output file is configured
+        if not self.settings.get("copilot_context"):
+            logger.debug("No copilot context output configured, skipping AI context generation")
+            return None
         
         cycle_data = self.get_result(CycleTimeCalculator)
 
         logger.debug("Calculating AI Copilot context data")
 
-        return {
+        # Generate imperative analysis (rule-based insights only)
+        imperative_insights = {
             "metadata": self._generate_metadata(),
             "flow_health": self._analyze_flow_health(cycle_data),
             "ageing_wip_analysis": self._analyze_ageing_wip(),
@@ -47,6 +54,14 @@ class AIContextGenerator(Calculator):
             "cycle_time_patterns": self._analyze_cycle_time_patterns(cycle_data),
             "actionable_items": self._identify_actionable_items(cycle_data),
         }
+
+        # Collect and store raw calculator data for pattern analysis
+        # This will be used by InsightsGenerator for all LLM calls
+        raw_data = self._collect_raw_data()
+        if raw_data:
+            imperative_insights["raw_data"] = self._serialize_raw_data(raw_data)
+
+        return imperative_insights
     
     def write(self):
         data = self.get_result()
@@ -71,6 +86,12 @@ class AIContextGenerator(Calculator):
 
     def _analyze_flow_health(self, cycle_data) -> Dict:
         """Analyze overall flow health metrics."""
+        
+        if cycle_data is None or cycle_data.empty:
+            return {
+                "status": "no_data",
+                "message": "No cycle time data available for flow health analysis"
+            }
 
         done_column = self.settings["done_column"]
 
@@ -271,6 +292,8 @@ class AIContextGenerator(Calculator):
 
     def _analyze_cycle_time_patterns(self, cycle_data) -> Dict:
         """Analyze cycle time patterns and trends."""
+        if cycle_data is None or cycle_data.empty:
+            return {"status": "no_data", "message": "No cycle time data available"}
 
         done_column = self.settings["done_column"]
         completed_items = cycle_data[pd.notna(cycle_data[done_column])].copy()
@@ -316,9 +339,11 @@ class AIContextGenerator(Calculator):
         return patterns
 
     def _identify_actionable_items(self, cycle_data) -> List[Dict]:
-        """Identify specific items requiring attention."""
-
+        """Identify specific actionable items for the team."""
         actionable_items = []
+
+        if cycle_data is None or cycle_data.empty:
+            return actionable_items
 
         done_column = self.settings["done_column"]
         committed_column = self.settings["committed_column"]
@@ -368,3 +393,76 @@ class AIContextGenerator(Calculator):
                     )
 
         return actionable_items
+
+
+    def _collect_raw_data(self) -> Dict:
+        """Collect raw calculator data for AI analysis."""
+        raw_data = {}
+        
+        # Collect data from various calculators using get_result method
+        calculators_to_collect = [
+            ("cycle_time", CycleTimeCalculator),
+            ("throughput", ThroughputCalculator),
+            ("wip", WIPChartCalculator),
+            ("cfd", CFDCalculator),
+            ("ageing_wip", AgeingWIPChartCalculator),
+        ]
+        
+        for key, calculator_class in calculators_to_collect:
+            try:
+                # Use get_result method which is available in Calculator base class
+                data = self.get_result(calculator_class)
+                if data is not None and hasattr(data, 'empty') and not data.empty:
+                    raw_data[key] = data
+                elif data is not None:
+                    raw_data[key] = data
+                    
+                # Also try string-based lookup for tests that use string keys
+                if key not in raw_data:
+                    string_key = calculator_class.__name__
+                    string_data = self._results.get(string_key)
+                    if string_data is not None and hasattr(string_data, 'empty') and not string_data.empty:
+                        raw_data[key] = string_data
+                    elif string_data is not None:
+                        raw_data[key] = string_data
+                        
+            except Exception as e:
+                logger.debug(f"Could not collect {key} data: {e}")
+        
+        return raw_data
+
+    def _serialize_raw_data(self, raw_data: Dict) -> Dict:
+        """Serialize raw calculator data for JSON storage."""
+        serialized = {}
+        
+        for key, data in raw_data.items():
+            try:
+                if hasattr(data, 'to_dict'):
+                    # DataFrame - convert to dict format
+                    serialized[key] = {
+                        'type': 'dataframe',
+                        'data': data.to_dict('records'),
+                        'columns': list(data.columns),
+                        'shape': data.shape
+                    }
+                elif isinstance(data, dict):
+                    # Already a dict
+                    serialized[key] = {
+                        'type': 'dict',
+                        'data': data
+                    }
+                else:
+                    # Other types - convert to string representation
+                    serialized[key] = {
+                        'type': 'other',
+                        'data': str(data),
+                        'original_type': type(data).__name__
+                    }
+            except Exception as e:
+                logger.debug(f"Could not serialize {key}: {e}")
+                serialized[key] = {
+                    'type': 'error',
+                    'error': str(e)
+                }
+        
+        return serialized

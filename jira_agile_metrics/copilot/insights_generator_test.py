@@ -117,7 +117,7 @@ Current flow shows declining throughput with 2 stuck items requiring attention.
 
             # Verify the prompt was built correctly with flow data
             assert mock_provider.last_prompt is not None
-            assert "flow metrics expert" in mock_provider.last_prompt.lower()
+            assert "layered analysis" in mock_provider.last_prompt.lower()
             assert "PROJ-123" in mock_provider.last_prompt
 
     def test_generate_daily_insights_file_not_found(self):
