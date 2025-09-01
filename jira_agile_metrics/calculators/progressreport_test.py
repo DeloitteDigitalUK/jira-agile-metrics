@@ -1087,6 +1087,7 @@ def test_update_team_sampler(query_manager, settings):
         frequency="1D",
     )
 
+    assert t.sampler is not None
     assert t.sampler.__name__ == "get_throughput_range_sample"
     assert t.throughput_samples_cycle_times is None
 
@@ -1110,6 +1111,7 @@ def test_update_team_sampler(query_manager, settings):
         frequency="1D",
     )
 
+    assert t.sampler is not None
     assert t.sampler.__name__ == "get_throughput_sample"
     assert isinstance(t.throughput_samples_cycle_times, pd.DataFrame)
 
@@ -1156,6 +1158,7 @@ def test_update_team_sampler(query_manager, settings):
         frequency="1D",
     )
 
+    assert t.sampler is not None
     assert t.sampler.__name__ == "get_throughput_range_sample"
     assert isinstance(t.throughput_samples_cycle_times, pd.DataFrame)
 
@@ -1179,6 +1182,7 @@ def test_update_team_sampler(query_manager, settings):
         frequency="1D",
     )
 
+    assert t.sampler is not None
     assert t.sampler.__name__ == "get_throughput_sample"
     assert isinstance(t.throughput_samples_cycle_times, pd.DataFrame)
 
@@ -1487,6 +1491,7 @@ def test_calculator(query_manager, settings, results):
     ]
 
     # confirm teams
+    assert data is not None
     assert len(data["teams"]) == 2
 
     assert data["teams"][0].name == "Team 1"
@@ -1552,6 +1557,7 @@ def test_calculator_no_outcomes(query_manager, settings, results):
     ]
 
     # confirm teams
+    assert data is not None
     assert len(data["teams"]) == 2
 
     assert data["teams"][0].name == "Team 1"
@@ -1633,6 +1639,7 @@ def test_calculator_no_fields(query_manager, settings, results):
     ]
 
     # confirm teams
+    assert data is not None
     assert len(data["teams"]) == 1
 
     assert data["teams"][0].name == "Team 1"
@@ -1769,7 +1776,7 @@ def test_with_large_dataset(fields, settings, results):
             resolution=(Value("Done", "done") if current_status == "Done" else None),
             resolutiondate=("%s 00:00:00" % changes[-1]["date"] if current_status == "Done" else None),
             created="%s 00:00:00" % created.isoformat(),
-            customfield_001=epic.fields.customfield_001,
+            customfield_001=getattr(epic.fields, 'customfield_001', None),
             customfield_205=epic.key,
             changes=[
                 Change(
@@ -1799,6 +1806,7 @@ def test_with_large_dataset(fields, settings, results):
     assert data is not None
 
     assert len(data["outcomes"]) == 3
+    assert data is not None
     assert len(data["teams"]) == 2
 
     results[ProgressReportCalculator] = data
@@ -1938,7 +1946,7 @@ def test_with_large_dataset_and_outcome_as_tickets(fields, settings, results):
             resolution=(Value("Done", "done") if current_status == "Done" else None),
             resolutiondate=("%s 00:00:00" % changes[-1]["date"] if current_status == "Done" else None),
             created="%s 00:00:00" % created.isoformat(),
-            customfield_001=epic.fields.customfield_001,
+            customfield_001=getattr(epic.fields, 'customfield_001', None),
             customfield_205=epic.key,
             changes=[
                 Change(
@@ -1967,6 +1975,7 @@ def test_with_large_dataset_and_outcome_as_tickets(fields, settings, results):
     data = calculator.run(trials=100)
     assert data is not None
 
+    assert data is not None
     assert len(data["teams"]) == 2
 
     results[ProgressReportCalculator] = data
@@ -2106,7 +2115,7 @@ def test_with_large_dataset_and_outcome_as_tickets_no_forecast(fields, settings,
             resolution=(Value("Done", "done") if current_status == "Done" else None),
             resolutiondate=("%s 00:00:00" % changes[-1]["date"] if current_status == "Done" else None),
             created="%s 00:00:00" % created.isoformat(),
-            customfield_001=epic.fields.customfield_001,
+            customfield_001=getattr(epic.fields, 'customfield_001', None),
             customfield_205=epic.key,
             changes=[
                 Change(
@@ -2134,6 +2143,7 @@ def test_with_large_dataset_and_outcome_as_tickets_no_forecast(fields, settings,
 
     data = calculator.run(trials=100)
 
+    assert data is not None
     assert len(data["teams"]) == 2
 
     results[ProgressReportCalculator] = data
@@ -2273,7 +2283,7 @@ def test_with_large_dataset_and_outcome_as_tickets_mixed_forecast(fields, settin
             resolution=(Value("Done", "done") if current_status == "Done" else None),
             resolutiondate=("%s 00:00:00" % changes[-1]["date"] if current_status == "Done" else None),
             created="%s 00:00:00" % created.isoformat(),
-            customfield_001=epic.fields.customfield_001,
+            customfield_001=getattr(epic.fields, 'customfield_001', None),
             customfield_205=epic.key,
             changes=[
                 Change(
@@ -2301,6 +2311,7 @@ def test_with_large_dataset_and_outcome_as_tickets_mixed_forecast(fields, settin
 
     data = calculator.run(trials=100)
 
+    assert data is not None
     assert len(data["teams"]) == 2
 
     results[ProgressReportCalculator] = data
@@ -2656,7 +2667,7 @@ def test_with_large_dataset_teams_no_outcomes(fields, settings, results):
             resolution=(Value("Done", "done") if current_status == "Done" else None),
             resolutiondate=("%s 00:00:00" % changes[-1]["date"] if current_status == "Done" else None),
             created="%s 00:00:00" % created.isoformat(),
-            customfield_001=epic.fields.customfield_001,
+            customfield_001=getattr(epic.fields, 'customfield_001', None),
             customfield_205=epic.key,
             changes=[
                 Change(
@@ -2685,6 +2696,7 @@ def test_with_large_dataset_teams_no_outcomes(fields, settings, results):
     data = calculator.run(trials=100)
     assert data is not None
 
+    assert data is not None
     assert len(data["teams"]) == 2
 
     results[ProgressReportCalculator] = data
@@ -2832,6 +2844,7 @@ def test_with_large_dataset_no_teams(fields, settings, results):
 
     data = calculator.run(trials=100)
 
+    assert data is not None
     assert len(data["teams"]) == 0
     assert data is not None
 
@@ -2955,7 +2968,7 @@ def test_with_large_dataset_dynamic_teams(fields, settings, results):
             resolution=(Value("Done", "done") if current_status == "Done" else None),
             resolutiondate=("%s 00:00:00" % changes[-1]["date"] if current_status == "Done" else None),
             created="%s 00:00:00" % created.isoformat(),
-            customfield_001=epic.fields.customfield_001,
+            customfield_001=getattr(epic.fields, 'customfield_001', None),
             customfield_205=epic.key,
             changes=[
                 Change(
@@ -3115,7 +3128,7 @@ def test_with_large_dataset_static_and_dynamic_teams(fields, settings, results):
             resolution=(Value("Done", "done") if current_status == "Done" else None),
             resolutiondate=("%s 00:00:00" % changes[-1]["date"] if current_status == "Done" else None),
             created="%s 00:00:00" % created.isoformat(),
-            customfield_001=epic.fields.customfield_001,
+            customfield_001=getattr(epic.fields, 'customfield_001', None),
             customfield_205=epic.key,
             changes=[
                 Change(
