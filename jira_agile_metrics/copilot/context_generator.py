@@ -225,26 +225,20 @@ class AIContextGenerator(Calculator):
             "wip_trend": wip_trend,
         }
 
-        # Add net flow analysis if available
-        # TODO: Get rid of the bare except
-        try:
-            netflow_calc = NetFlowChartCalculator(self.query_manager, self.settings, self._results)
-            netflow_data = netflow_calc.run()
+        netflow_data = self.get_result(NetFlowChartCalculator)
 
-            if netflow_data is not None and not netflow_data.empty:
-                recent_netflow = netflow_data["net_flow"].tail(4).mean()
-                result.update(
-                    {
-                        "recent_net_flow": float(recent_netflow),
-                        "net_flow_trend": (
-                            "growing"
-                            if recent_netflow > 0.5
-                            else ("shrinking" if recent_netflow < -0.5 else "balanced")
-                        ),
-                    }
-                )
-        except Exception:
-            pass  # Net flow analysis is optional
+        if netflow_data is not None and not netflow_data.empty:
+            recent_netflow = netflow_data["net_flow"].tail(4).mean()
+            result.update(
+                {
+                    "recent_net_flow": float(recent_netflow),
+                    "net_flow_trend": (
+                        "growing"
+                        if recent_netflow > 0.5
+                        else ("shrinking" if recent_netflow < -0.5 else "balanced")
+                    ),
+                }
+            )
 
         return result
 
