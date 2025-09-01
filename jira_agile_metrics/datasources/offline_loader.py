@@ -21,6 +21,7 @@ import os
 import warnings
 from typing import Dict, List
 
+import numpy as np
 import pandas as pd
 
 logger = logging.getLogger(__name__)
@@ -49,7 +50,7 @@ def _parse_dates_robust(date_series: pd.Series) -> pd.Series:
         return pd.to_datetime(date_series, errors="coerce")
 
     # Replace empty strings with NaN for consistent handling
-    date_series = date_series.replace("", pd.NaT)
+    date_series = date_series.replace("", np.nan)
 
     # Get non-null values for testing
     non_null_series = date_series.dropna()

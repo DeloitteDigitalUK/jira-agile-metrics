@@ -1,5 +1,6 @@
 import datetime
 import os.path
+from typing import Literal
 
 import numpy as np
 import pandas as pd
@@ -78,7 +79,7 @@ def set_chart_context(context):
     sns.set_context(context)
 
 
-def set_chart_style(style="whitegrid", despine=True):
+def set_chart_style(style: Literal["white", "dark", "whitegrid", "darkgrid", "ticks"] = "whitegrid", despine: bool = True):
     sns.set_style(style)
     if despine:
         sns.despine()

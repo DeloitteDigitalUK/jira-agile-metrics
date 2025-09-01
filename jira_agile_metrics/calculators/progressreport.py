@@ -791,14 +791,14 @@ def plot_cfd(
 
     transform_horizontal = matplotlib.transforms.blended_transform_factory(ax.transAxes, ax.transData)
 
-    ax.set_xlabel(None)
+    ax.set_xlabel("")
     ax.set_ylabel("Number of items")
 
     cfd_data.plot.area(ax=ax, stacked=False, legend=False)
 
     # Deadline
 
-    if deadline is not None:
+    if deadline is not None and target is not None:
         bottom, top = ax.get_ylim()
         left, right = ax.get_xlim()
 

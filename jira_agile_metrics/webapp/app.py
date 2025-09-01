@@ -26,6 +26,7 @@ app = Flask(
     static_folder=static_folder,
 )
 
+# TODO: Investigate Pylance error suggesting this is not a valid operation
 app.jinja_loader = jinja2.PackageLoader("jira_agile_metrics.webapp", "templates")
 
 logger = logging.getLogger(__name__)

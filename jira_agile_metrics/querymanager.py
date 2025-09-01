@@ -1,6 +1,7 @@
 import itertools
 import json
 import logging
+from typing import Any, Dict, Optional, Union
 
 import dateutil.parser
 import dateutil.tz
@@ -62,7 +63,7 @@ class IssueSnapshot(object):
 class QueryManager(object):
     """Manage and execute queries"""
 
-    settings = dict(
+    settings: Dict[str, Any] = dict(
         attributes={},
         known_values={},
         max_results=False,
@@ -95,10 +96,12 @@ class QueryManager(object):
             self.jira_fields_to_names = {field["id"]: field["name"] for field in self.jira_fields}
             field_id = None
 
-            for name, field in self.settings["attributes"].items():
-                field_id = self.field_name_to_id(field)
-                self.attributes_to_fields[name] = field_id
-                self.fields_to_attributes[field_id] = name
+            attributes = self.settings.get("attributes", {})
+            if isinstance(attributes, dict):
+                for name, field in attributes.items():
+                    field_id = self.field_name_to_id(field)
+                    self.attributes_to_fields[name] = field_id
+                    self.fields_to_attributes[field_id] = name
 
     def has_precomputed_cycle_data(self):
         return self.data_source is not None and self.data_source.get_precomputed_cycle_data() is not None
@@ -167,14 +170,15 @@ class QueryManager(object):
 
                 # is this a `Known Values` attribute?
                 attribute_name = self.fields_to_attributes.get(field_id, None)
-                if attribute_name not in self.settings["known_values"]:
+                known_values = self.settings.get("known_values", {})
+                if not isinstance(known_values, dict) or attribute_name not in known_values:
                     value = values[0]
                 else:
                     try:
                         value = next(
                             filter(
                                 lambda v: v in values,
-                                self.settings["known_values"][attribute_name],
+                                known_values[attribute_name],
                             )
                         )
                     except StopIteration:
