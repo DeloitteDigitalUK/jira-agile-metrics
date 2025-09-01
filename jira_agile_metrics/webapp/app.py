@@ -130,7 +130,7 @@ def get_jira_client(connection):
 
     try:
         return JIRA(
-            jira_options,
+            options=jira_options,
             basic_auth=(username, password),
             get_server_info=jira_server_version_check,
         )

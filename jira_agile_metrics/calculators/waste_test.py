@@ -330,6 +330,7 @@ def test_columns(jira, settings):
     calculator = WasteCalculator(query_manager, settings, results)
 
     data = calculator.run()
+    assert data is not None
 
     assert list(data.columns) == [
         "key",
@@ -346,6 +347,7 @@ def test_empty(fields, settings):
     calculator = WasteCalculator(query_manager, settings, results)
 
     data = calculator.run()
+    assert data is not None
 
     assert len(data.index) == 0
 
@@ -356,6 +358,7 @@ def test_query(jira, settings):
     calculator = WasteCalculator(query_manager, settings, results)
 
     data = calculator.run()
+    assert data is not None
 
     assert data.to_dict("records") == [
         {
@@ -387,6 +390,7 @@ def test_different_backlog_column(jira, settings):
     calculator = WasteCalculator(query_manager, settings, results)
 
     data = calculator.run()
+    assert data is not None
 
     assert data.to_dict("records") == [
         {
@@ -406,6 +410,7 @@ def test_different_done_column(jira, settings):
     calculator = WasteCalculator(query_manager, settings, results)
 
     data = calculator.run()
+    assert data is not None
 
     assert data.to_dict("records") == [
         {

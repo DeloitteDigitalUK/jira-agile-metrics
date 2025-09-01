@@ -984,6 +984,8 @@ def test_calculate_team_throughput(query_manager, settings):
         frequency="1D",
     )
 
+    assert throughput is not None
+
     assert list(throughput.index) == [
         pd.Timestamp("2018-01-06"),
         pd.Timestamp("2018-01-07"),
@@ -1014,6 +1016,8 @@ def test_calculate_team_throughput(query_manager, settings):
         frequency="1D",
     )
 
+    assert throughput is not None
+
     assert list(throughput.index) == [
         pd.Timestamp("2018-01-07"),
         pd.Timestamp("2018-01-08"),
@@ -1041,6 +1045,8 @@ def test_calculate_team_throughput(query_manager, settings):
         done_column=settings["done_column"],
         frequency="1D",
     )
+
+    assert throughput is not None
 
     assert list(throughput.index) == [
         pd.Timestamp("2018-01-04"),
@@ -1442,6 +1448,7 @@ def test_calculator(query_manager, settings, results):
     calculator = ProgressReportCalculator(query_manager, settings, results)
 
     data = calculator.run(trials=10, now=datetime(2018, 1, 10))
+    assert data is not None
 
     # confirm it has set up the two outcomes
     assert len(data["outcomes"]) == 2
@@ -1510,6 +1517,7 @@ def test_calculator_no_outcomes(query_manager, settings, results):
     calculator = ProgressReportCalculator(query_manager, settings, results)
 
     data = calculator.run(trials=10, now=datetime(2018, 1, 10))
+    assert data is not None
 
     # confirm it has set up the two outcomes
     assert len(data["outcomes"]) == 1
@@ -1586,6 +1594,7 @@ def test_calculator_no_fields(query_manager, settings, results):
     calculator = ProgressReportCalculator(query_manager, settings, results)
 
     data = calculator.run(trials=10, now=datetime(2018, 1, 10))
+    assert data is not None
 
     # confirm it has set up the two outcomes
     assert len(data["outcomes"]) == 2
@@ -1787,6 +1796,7 @@ def test_with_large_dataset(fields, settings, results):
     calculator = ProgressReportCalculator(query_manager, settings, results)
 
     data = calculator.run(trials=100)
+    assert data is not None
 
     assert len(data["outcomes"]) == 3
     assert len(data["teams"]) == 2
@@ -1955,6 +1965,7 @@ def test_with_large_dataset_and_outcome_as_tickets(fields, settings, results):
     calculator = ProgressReportCalculator(query_manager, settings, results)
 
     data = calculator.run(trials=100)
+    assert data is not None
 
     assert len(data["teams"]) == 2
 
@@ -2672,6 +2683,7 @@ def test_with_large_dataset_teams_no_outcomes(fields, settings, results):
     calculator = ProgressReportCalculator(query_manager, settings, results)
 
     data = calculator.run(trials=100)
+    assert data is not None
 
     assert len(data["teams"]) == 2
 
@@ -2821,6 +2833,7 @@ def test_with_large_dataset_no_teams(fields, settings, results):
     data = calculator.run(trials=100)
 
     assert len(data["teams"]) == 0
+    assert data is not None
 
     results[ProgressReportCalculator] = data
 

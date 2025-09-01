@@ -144,7 +144,7 @@ def test_columns(jira, settings):
     calculator = DefectsCalculator(query_manager, settings, results)
 
     data = calculator.run()
-
+    assert data is not None
     assert list(data.columns) == [
         "key",
         "priority",
@@ -162,7 +162,7 @@ def test_empty(fields, settings):
     calculator = DefectsCalculator(query_manager, settings, results)
 
     data = calculator.run()
-
+    assert data is not None
     assert len(data.index) == 0
 
 
@@ -172,7 +172,7 @@ def test_breakdown(jira, settings):
     calculator = DefectsCalculator(query_manager, settings, results)
 
     data = calculator.run()
-
+    assert data is not None
     assert data.to_dict("records") == [
         {
             "key": "D-1",
@@ -233,7 +233,7 @@ def test_no_priority_field(jira, settings):
     calculator = DefectsCalculator(query_manager, settings, results)
 
     data = calculator.run()
-
+    assert data is not None
     assert data.to_dict("records") == [
         {
             "key": "D-1",
@@ -294,7 +294,7 @@ def test_no_type_field(jira, settings):
     calculator = DefectsCalculator(query_manager, settings, results)
 
     data = calculator.run()
-
+    assert data is not None
     assert data.to_dict("records") == [
         {
             "key": "D-1",
@@ -355,7 +355,7 @@ def test_no_environment_field(jira, settings):
     calculator = DefectsCalculator(query_manager, settings, results)
 
     data = calculator.run()
-
+    assert data is not None
     assert data.to_dict("records") == [
         {
             "key": "D-1",

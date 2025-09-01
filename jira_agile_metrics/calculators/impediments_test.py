@@ -228,6 +228,7 @@ def test_empty(query_manager, settings, columns):
     calculator = ImpedimentsCalculator(query_manager, settings, results)
 
     data = calculator.run()
+    assert data is not None
     assert len(data.index) == 0
 
 
@@ -235,7 +236,7 @@ def test_columns(query_manager, settings, cycle_time_results):
     calculator = ImpedimentsCalculator(query_manager, settings, cycle_time_results)
 
     data = calculator.run()
-
+    assert data is not None
     assert list(data.columns) == ["key", "status", "flag", "start", "end"]
 
 
@@ -243,7 +244,7 @@ def test_calculate_impediments(query_manager, settings, cycle_time_results):
     calculator = ImpedimentsCalculator(query_manager, settings, cycle_time_results)
 
     data = calculator.run()
-
+    assert data is not None
     assert data.to_dict("records") == [
         {
             "key": "A-2",
@@ -280,7 +281,7 @@ def test_different_backlog_column(query_manager, settings, cycle_time_results):
     calculator = ImpedimentsCalculator(query_manager, settings, cycle_time_results)
 
     data = calculator.run()
-
+    assert data is not None
     assert data.to_dict("records") == [
         {
             "key": "A-3",
@@ -302,7 +303,7 @@ def test_different_done_column(query_manager, settings, cycle_time_results):
     calculator = ImpedimentsCalculator(query_manager, settings, cycle_time_results)
 
     data = calculator.run()
-
+    assert data is not None
     assert data.to_dict("records") == [
         {
             "key": "A-2",

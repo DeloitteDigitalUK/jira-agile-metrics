@@ -127,7 +127,7 @@ def test_columns(jira, settings):
     calculator = DebtCalculator(query_manager, settings, results)
 
     data = calculator.run()
-
+    assert data is not None
     assert list(data.columns) == [
         "key",
         "priority",
@@ -144,7 +144,7 @@ def test_empty(fields, settings):
     calculator = DebtCalculator(query_manager, settings, results)
 
     data = calculator.run()
-
+    assert data is not None
     assert len(data.index) == 0
 
 
@@ -154,7 +154,7 @@ def test_breakdown(jira, settings):
     calculator = DebtCalculator(query_manager, settings, results)
 
     data = calculator.run(now=datetime.datetime(2018, 3, 21, 2, 2, 2))
-
+    assert data is not None
     assert data.to_dict("records") == [
         {
             "key": "D-1",
@@ -209,7 +209,7 @@ def test_no_priority_field(jira, settings):
     calculator = DebtCalculator(query_manager, settings, results)
 
     data = calculator.run(now=datetime.datetime(2018, 3, 21, 2, 2, 2))
-
+    assert data is not None
     assert data.to_dict("records") == [
         {
             "key": "D-1",

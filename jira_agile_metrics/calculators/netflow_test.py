@@ -53,6 +53,7 @@ def test_empty(query_manager, settings, minimal_cycle_time_columns):
     calculator = NetFlowChartCalculator(query_manager, settings, results)
 
     data = calculator.run()
+    assert data is not None
     assert list(data.columns) == [
         "Committed",
         "Done",
@@ -68,6 +69,7 @@ def test_columns(query_manager, settings, results):
     calculator = NetFlowChartCalculator(query_manager, settings, results)
 
     data = calculator.run()
+    assert data is not None
     assert list(data.columns) == [
         "Committed",
         "Done",
@@ -82,6 +84,7 @@ def test_calculate_net_flow(query_manager, settings, results):
     calculator = NetFlowChartCalculator(query_manager, settings, results)
 
     data = calculator.run()
+    assert data is not None
 
     assert list(data.index) == [
         Timestamp("2018-01-01 00:00:00").to_period("D").to_timestamp(),
@@ -165,6 +168,7 @@ def test_calculate_net_flow_different_columns(query_manager, settings, results):
     calculator = NetFlowChartCalculator(query_manager, settings, results)
 
     data = calculator.run()
+    assert data is not None
 
     assert list(data.index) == [
         Timestamp("2018-01-01 00:00:00").to_period("D").to_timestamp(),

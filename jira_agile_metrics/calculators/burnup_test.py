@@ -27,6 +27,7 @@ def test_empty(query_manager, settings, cfd_columns):
     calculator = BurnupCalculator(query_manager, settings, results)
 
     data = calculator.run()
+    assert data is not None
     assert len(data.index) == 0
 
 
@@ -34,7 +35,7 @@ def test_columns(query_manager, settings, results):
     calculator = BurnupCalculator(query_manager, settings, results)
 
     data = calculator.run()
-
+    assert data is not None
     assert list(data.columns) == ["Backlog", "Done"]
 
 
@@ -42,7 +43,7 @@ def test_calculate_burnup(query_manager, settings, results):
     calculator = BurnupCalculator(query_manager, settings, results)
 
     data = calculator.run()
-
+    assert data is not None
     assert list(data.index) == [
         Timestamp("2018-01-01 00:00:00").to_period("D").to_timestamp(),
         Timestamp("2018-01-02 00:00:00").to_period("D").to_timestamp(),
@@ -68,7 +69,7 @@ def test_calculate_burnup_with_different_columns(query_manager, settings, result
     calculator = BurnupCalculator(query_manager, settings, results)
 
     data = calculator.run()
-
+    assert data is not None
     assert list(data.index) == [
         Timestamp("2018-01-01 00:00:00").to_period("D").to_timestamp(),
         Timestamp("2018-01-02 00:00:00").to_period("D").to_timestamp(),

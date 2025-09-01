@@ -28,6 +28,7 @@ def test_search_issues(mock_trello_api):
 
     my_trello = TrelloClient(member, key, token)
     issues = my_trello.search_issues("my_board")
+    assert issues is not None
     assert len(issues) == 2
 
 
@@ -104,4 +105,5 @@ def test_set_type_from_label(mock_trello_api):
 
     my_trello = TrelloClient(member, key, token, type_mapping={"defect": ["bug"]})
     issues = my_trello.search_issues("my_board")
+    assert issues is not None
     assert issues[1].fields.issuetype.name == "defect"
