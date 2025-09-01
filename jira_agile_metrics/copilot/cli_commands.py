@@ -5,7 +5,7 @@ Separates business logic from console output formatting.
 
 import logging
 import os
-from typing import Dict, List, Tuple
+from typing import Any, Dict, List, Tuple
 
 from .insights_generator import InsightsGenerator
 from .providers import LLMFactory
@@ -24,21 +24,13 @@ class AIConfigValidator:
         errors = LLMFactory.validate_provider_config(self.ai_config)
         return len(errors) == 0, errors
 
-    def get_config_summary(self) -> Dict[str, str]:
-        """Get summary of current configuration."""
-        return {
-            "provider": self.ai_config.get("provider", "not specified"),
-            "model": self.ai_config.get("model", "not specified"),
-            "available_providers": LLMFactory.list_available_providers(),
-        }
-
-
 class AIInsightsCommand:
     """Handles AI insights generation logic."""
 
-    def __init__(self, ai_config: Dict, output_dir: str = None):
+    def __init__(self, ai_config: Dict, output_dir: str | None = None, dry_run : bool = False):
         self.ai_config = ai_config
         self.output_dir = output_dir
+        self.dry_run = dry_run
 
     def _get_context_file_path(self, context_file: str) -> str:
         """Return the full path to the context file."""
@@ -49,7 +41,8 @@ class AIInsightsCommand:
     def validate_prerequisites(self, context_file: str) -> Tuple[bool, str]:
         """Check if all prerequisites are met. Returns (is_valid, error_message)."""
         # Validate AI configuration, skipping if in dry-run mode
-        if not self.ai_config.get("dry_run", False):
+
+        if not self.dry_run:
             validator = AIConfigValidator(self.ai_config)
             is_valid, errors = validator.validate()
             if not is_valid:
@@ -76,11 +69,11 @@ class AIInsightsCommand:
             output_file_path = os.path.join(self.output_dir, output_file) if self.output_dir else output_file
 
             # Generate insights
-            generator = InsightsGenerator(self.ai_config)
+            generator = InsightsGenerator(self.ai_config, self.dry_run)
             insights = generator.generate_daily_insights(context_file_path, output_file_path)
 
             # Handle dry run case
-            if self.ai_config.get("dry_run", False):
+            if self.dry_run:
                 return True, f"Dry run complete. Would write insights to: {output_file_path}", insights
 
             # Create preview for actual insights
@@ -92,14 +85,3 @@ class AIInsightsCommand:
             logger.exception("Error generating insights")
             return False, f"Error generating insights: {str(e)}", ""
 
-
-def create_ai_config_from_settings_and_args(settings: Dict, args) -> Dict:
-    """Create AI config by merging settings with command line arguments."""
-    ai_config = settings.get("ai", {})
-
-    # Only support dry-run override via CLI; provider/model come from YAML config
-    if hasattr(args, "dry_run") and args.dry_run:
-        ai_config = dict(ai_config)  # shallow copy
-        ai_config["dry_run"] = True
-
-    return ai_config

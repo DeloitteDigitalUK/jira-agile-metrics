@@ -5,7 +5,7 @@ Unit tests for CLI command handlers.
 import os
 from unittest.mock import Mock, patch
 
-from .cli_commands import AIConfigValidator, AIInsightsCommand, create_ai_config_from_settings_and_args
+from .cli_commands import AIConfigValidator, AIInsightsCommand
 
 
 class TestAIConfigValidator:
@@ -37,18 +37,7 @@ class TestAIConfigValidator:
         assert len(errors) == 2
         assert "API key not found" in errors
 
-    @patch("jira_agile_metrics.copilot.cli_commands.LLMFactory.list_available_providers")
-    def test_get_config_summary(self, mock_list_providers):
-        mock_list_providers.return_value = ["openai", "anthropic"]
 
-        config = {"provider": "openai", "model": "gpt-4o"}
-        validator = AIConfigValidator(config)
-
-        summary = validator.get_config_summary()
-
-        assert summary["provider"] == "openai"
-        assert summary["model"] == "gpt-4o"
-        assert summary["available_providers"] == ["openai", "anthropic"]
 
 
 class TestAIInsightsCommand:
@@ -103,8 +92,8 @@ class TestAIInsightsCommand:
 
     def test_validate_prerequisites_skips_validation_on_dry_run(self):
         # Config is invalid, but should pass with dry_run
-        ai_config = {"provider": "openai", "dry_run": True}
-        command = AIInsightsCommand(ai_config)
+        ai_config = {"provider": "openai"}
+        command = AIInsightsCommand(ai_config, dry_run=True)
 
         with patch(
             "jira_agile_metrics.copilot.cli_commands.AIConfigValidator.validate",
@@ -129,7 +118,7 @@ class TestAIInsightsCommand:
         assert success is True
         assert "Daily insights generated" in message
         assert "Test insights content" in preview
-        mock_insights_generator_class.assert_called_once_with(ai_config)
+        mock_insights_generator_class.assert_called_once_with(ai_config, False)
 
     @patch("jira_agile_metrics.copilot.cli_commands.InsightsGenerator")
     def test_generate_insights_with_output_dir(self, mock_insights_generator_class):
@@ -168,52 +157,6 @@ class TestAIInsightsCommand:
         assert success is False
         assert "Error generating insights" in message
         assert preview == ""
-
-
-class TestCreateAIConfigFromSettingsAndArgs:
-    """Test AI config creation from settings and args."""
-
-    def test_uses_settings_without_overrides(self):
-        settings = {"ai": {"provider": "openai", "model": "gpt-4o", "temperature": 0.3}}
-
-        args = Mock()
-        args.dry_run = False
-
-        result = create_ai_config_from_settings_and_args(settings, args)
-
-        assert result["provider"] == "openai"
-        assert result["model"] == "gpt-4o"
-        assert result["temperature"] == 0.3
-
-    def test_no_ai_settings(self):
-        settings = {}  # No AI config
-        args = Mock()
-        args.dry_run = False
-
-        result = create_ai_config_from_settings_and_args(settings, args)
-
-        assert result == {}
-
-    def test_no_args_override(self):
-        settings = {"ai": {"provider": "openai", "model": "gpt-4o"}}
-        args = Mock()
-        args.dry_run = False
-
-        result = create_ai_config_from_settings_and_args(settings, args)
-
-        assert result["provider"] == "openai"
-        assert result["model"] == "gpt-4o"
-
-    def test_dry_run_arg(self):
-        settings = {"ai": {"provider": "openai"}}
-        args = Mock()
-        args.dry_run = True
-
-        result = create_ai_config_from_settings_and_args(settings, args)
-
-        assert result["provider"] == "openai"
-        assert result["dry_run"] is True
-
 
 class TestIntegration:
     """Integration tests for CLI commands."""

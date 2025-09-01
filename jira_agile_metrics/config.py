@@ -1,6 +1,7 @@
 import datetime
 import logging
 import os.path
+from typing import Any
 
 import yaml
 from pydicti import odicti
@@ -21,12 +22,11 @@ from .calculators.scatterplot import ScatterplotCalculator
 from .calculators.throughput import ThroughputCalculator
 from .calculators.waste import WasteCalculator
 from .calculators.wip import WIPChartCalculator
+from .copilot.context_generator import AIContextGenerator
 
 CALCULATORS = (
-    CycleTimeCalculator,  # should come first
-    # -- others depend on results from this one
-    CFDCalculator,  # needs to come before burn-up charts,
-    # wip charts, and net flow charts
+    CycleTimeCalculator,  # should come first -- others depend on results from this one
+    CFDCalculator,  # needs to come before burn-up charts, wip charts, and net flow charts
     ScatterplotCalculator,
     HistogramCalculator,
     PercentilesCalculator,
@@ -41,6 +41,7 @@ CALCULATORS = (
     DefectsCalculator,
     WasteCalculator,
     ProgressReportCalculator,
+    AIContextGenerator,
 )
 
 logger = logging.getLogger(__name__)
@@ -52,7 +53,7 @@ class ConfigError(Exception):
 
 # From http://stackoverflow.com/questions/5121931/
 # in-python-how-can-you-load-yaml-mappings-as-ordereddicts
-def ordered_load(stream, Loader=yaml.Loader, object_pairs_hook=odicti):
+def ordered_load(stream, Loader : Any = yaml.Loader, object_pairs_hook=odicti):
     class OrderedLoader(Loader):
         pass
 
@@ -188,6 +189,15 @@ def config_to_options(data, cwd=None, extended=False):
             "jira_server_version_check": True,
             "jira_client_options": {},
         },
+        "copilot": {
+            "provider": None,
+            "model": None,
+            "api_key_environment_variable": None,
+            "max_tokens": 200,
+            "temperature": 0.1,
+            "azure_endpoint": None,
+            "azure_api_version": None,
+        },
         "settings": {
             "queries": [],
             "query_attribute": None,
@@ -293,6 +303,8 @@ def config_to_options(data, cwd=None, extended=False):
             "progress_report_outcomes": None,
             "progress_report_outcome_query": None,
             "progress_report_outcome_deadline_field": None,
+            "copilot_context": None,
+            "copilot_insights": None,
         },
     }
 
@@ -421,20 +433,11 @@ def config_to_options(data, cwd=None, extended=False):
             "debt_age_chart",
             "waste_chart",
             "progress_report",
+            "copilot_context",
+            "copilot_insights",
         ]:
             if expand_key(key) in config["output"]:
                 options["settings"][key] = os.path.basename(config["output"][expand_key(key)])
-
-        # Handle AI Context file (new format) - this should take precedence over old format
-        if "ai context" in config["output"]:
-            options["settings"]["ai_context_file"] = os.path.basename(config["output"]["ai context"])
-
-        # Handle AI Insights file
-        if "copilot context" in config["output"]:
-            options["settings"]["ai_context_file"] = os.path.basename(config["output"]["copilot context"])
-
-        if "copilot insights" in config["output"]:
-            options["settings"]["ai_insights_file"] = os.path.basename(config["output"]["copilot insights"])
 
         # file name list values
         for key in [
@@ -674,16 +677,28 @@ def config_to_options(data, cwd=None, extended=False):
             options["settings"]["type_mapping"][name] = force_list(values)
 
     # Parse Copilot configuration - top-level Copilot block
-    if "copilot" in config:
-        copilot_config = {}
-        for key, value in config["copilot"].items():
-            # Convert spaced keys to underscore format for internal use
-            internal_key = key.lower().replace(" ", "_")
-            copilot_config[internal_key] = value
-        options["settings"]["ai"] = copilot_config
 
-    # Handle Copilot Context file from Output section
-    if "output" in config and "copilot context" in config["output"]:
-        options["settings"]["ai_context_file"] = os.path.basename(config["output"]["copilot context"])
+    if "copilot" in config:
+        for key in (
+            "provider",
+            "model",
+            "api_key_environment_variable",
+            "azure_endpoint",
+            "azure_api_version"
+        ):
+            if expand_key(key) in config["copilot"]:
+                options["copilot"][key] = config["copilot"][expand_key(key)]
+
+        for key in (
+            "max_tokens",
+        ):
+            if expand_key(key) in config["copilot"]:
+                options["copilot"][key] = force_int(key, config["copilot"][expand_key(key)])
+        
+        for key in (
+            "temperature",
+        ):
+            if expand_key(key) in config["copilot"]:
+                options["copilot"][key] = force_float(key, config["copilot"][expand_key(key)])
 
     return options

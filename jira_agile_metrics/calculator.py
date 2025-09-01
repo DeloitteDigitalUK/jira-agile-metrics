@@ -1,4 +1,5 @@
 import logging
+from typing import Any
 
 logger = logging.getLogger(__name__)
 
@@ -16,7 +17,7 @@ class Calculator(object):
         self.settings = settings
         self._results = results
 
-    def get_result(self, calculator=None, default=None):
+    def get_result(self, calculator=None, default=None) -> Any:
         """Get the results calculated by a previous calculator
         of type `calculator` (a class). Defaults to `self.__class__`
         """
@@ -25,7 +26,7 @@ class Calculator(object):
 
     # Lifecycle methods -- implement as appropriate
 
-    def run(self):
+    def run(self) -> Any:
         """Run the calculator and return its results.
         These will be automatically saved
         """

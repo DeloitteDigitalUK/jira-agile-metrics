@@ -12,13 +12,13 @@ from .providers import LLMFactory
 
 logger = logging.getLogger(__name__)
 
-
 class InsightsGenerator:
     """Generates AI-powered insights from agile metrics context."""
 
-    def __init__(self, ai_config: Dict):
+    def __init__(self, ai_config: Dict, dry_run: bool = False):
         self.config = ai_config
         self.llm = LLMFactory.create_provider(ai_config)
+        self.dry_run = dry_run
 
     def generate_daily_insights(self, context_file: str, output_file: str = "daily-insights.md") -> str:
         """Generate daily insights from context file."""
@@ -28,13 +28,13 @@ class InsightsGenerator:
 
             prompt = self._build_daily_insights_prompt(context)
 
-            if self.config.get("dry_run", False):
+            if self.dry_run:
                 print("--- PROMPT ---")
                 print(prompt)
                 print("--- END PROMPT ---")
                 return "Dry run mode: Insights not generated."
 
-            insights = self.llm.generate_insights(prompt, context)
+            insights = self.llm.generate_insights(prompt, context, self.dry_run)
 
             # Format and save insights
             formatted_insights = self._format_daily_insights(insights, context)
@@ -61,7 +61,7 @@ class InsightsGenerator:
                 context = json.load(f)
 
             prompt = self._build_chat_prompt(question, context)
-            response = self.llm.generate_insights(prompt, context)
+            response = self.llm.generate_insights(prompt, context, self.dry_run)
 
             return {
                 "answer": response,

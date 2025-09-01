@@ -71,7 +71,7 @@ class TestOpenAIProvider:
     def test_init_with_config(self):
         config = {
             "model": "gpt-4o",
-            "api_key_env": "TEST_OPENAI_KEY",
+            "api_key_environment_variable": "TEST_OPENAI_KEY",
             "max_tokens": 1500,
             "temperature": 0.2,
         }
@@ -85,14 +85,14 @@ class TestOpenAIProvider:
         assert provider.temperature == 0.2
 
     def test_validate_config_with_api_key(self):
-        config = {"api_key_env": "TEST_OPENAI_KEY"}
+        config = {"api_key_environment_variable": "TEST_OPENAI_KEY"}
 
         with patch.dict("os.environ", {"TEST_OPENAI_KEY": "test-key-123"}):
             provider = OpenAIProvider(config)
             assert provider.validate_config() is True
 
     def test_validate_config_without_api_key(self):
-        config = {"api_key_env": "MISSING_KEY"}
+        config = {"api_key_environment_variable": "MISSING_KEY"}
 
         with patch.dict("os.environ", {}, clear=True):
             provider = OpenAIProvider(config)
@@ -108,7 +108,7 @@ class TestOpenAIProvider:
         }
         mock_post.return_value = mock_response
 
-        config = {"api_key_env": "TEST_OPENAI_KEY", "model": "gpt-4o"}
+        config = {"api_key_environment_variable": "TEST_OPENAI_KEY", "model": "gpt-4o"}
 
         with patch.dict("os.environ", {"TEST_OPENAI_KEY": "test-key-123"}):
             provider = OpenAIProvider(config)
@@ -138,9 +138,10 @@ class TestOpenAIProvider:
         mock_response = Mock()
         mock_response.status_code = 401
         mock_response.text = "Unauthorized"
+        mock_response.json.return_value = {"error": "invalid_api_key"}
         mock_post.return_value = mock_response
 
-        config = {"api_key_env": "TEST_OPENAI_KEY"}
+        config = {"api_key_environment_variable": "TEST_OPENAI_KEY"}
 
         with patch.dict("os.environ", {"TEST_OPENAI_KEY": "invalid-key"}):
             provider = OpenAIProvider(config)
@@ -151,7 +152,7 @@ class TestOpenAIProvider:
             assert "OpenAI API error (401)" in str(exc_info.value)
 
     def test_generate_insights_no_api_key(self):
-        config = {"api_key_env": "MISSING_KEY"}
+        config = {"api_key_environment_variable": "MISSING_KEY"}
 
         with patch.dict("os.environ", {}, clear=True):
             provider = OpenAIProvider(config)
@@ -169,7 +170,7 @@ class TestOpenAIProvider:
         mock_response.json.return_value = {"choices": [{"message": {"content": "Response with no context"}}]}
         mock_post.return_value = mock_response
 
-        config = {"api_key_env": "TEST_OPENAI_KEY"}
+        config = {"api_key_environment_variable": "TEST_OPENAI_KEY"}
 
         with patch.dict("os.environ", {"TEST_OPENAI_KEY": "test-key-123"}):
             provider = OpenAIProvider(config)
@@ -183,13 +184,13 @@ class TestOpenAIProvider:
 
     @patch("jira_agile_metrics.copilot.providers.requests.post")
     def test_generate_insights_dry_run(self, mock_post, capsys):
-        # Config with dry_run enabled, no API key needed
-        config = {"dry_run": True, "model": "gpt-4o"}
+        # Config without dry_run in config, pass as parameter
+        config = {"model": "gpt-4o"}
 
         # No API key in environment
         with patch.dict("os.environ", {}, clear=True):
             provider = OpenAIProvider(config)
-            result = provider.generate_insights("Dry run test", SAMPLE_CONTEXT)
+            result = provider.generate_insights("Dry run test", SAMPLE_CONTEXT, dry_run=True)
 
         # 1. Verify API was not called
         mock_post.assert_not_called()
@@ -220,7 +221,7 @@ class TestAnthropicProvider:
         mock_post.return_value = mock_response
 
         config = {
-            "api_key_env": "TEST_ANTHROPIC_KEY",
+            "api_key_environment_variable": "TEST_ANTHROPIC_KEY",
             "model": "claude-3-5-sonnet-20241022",
         }
 
@@ -246,11 +247,11 @@ class TestAnthropicProvider:
 
     @patch("jira_agile_metrics.copilot.providers.requests.post")
     def test_generate_insights_dry_run(self, mock_post, capsys):
-        config = {"dry_run": True, "model": "claude-3-opus-20240229"}
+        config = {"model": "claude-3-opus-20240229"}
 
         with patch.dict("os.environ", {}, clear=True):
             provider = AnthropicProvider(config)
-            result = provider.generate_insights("Dry run test", SAMPLE_CONTEXT)
+            result = provider.generate_insights("Dry run test", SAMPLE_CONTEXT, dry_run=True)
 
         mock_post.assert_not_called()
 
@@ -277,9 +278,9 @@ class TestAzureOpenAIProvider:
         mock_post.return_value = mock_response
 
         config = {
-            "api_key_env": "TEST_AZURE_KEY",
-            "api_base": "https://test-resource.openai.azure.com",
-            "api_version": "2024-02-15-preview",
+            "api_key_environment_variable": "TEST_AZURE_KEY",
+            "azure_endpoint": "https://test-resource.openai.azure.com",
+            "azure_api_version": "2024-02-15-preview",
             "model": "gpt-4-deployment",
         }
 
@@ -306,14 +307,13 @@ class TestAzureOpenAIProvider:
     @patch("jira_agile_metrics.copilot.providers.requests.post")
     def test_generate_insights_dry_run(self, mock_post, capsys):
         config = {
-            "dry_run": True,
-            "api_base": "https://test-resource.openai.azure.com",
+            "azure_endpoint": "https://test-resource.openai.azure.com",
             "model": "gpt-4-deployment",
         }
 
         with patch.dict("os.environ", {}, clear=True):
             provider = AzureOpenAIProvider(config)
-            result = provider.generate_insights("Dry run test", SAMPLE_CONTEXT)
+            result = provider.generate_insights("Dry run test", SAMPLE_CONTEXT, dry_run=True)
 
         mock_post.assert_not_called()
 
@@ -364,7 +364,7 @@ class TestLLMFactory:
         assert "openai, anthropic, azure" in str(exc_info.value)
 
     def test_validate_provider_config_valid(self):
-        config = {"provider": "openai", "api_key_env": "TEST_KEY"}
+        config = {"provider": "openai", "api_key_environment_variable": "TEST_KEY"}
 
         with patch.dict("os.environ", {"TEST_KEY": "test-key-123"}):
             errors = LLMFactory.validate_provider_config(config)
@@ -378,7 +378,7 @@ class TestLLMFactory:
         assert "AI provider not specified" in errors[0]
 
     def test_validate_provider_config_invalid_config(self):
-        config = {"provider": "openai", "api_key_env": "MISSING_KEY"}
+        config = {"provider": "openai", "api_key_environment_variable": "MISSING_KEY"}
 
         with patch.dict("os.environ", {}, clear=True):
             errors = LLMFactory.validate_provider_config(config)
@@ -398,7 +398,7 @@ class TestSystemPrompt:
     """Test that system prompts contain anti-hallucination constraints."""
 
     def test_system_prompt_contains_constraints(self):
-        config = {"api_key_env": "TEST_KEY"}
+        config = {"api_key_environment_variable": "TEST_KEY"}
 
         with patch.dict("os.environ", {"TEST_KEY": "test-key"}):
             provider = OpenAIProvider(config)

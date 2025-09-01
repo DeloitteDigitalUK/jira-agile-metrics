@@ -17,7 +17,7 @@ class MockLLMProvider(LLMProvider):
         self.last_prompt = None
         self.last_context = None
 
-    def generate_insights(self, prompt: str, context: dict) -> str:
+    def generate_insights(self, prompt: str, context: dict, dry_run: bool = False) -> str:
         self.last_prompt = prompt
         self.last_context = context
         return self.mock_response

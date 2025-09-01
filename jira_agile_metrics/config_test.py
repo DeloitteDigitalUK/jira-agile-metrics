@@ -402,6 +402,8 @@ ABC AND type = Outcome AND resolution IS EMPTY"
         ],
         "progress_report_outcome_deadline_field": "Due date",
         "progress_report_outcome_query": ("project = ABC AND type = Outcome AND resolution IS EMPTY"),
+        "copilot_context": None,
+        "copilot_insights": None,
     }
 
 
@@ -455,8 +457,8 @@ Output:
 
 
 def test_config_to_options_extends():
-    try:
-        with tempfile.NamedTemporaryFile(delete=False) as fp:
+    with tempfile.NamedTemporaryFile(delete=False) as fp:
+        try:
             # Base file
             fp.write(
                 b"""\
@@ -511,8 +513,8 @@ Output:
                 % fp.name,
                 cwd=os.path.abspath(fp.name),
             )
-    finally:
-        os.remove(fp.name)
+        finally:
+            os.remove(fp.name)
 
     # overridden
     assert options["connection"]["domain"] == "https://bar.com"
@@ -643,55 +645,17 @@ Output:
     )
 
     assert options["connection"]["domain"] == "https://foo.com"
-    assert options["settings"]["ai"] == {
+    assert options["copilot"] == {
         "provider": "openai",
         "model": "gpt-4o",
         "api_key_environment_variable": "OPENAI_API_KEY",
         "max_tokens": 2000,
         "temperature": 0.1,
+        "azure_endpoint": None,
+        "azure_api_version": None,
     }
-    assert options["settings"]["ai_context_file"] == "ai-context.json"
-    assert options["settings"]["ai_insights_file"] == "daily-insights.md"
-
-
-def test_config_to_options_copilot_spaced_keys():
-
-    options = config_to_options(
-        """\
-Connection:
-    Domain: https://foo.com
-
-Query: (filter=123)
-
-Workflow:
-    Backlog: Backlog
-    In progress: Build
-    Done: Done
-
-Copilot:
-    Provider: anthropic
-    Model: claude-3-5-sonnet-20241022
-    API Key Environment Variable: ANTHROPIC_API_KEY
-    Max Tokens: 4000
-    Temperature: 0.2
-    System Prompt: You are a helpful assistant
-    Custom Setting With Spaces: test value
-
-Output:
-    Copilot Context: copilot-output.json
-"""
-    )
-
-    assert options["settings"]["ai"] == {
-        "provider": "anthropic",
-        "model": "claude-3-5-sonnet-20241022",
-        "api_key_environment_variable": "ANTHROPIC_API_KEY",
-        "max_tokens": 4000,
-        "temperature": 0.2,
-        "system_prompt": "You are a helpful assistant",
-        "custom_setting_with_spaces": "test value",
-    }
-    assert options["settings"]["ai_context_file"] == "copilot-output.json"
+    assert options["settings"]["copilot_context"] == "ai-context.json"
+    assert options["settings"]["copilot_insights"] == "daily-insights.md"
 
 
 def test_config_to_options_copilot_context_strips_directory():
@@ -717,7 +681,7 @@ Output:
 """
     )
 
-    assert options["settings"]["ai_context_file"] == "ai-context.json"
+    assert options["settings"]["copilot_context"] == "ai-context.json"
 
 
 def test_config_to_options_copilot_without_context():
@@ -740,12 +704,17 @@ Copilot:
 """
     )
 
-    assert options["settings"]["ai"] == {
+    assert options["copilot"] == {
         "provider": "openai",
         "model": "gpt-4o",
+        "api_key_environment_variable": None,
+        "max_tokens": 200,
+        "temperature": 0.1,
+        "azure_endpoint": None,
+        "azure_api_version": None,
     }
-    # ai_context_file should not be set if not specified
-    assert "ai_context_file" not in options["settings"]
+    # copilot_context should be None when not specified
+    assert options["settings"]["copilot_context"] is None
 
 
 def test_config_to_options_no_copilot():
@@ -764,6 +733,7 @@ Workflow:
 """
     )
 
-    # No AI configuration should be present
-    assert "ai" not in options["settings"]
-    assert "ai_context_file" not in options["settings"]
+    # No copilot provider should be set when not configured
+    assert options["copilot"]["provider"] is None
+    # copilot_context should be None by default
+    assert options["settings"]["copilot_context"] is None

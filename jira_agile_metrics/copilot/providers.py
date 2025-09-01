@@ -13,12 +13,13 @@ import requests
 
 logger = logging.getLogger(__name__)
 
+# TODO: dry_run is no longer stored in the config dict. It needs to be turned into a parameter for the relevant functions
 
 class LLMProvider(ABC):
     """Abstract base class for LLM providers."""
 
     @abstractmethod
-    def generate_insights(self, prompt: str, context: Dict) -> str:
+    def generate_insights(self, prompt: str, context: Dict, dry_run: bool = False) -> str:
         """Generate insights from the given prompt and context."""
         pass
 
@@ -59,15 +60,14 @@ class OpenAIProvider(LLMProvider):
     """OpenAI GPT provider implementation."""
 
     def __init__(self, config: Dict):
-        self.api_key = os.getenv(config.get("api_key_env", "OPENAI_API_KEY"))
+        self.api_key = os.getenv(config.get("api_key_environment_variable", "OPENAI_API_KEY"))
         self.model = config.get("model", "gpt-4o")
         self.api_base = config.get("api_base", "https://api.openai.com/v1")
         self.max_tokens = config.get("max_tokens", 2000)
         self.temperature = config.get("temperature", 0.1)
-        self.dry_run = config.get("dry_run", False)
 
-    def generate_insights(self, prompt: str, context: Dict) -> str:
-        if not self.api_key and not self.dry_run:
+    def generate_insights(self, prompt: str, context: Dict, dry_run: bool = False) -> str:
+        if not self.api_key and not dry_run:
             raise ValueError("OpenAI API key not found. Set OPENAI_API_KEY environment variable.")
 
         headers = {
@@ -88,7 +88,7 @@ class OpenAIProvider(LLMProvider):
             "max_tokens": self.max_tokens,
         }
 
-        if self.dry_run:
+        if dry_run:
             print("--- PAYLOAD (OpenAI) ---")
             print(json.dumps(payload, indent=2))
             print("--- END PAYLOAD ---")
@@ -97,21 +97,18 @@ class OpenAIProvider(LLMProvider):
         logger.debug(f"Calling OpenAI API with model {self.model}")
 
         try:
-            response = requests.post(
-                f"{self.api_base}/chat/completions",
-                headers=headers,
-                json=payload,
-                timeout=30,
-            )
+            response = requests.post(f"{self.api_base}/chat/completions", headers=headers, json=payload, timeout=60)
 
             if response.status_code != 200:
                 raise Exception(f"OpenAI API error ({response.status_code}): {response.text}")
 
             result = response.json()
+
             return result["choices"][0]["message"]["content"]
 
         except requests.exceptions.RequestException as e:
-            raise Exception(f"Network error calling OpenAI API: {str(e)}")
+            logger.error(f"OpenAI API request failed: {e}")
+            raise ValueError(f"Failed to generate insights: {e}") from e
 
     def validate_config(self) -> bool:
         return self.api_key is not None
@@ -121,13 +118,12 @@ class AnthropicProvider(LLMProvider):
     """Anthropic Claude provider implementation."""
 
     def __init__(self, config: Dict):
-        self.api_key = os.getenv(config.get("api_key_env", "ANTHROPIC_API_KEY"))
+        self.api_key = os.getenv(config.get("api_key_environment_variable", "ANTHROPIC_API_KEY"))
         self.model = config.get("model", "claude-3-5-sonnet-20241022")
         self.max_tokens = config.get("max_tokens", 2000)
-        self.dry_run = config.get("dry_run", False)
 
-    def generate_insights(self, prompt: str, context: Dict) -> str:
-        if not self.api_key and not self.dry_run:
+    def generate_insights(self, prompt: str, context: Dict, dry_run: bool = False) -> str:
+        if not self.api_key and not dry_run:
             raise ValueError("Anthropic API key not found. Set ANTHROPIC_API_KEY environment variable.")
 
         headers = {
@@ -145,7 +141,7 @@ class AnthropicProvider(LLMProvider):
             "messages": [{"role": "user", "content": full_prompt}],
         }
 
-        if self.dry_run:
+        if dry_run:
             print("--- PAYLOAD (Anthropic) ---")
             print(json.dumps(payload, indent=2))
             print("--- END PAYLOAD ---")
@@ -173,22 +169,22 @@ class AnthropicProvider(LLMProvider):
     def validate_config(self) -> bool:
         return self.api_key is not None
 
+# TODO: Check that the config variables match those actually set in `config.py`
 
 class AzureOpenAIProvider(LLMProvider):
     """Azure OpenAI provider implementation."""
 
     def __init__(self, config: Dict):
-        self.api_key = os.getenv(config.get("api_key_env", "AZURE_OPENAI_API_KEY"))
-        self.api_base = config.get("api_base")
-        self.api_version = config.get("api_version", "2024-02-15-preview")
+        self.api_key = os.getenv(config.get("api_key_environment_variable", "AZURE_OPENAI_API_KEY"))
+        self.api_base = config.get("azure_endpoint")
+        self.api_version = config.get("azure_api_version", "2024-02-15-preview")
         self.deployment_name = config.get("model")  # In Azure, this is the deployment name
         self.max_tokens = config.get("max_tokens", 2000)
         self.temperature = config.get("temperature", 0.1)
-        self.dry_run = config.get("dry_run", False)
 
-    def generate_insights(self, prompt: str, context: Dict) -> str:
-        if (not self.api_key or not self.api_base or not self.deployment_name) and not self.dry_run:
-            raise ValueError("Azure OpenAI requires api_key, api_base, and deployment name (model).")
+    def generate_insights(self, prompt: str, context: Dict, dry_run: bool = False) -> str:
+        if (not self.api_key or not self.api_base or not self.deployment_name) and not dry_run:
+            raise ValueError("Azure OpenAI requires api_key, azure_endpoint, and deployment name (model).")
 
         headers = {"api-key": self.api_key, "Content-Type": "application/json"}
 
@@ -208,7 +204,7 @@ class AzureOpenAIProvider(LLMProvider):
             f"{self.api_base}/openai/deployments/{self.deployment_name}/chat/completions?api-version={self.api_version}"
         )
 
-        if self.dry_run:
+        if dry_run:
             print("--- PAYLOAD (Azure OpenAI) ---")
             print(f"URL: {url}")
             print(json.dumps(payload, indent=2))

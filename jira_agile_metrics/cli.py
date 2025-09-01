@@ -12,7 +12,7 @@ from .calculators.defects import DefectsCalculator
 from .calculators.progressreport import ProgressReportCalculator
 from .calculators.waste import WasteCalculator
 from .config import CALCULATORS, ConfigError, config_to_options
-from .copilot.cli_commands import AIInsightsCommand, create_ai_config_from_settings_and_args
+from .copilot.cli_commands import AIInsightsCommand
 from .datasources.csv_source import CSVDataSource
 from .querymanager import QueryManager
 from .trello import TrelloClient
@@ -96,10 +96,11 @@ def configure_argument_parser():
             "Path to an exported cycletime.csv or cycletime.json that can be used to preload cycle data instead of querying JIRA"
         ),
     )
+
     parser.add_argument(
-        "--ai-context-file",
+        "--copilot-context",
         metavar="ai-context.json",
-        help=("Override the Copilot context file path (defaults to settings.ai_context_file or ai-context.json)"),
+        help=("Override the Copilot context file path"),
     )
     # Provider/model are configured in YAML; no CLI overrides required
     parser.add_argument(
@@ -215,26 +216,6 @@ def run_command_line(parser, args):
     if args.cycle_data_file:
         validate_csv_calculator_compatibility(calculators, options["settings"])
 
-    # Append AIContextGenerator only when AI options are configured and core workflow settings exist
-    settings_dict = options["settings"]
-    has_core_workflow = (
-        bool(settings_dict.get("cycle"))
-        and ("committed_column" in settings_dict)
-        and ("done_column" in settings_dict)
-        and ("backlog_column" in settings_dict)
-    )
-    # Copilot configured via settings (ai dict or ai_context_file)
-    ai_settings = settings_dict.get("ai", {}) or {}
-    has_ai_options = bool(ai_settings) or bool(  # any copilot settings present
-        settings_dict.get("ai_context_file")
-    )  # Copilot Context file configured in Output
-    if has_core_workflow and has_ai_options:
-        from .copilot.context_generator import AIContextGenerator
-
-        calculators.append(AIContextGenerator)
-    else:
-        logger.info("Skipping Copilot context generation (copilot options or required workflow settings missing)")
-
     run_calculators(calculators, query_manager, options["settings"])
 
 
@@ -278,7 +259,7 @@ def get_jira_client(connection):
     options.update(jira_client_options)
 
     return JIRA(
-        options,
+        options=options,
         basic_auth=(username, password),
         proxies=proxies,
         get_server_info=jira_server_version_check,
@@ -316,56 +297,61 @@ def generate_ai_insights(parser, args):
         level=logging.INFO if args.verbose else logging.WARNING,
     )
 
-    try:
-        with open(args.config) as config:
-            options = config_to_options(
-                config.read(),
-                cwd=os.path.dirname(os.path.abspath(args.config)),
-            )
-
-        # Create AI config from settings and args
-        ai_config = create_ai_config_from_settings_and_args(options["settings"], args)
-
-        # Determine context file path (allow override)
-        context_file = (
-            args.ai_context_file
-            if args.ai_context_file
-            else options["settings"].get("ai_context_file", "ai-context.json")
+    options = {}
+    with open(args.config) as config:
+        options = config_to_options(
+            config.read(),
+            cwd=os.path.dirname(os.path.abspath(args.config)),
         )
 
-        # Determine insights output file path
-        insights_file = options["settings"].get("ai_insights_file", "daily-insights.md")
+    # Determine context file path (allow override)
+    context_file = (
+        args.copilot_context
+        if args.copilot_context
+        else options["settings"].get("copilot_context", None)
+    )
 
-        # Create command handler
-        output_dir = args.output_directory
-        command = AIInsightsCommand(ai_config, output_dir)
+    if not context_file:
+        print("❌ No context file specified. Use --copilot-context or set 'Copilot Context' in config.")
+        return
 
-        # Check prerequisites (context file must now exist)
-        is_valid, error_msg = command.validate_prerequisites(context_file)
-        if not is_valid:
-            print(f"❌ {error_msg}")
+    # Determine insights output file path
+    insights_file = options['copilot'].get('copilot_insights', 'daily-insights.md')
+
+    # Validate output directory exists if specified
+    if args.output_directory:
+        if not os.path.exists(args.output_directory):
+            print(f"❌ Output directory does not exist: {args.output_directory}")
             return
+        insights_file = os.path.join(args.output_directory, os.path.basename(insights_file))
 
-        # Generate insights
-        print(f"🤖 Generating AI insights using {ai_config.get('provider', 'unknown')} provider...")
-        success, result_msg, preview = command.generate_insights(context_file, insights_file)
+    # Create command handler
+    output_dir = args.output_directory
+    command = AIInsightsCommand(options['copilot'], output_dir, args.dry_run)
 
-        if success:
-            if args.dry_run:
-                print(f"✅ {result_msg}")
-                # Preview in dry run contains the prompt and payload
-                print(preview)
-            else:
-                print(f"✅ {result_msg}")
-                print("\nPreview:")
-                print("-" * 50)
-                print(preview)
+    # Check prerequisites (context file must now exist)
+    is_valid, error_msg = command.validate_prerequisites(context_file)
+    if not is_valid:
+        print(f"❌ {error_msg}")
+        return
+
+    # Generate insights
+    print(f"🤖 Generating AI insights using {options['copilot'].get('provider', 'unknown')} provider...")
+    success, result_msg, preview = command.generate_insights(context_file, insights_file)
+
+    if success:
+        if args.dry_run:
+            print(f"✅ {result_msg}")
+            # Preview in dry run contains the prompt and payload
+            print(preview)
         else:
-            print(f"❌ {result_msg}")
+            print(f"✅ {result_msg}")
+            print("\nPreview:")
+            print("-" * 50)
+            print(preview)
+    else:
+        print(f"❌ {result_msg}")
 
-    except Exception as e:
-        print(f"❌ Error: {e}")
-        logger.exception("Full error details:")
 
 
 def validate_csv_calculator_compatibility(calculators, settings):

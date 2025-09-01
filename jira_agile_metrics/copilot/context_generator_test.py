@@ -141,11 +141,9 @@ class TestAIContextGenerator:
         assert result["status"] == "no_wip_items"
 
     def test_analyze_ageing_wip_with_stuck_items(self, mock_query_manager, test_settings):
-        generator = AIContextGenerator(mock_query_manager, test_settings, {})
-
         # Mock ageing WIP data with required 'status' column
-        # Average age = (120 + 5) / 2 = 62.5, so stuck threshold = 125
-        # Age 120 < 125, so need age > 125. Let's use 130.
+        # Average age = (130 + 5*7) / 8 = 165/8 = 20.625, so stuck threshold = 41.25
+        # Age 130 > 41.25, so PROJ-123 should be stuck
         mock_ageing_data = pd.DataFrame(
             [
                 {
@@ -199,13 +197,15 @@ class TestAIContextGenerator:
             ]
         )
 
-        with patch("jira_agile_metrics.calculators.ageingwip.AgeingWIPChartCalculator") as mock_calc:
-            mock_calc.return_value.run.return_value = mock_ageing_data
+        # Create generator with pre-populated results
+        from jira_agile_metrics.calculators.ageingwip import AgeingWIPChartCalculator
+        results = {AgeingWIPChartCalculator: mock_ageing_data}
+        generator = AIContextGenerator(mock_query_manager, test_settings, results)
 
-            result = generator._analyze_ageing_wip()
+        result = generator._analyze_ageing_wip()
 
         assert result["total_wip_items"] == 8
-        assert result["stuck_items_count"] == 1  # PROJ-123 with age 130 > threshold 135
+        assert result["stuck_items_count"] == 1  # PROJ-123 with age 130 > threshold ~41
         assert len(result["stuck_items"]) == 1
         assert result["stuck_items"][0]["key"] == "PROJ-123"
 
@@ -220,8 +220,6 @@ class TestAIContextGenerator:
         assert result["status"] == "no_throughput_data"
 
     def test_analyze_throughput_trends_with_data(self, mock_query_manager, test_settings):
-        generator = AIContextGenerator(mock_query_manager, test_settings, {})
-
         # Mock throughput data - improving trend
         mock_throughput_data = pd.DataFrame(
             [
@@ -232,10 +230,12 @@ class TestAIContextGenerator:
             ]
         )
 
-        with patch("jira_agile_metrics.calculators.throughput.ThroughputCalculator") as mock_calc:
-            mock_calc.return_value.run.return_value = mock_throughput_data
+        # Create generator with pre-populated results
+        from jira_agile_metrics.calculators.throughput import ThroughputCalculator
+        results = {ThroughputCalculator: mock_throughput_data}
+        generator = AIContextGenerator(mock_query_manager, test_settings, results)
 
-            result = generator._analyze_throughput_trends()
+        result = generator._analyze_throughput_trends()
 
         assert result["recent_avg_throughput"] == 2.125  # avg of all periods (actual implementation)
         assert result["historical_avg_throughput"] == 2.125  # avg of all periods
