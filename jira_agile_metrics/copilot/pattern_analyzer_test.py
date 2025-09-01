@@ -38,6 +38,176 @@ class MockLLMProvider(LLMProvider):
 
 class TestPatternAnalyzer:
     """Test PatternAnalyzer functionality."""
+    
+    def test_actionable_recommendations_format(self):
+        """Test that actionable recommendations are properly formatted."""
+        mock_response = json.dumps({
+            "recommendations": [
+                {
+                    "issue": "High WIP causing delays",
+                    "action": "Implement WIP limits of 5 items per developer",
+                    "owner": "Scrum Master",
+                    "timeline": "1 week to implement, 2 sprints to see results",
+                    "success_metric": "Reduce cycle time by 30%",
+                    "evidence": "Average WIP is 12 items, 85th percentile cycle time is 15 days",
+                    "priority": "high",
+                    "effort": "low"
+                }
+            ]
+        })
+        
+        mock_llm = MockLLMProvider(mock_response)
+        analyzer = PatternAnalyzer(mock_llm, "enhanced")
+        
+        raw_data = {"cycle_time": pd.DataFrame({"key": ["A-1"], "cycle_time": [10]})}
+        imperative_insights = {"flow_health": {"wip_average": 12}}
+        
+        result = analyzer._analyze_flow_anomalies(raw_data, imperative_insights, dry_run=False)
+        
+        assert "patterns" in result
+        assert len(result["patterns"]) == 1
+        
+        pattern = result["patterns"][0]
+        assert pattern["type"] == "actionable_recommendation"
+        assert pattern["description"] == "High WIP causing delays"
+        assert pattern["action"] == "Implement WIP limits of 5 items per developer"
+        assert pattern["owner"] == "Scrum Master"
+        assert pattern["timeline"] == "1 week to implement, 2 sprints to see results"
+        assert pattern["success_metric"] == "Reduce cycle time by 30%"
+        assert pattern["priority"] == "high"
+        assert pattern["effort"] == "low"
+    
+    def test_no_story_points_in_recommendations(self):
+        """Test that story points are never mentioned in AI recommendations."""
+        # Mock response that would contain story points - should not happen in practice
+        mock_response = json.dumps({
+            "recommendations": [
+                {
+                    "issue": "Cycle time variance too high",
+                    "action": "Break down large work items into smaller tasks",
+                    "owner": "Product Owner",
+                    "timeline": "2 weeks to implement new breakdown process",
+                    "success_metric": "Reduce cycle time variance by 25%",
+                    "evidence": "85th percentile is 3x median cycle time",
+                    "priority": "medium",
+                    "effort": "medium"
+                }
+            ]
+        })
+        
+        mock_llm = MockLLMProvider(mock_response)
+        analyzer = PatternAnalyzer(mock_llm, "enhanced")
+        
+        raw_data = {"cycle_time": pd.DataFrame({"key": ["A-1"], "cycle_time": [10]})}
+        imperative_insights = {"cycle_time_patterns": {"variance_high": True}}
+        
+        result = analyzer._analyze_flow_anomalies(raw_data, imperative_insights, dry_run=False)
+        
+        # Verify no story points mentioned in any field
+        for pattern in result.get("patterns", []):
+            for field_value in pattern.values():
+                if isinstance(field_value, str):
+                    assert "story point" not in field_value.lower()
+                    assert "story points" not in field_value.lower()
+                    assert "point estimate" not in field_value.lower()
+        
+        # Also check the prompt sent to LLM doesn't mention story points
+        prompt = mock_llm.last_prompt or ""
+        assert "story point" not in prompt.lower()
+        assert "story points" not in prompt.lower()
+
+    def test_recommendation_categories(self):
+        """Test that recommendations include proper categorization."""
+        mock_response = json.dumps({
+            "recommendations": [
+                {
+                    "issue": "High WIP causing delays",
+                    "action": "Implement WIP limits",
+                    "owner": "Scrum Master",
+                    "timeline": "1 week",
+                    "success_metric": "Reduce cycle time by 20%",
+                    "evidence": "WIP at 15 items",
+                    "priority": "high",
+                    "effort": "low",
+                    "category": "quick_wins"
+                },
+                {
+                    "issue": "Process inefficiencies",
+                    "action": "Redesign workflow stages",
+                    "owner": "Team Lead",
+                    "timeline": "3 months",
+                    "success_metric": "Improve flow efficiency by 40%",
+                    "evidence": "Multiple bottlenecks detected",
+                    "priority": "medium",
+                    "effort": "high",
+                    "category": "foundational"
+                }
+            ]
+        })
+        
+        mock_llm = MockLLMProvider(mock_response)
+        analyzer = PatternAnalyzer(mock_llm, "basic")
+        
+        raw_data = {"wip": pd.DataFrame({"count": [15, 14, 16]})}
+        imperative_insights = {"flow_health": {"wip_high": True}}
+        
+        result = analyzer.analyze_flow_patterns(raw_data, imperative_insights)
+        
+        assert "patterns" in result
+        assert len(result["patterns"]) == 2
+        
+        # Check first recommendation (quick win)
+        quick_win = result["patterns"][0]
+        assert quick_win["category"] == "quick_wins"
+        assert quick_win["priority"] == "high"
+        assert quick_win["effort"] == "low"
+        assert quick_win["type"] == "basic_recommendation"
+        
+        # Check second recommendation (foundational)
+        foundational = result["patterns"][1]
+        assert foundational["category"] == "foundational"
+        assert foundational["priority"] == "medium"
+        assert foundational["effort"] == "high"
+        assert foundational["type"] == "basic_recommendation"
+
+    def test_cross_correlations_actionable_format(self):
+        """Test that cross-correlation analysis provides actionable recommendations."""
+        mock_response = json.dumps({
+            "recommendations": [
+                {
+                    "issue": "WIP increases but throughput stays flat",
+                    "action": "Identify and remove capacity constraints in bottleneck stages",
+                    "owner": "Engineering Manager",
+                    "timeline": "2 weeks to analyze, 1 month to implement fixes",
+                    "success_metric": "Throughput increases proportionally with WIP",
+                    "evidence": "WIP up 30% but throughput unchanged over 4 weeks",
+                    "priority": "high",
+                    "effort": "medium",
+                    "category": "strategic"
+                }
+            ]
+        })
+        
+        mock_llm = MockLLMProvider(mock_response)
+        analyzer = PatternAnalyzer(mock_llm, "enhanced")
+        
+        raw_data = {
+            "wip": pd.DataFrame({"count": [10, 12, 13]}),
+            "throughput": pd.DataFrame({"count": [5, 5, 5]})
+        }
+        imperative_insights = {"correlations": {"wip_throughput_decoupled": True}}
+        
+        result = analyzer._analyze_cross_correlations(raw_data, imperative_insights, dry_run=False)
+        
+        assert "patterns" in result
+        assert len(result["patterns"]) == 1
+        
+        correlation_rec = result["patterns"][0]
+        assert correlation_rec["type"] == "correlation_recommendation"
+        assert correlation_rec["category"] == "strategic"
+        assert correlation_rec["action"] == "Identify and remove capacity constraints in bottleneck stages"
+        assert correlation_rec["owner"] == "Engineering Manager"
+        assert "WIP increases but throughput stays flat" in correlation_rec["description"]
 
     def test_init_basic_depth(self):
         """Test PatternAnalyzer initialization with basic depth."""
@@ -57,13 +227,17 @@ class TestPatternAnalyzer:
     def test_analyze_flow_patterns_basic_success(self):
         """Test basic pattern analysis with successful response."""
         mock_response = json.dumps({
-            "patterns": [
+            "recommendations": [
                 {
-                    "type": "flow_anomaly",
-                    "description": "Throughput declining while WIP stable",
-                    "confidence": 0.8,
-                    "impact": "medium",
-                    "evidence": "Last 4 weeks show 20% throughput drop"
+                    "issue": "Throughput declining while WIP stable",
+                    "action": "Implement daily throughput tracking and WIP limits",
+                    "owner": "Scrum Master",
+                    "timeline": "2 weeks to implement, 1 month to see results",
+                    "success_metric": "Increase throughput by 20%",
+                    "evidence": "Last 4 weeks show 20% throughput drop",
+                    "priority": "high",
+                    "effort": "medium",
+                    "category": "quick_wins"
                 }
             ]
         })
@@ -76,10 +250,11 @@ class TestPatternAnalyzer:
         
         result = analyzer.analyze_flow_patterns(raw_data, imperative_insights)
         
-        assert result["status"] == "success"
+        assert "patterns" in result
         assert len(result["patterns"]) == 1
-        assert result["patterns"][0]["type"] == "flow_anomaly"
-        assert result["patterns"][0]["confidence"] == 0.8
+        assert result["patterns"][0]["type"] == "basic_recommendation"
+        assert result["patterns"][0]["category"] == "quick_wins"
+        assert result["patterns"][0]["action"] == "Implement daily throughput tracking and WIP limits"
         assert mock_llm.call_count == 1
 
     def test_analyze_flow_patterns_basic_dry_run(self, capsys):
@@ -92,9 +267,8 @@ class TestPatternAnalyzer:
         
         result = analyzer.analyze_flow_patterns(raw_data, imperative_insights, dry_run=True)
         
-        assert result["status"] == "dry_run"
-        assert result["patterns"] == []
-        assert result["prompt_displayed"] == True
+        assert "recommendations" in result
+        assert result["recommendations"] == []
         assert mock_llm.call_count == 0  # No API calls in dry run
         
         # Verify prompt was displayed
@@ -373,5 +547,5 @@ Anomaly: WIP accumulation in Code Review
             elif depth == "experimental":
                 assert result.get("analysis_depth") == "experimental"
             else:
-                # Basic doesn't set analysis_depth in response
-                assert result.get("status") in ["success", "error"]
+                # Basic analysis returns patterns
+                assert "patterns" in result

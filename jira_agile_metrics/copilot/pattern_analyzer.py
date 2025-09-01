@@ -59,12 +59,32 @@ class PatternAnalyzer:
                     else:
                         print(f"  {key}: {type(data)}")
                 print("="*80)
-                return {"status": "dry_run", "patterns": [], "confidence": 0.0, "prompt_displayed": True}
+                return {"recommendations": []}
                 
             if not self.llm:
-                return {"status": "dry_run", "patterns": [], "confidence": 0.0, "prompt_displayed": True}
+                return {"recommendations": []}
             response = self.llm.generate_insights(prompt, raw_data, dry_run)
-            return self._parse_pattern_response(response, confidence_base=0.7)
+            result = self._parse_json_response(response)
+            # Convert recommendations to patterns format for compatibility
+            if "recommendations" in result:
+                patterns = []
+                for rec in result["recommendations"]:
+                    patterns.append({
+                        "type": "basic_recommendation",
+                        "description": rec.get("issue", ""),
+                        "action": rec.get("action", ""),
+                        "owner": rec.get("owner", ""),
+                        "timeline": rec.get("timeline", ""),
+                        "success_metric": rec.get("success_metric", ""),
+                        "evidence": rec.get("evidence", ""),
+                        "priority": rec.get("priority", "medium"),
+                        "effort": rec.get("effort", "medium"),
+                        "category": rec.get("category", "strategic"),
+                        "confidence": 0.7,  # Basic analysis confidence
+                        "impact": rec.get("priority", "medium")
+                    })
+                return {"patterns": patterns}
+            return result
             
         except Exception as e:
             logger.warning(f"Basic pattern analysis failed: {e}")
@@ -121,43 +141,44 @@ class PatternAnalyzer:
         return result
     
     def _analyze_flow_anomalies(self, raw_data: Dict, imperative_insights: Dict, dry_run: bool) -> Dict:
-        """Detect flow anomalies that don't match typical patterns."""
-        prompt = f"""You are an expert in flow metrics analysis. Examine this team's data for SUBTLE ANOMALIES that might not be obvious:
+        """Detect flow anomalies and provide actionable recommendations."""
+        prompt = f"""You are an experienced agile coach analyzing team flow metrics. Identify issues and provide SPECIFIC, ACTIONABLE recommendations.
 
-CURRENT IMPERATIVE ANALYSIS FOUND:
+CURRENT SITUATION:
 {json.dumps(imperative_insights, indent=2, default=str)}
 
-RAW TIME-SERIES DATA:
+RAW METRICS DATA:
 {self._format_time_series_data(raw_data)}
 
-Look for these SUBTLE PATTERNS that imperative analysis might miss:
+For each issue you identify, provide:
 
-1. **Unusual Correlations**: Does throughput drop when WIP is stable? Does cycle time spike without obvious bottlenecks?
+1. **ISSUE**: What specific problem do you see?
+2. **ACTION**: What exact steps should the team take?
+3. **OWNER**: Who should be responsible (role/person)?
+4. **TIMELINE**: How long to implement and see results?
+5. **SUCCESS METRIC**: How will they measure improvement?
 
-2. **Temporal Anomalies**: Are there recurring patterns by day of week, time of month, or seasonal trends?
+Focus on these areas:
+- Flow bottlenecks and constraints
+- WIP management issues
+- Cycle time variability
+- Throughput inconsistencies
+- Quality indicators
 
-3. **Leading Indicators**: Do you see early warning signs of problems that haven't fully manifested yet?
-
-4. **Hidden Bottlenecks**: Are there constraints that don't show up in traditional CFD analysis?
-
-5. **Quality Signals**: Do patterns suggest hidden quality issues affecting flow?
-
-CRITICAL: Only identify patterns you can CLEARLY see in the data. Include:
-- Specific evidence from the data
-- Confidence level (0.0-1.0)
-- Potential impact (low/medium/high)
-- Recommended investigation steps
+CRITICAL: Only recommend actions you can justify with specific data evidence.
 
 Format as JSON:
 {{
-  "patterns": [
+  "recommendations": [
     {{
-      "type": "flow_anomaly",
-      "description": "Brief description",
-      "evidence": "Specific data points that support this",
-      "confidence": 0.8,
-      "impact": "medium",
-      "investigation": "What the team should look into"
+      "issue": "Brief description of the problem",
+      "action": "Specific step-by-step action to take",
+      "owner": "Role or person responsible",
+      "timeline": "Implementation time + expected results timeframe",
+      "success_metric": "How to measure success",
+      "evidence": "Specific data points supporting this recommendation",
+      "priority": "high|medium|low",
+      "effort": "low|medium|high"
     }}
   ]
 }}"""
@@ -179,46 +200,68 @@ Format as JSON:
                     else:
                         print(f"  {key}: {type(data)}")
                 print("="*80)
-                return {"patterns": []}
+                return {"recommendations": []}
             
             if not self.llm:
-                return {"patterns": []}
+                return {"recommendations": []}
             response = self.llm.generate_insights(prompt, raw_data, dry_run)
-            return self._parse_json_response(response)
+            result = self._parse_json_response(response)
+            # Convert recommendations to patterns format for compatibility
+            if "recommendations" in result:
+                patterns = []
+                for rec in result["recommendations"]:
+                    patterns.append({
+                        "type": "actionable_recommendation",
+                        "description": rec.get("issue", ""),
+                        "action": rec.get("action", ""),
+                        "owner": rec.get("owner", ""),
+                        "timeline": rec.get("timeline", ""),
+                        "success_metric": rec.get("success_metric", ""),
+                        "evidence": rec.get("evidence", ""),
+                        "priority": rec.get("priority", "medium"),
+                        "effort": rec.get("effort", "medium"),
+                        "confidence": 0.8,  # Default confidence for actionable recommendations
+                        "impact": rec.get("priority", "medium")
+                    })
+                return {"patterns": patterns}
+            return result
         except Exception as e:
             logger.warning(f"Flow anomaly analysis failed: {e}")
             return {"patterns": []}
     
     def _analyze_temporal_patterns(self, raw_data: Dict, imperative_insights: Dict, dry_run: bool) -> Dict:
         """Analyze temporal patterns and trends."""
-        prompt = f"""Analyze TEMPORAL PATTERNS in this agile team's flow data:
+        prompt = f"""You are an agile coach analyzing temporal patterns in team performance. Provide ACTIONABLE recommendations based on time-based trends.
 
 TIME-SERIES DATA:
 {self._format_time_series_data(raw_data)}
 
-Look for these TEMPORAL PATTERNS:
+Analyze for temporal patterns and provide specific actions:
 
-1. **Cyclical Patterns**: Weekly, bi-weekly, or monthly cycles in performance
-2. **Trend Changes**: Gradual improvements or degradations over time  
+1. **Cyclical Patterns**: Weekly, sprint, or monthly performance cycles
+2. **Trend Analysis**: Improving or degrading performance over time
 3. **Seasonal Effects**: End-of-sprint rushes, holiday impacts, etc.
-4. **Rhythm Disruptions**: Breaks in otherwise consistent patterns
+4. **Rhythm Issues**: Inconsistent team working patterns
 
-Focus on patterns that suggest:
-- Team rhythm and working patterns
-- External factors affecting flow
-- Process changes that worked or didn't work
-- Predictable performance variations
+For each pattern, provide:
+- **ISSUE**: What temporal problem affects flow?
+- **ACTION**: Specific steps to optimize timing/rhythm
+- **OWNER**: Who should lead this change?
+- **TIMELINE**: When to implement and measure results
+- **SUCCESS METRIC**: How to track improvement
 
-Only report patterns with clear evidence. Format as JSON:
+Format as JSON:
 {{
-  "patterns": [
+  "recommendations": [
     {{
-      "type": "temporal_pattern",
-      "description": "What pattern you observed",
-      "evidence": "Specific time periods and data points",
-      "confidence": 0.7,
-      "impact": "low",
-      "recommendation": "How to leverage or address this pattern"
+      "issue": "Specific temporal pattern affecting flow",
+      "action": "Concrete steps to address timing issues",
+      "owner": "Role responsible for implementation",
+      "timeline": "Implementation and measurement timeframe",
+      "success_metric": "How to measure timing improvements",
+      "evidence": "Specific time periods and data supporting this",
+      "priority": "high|medium|low",
+      "effort": "low|medium|high"
     }}
   ]
 }}"""
@@ -233,45 +276,78 @@ Only report patterns with clear evidence. Format as JSON:
                 print(prompt)
                 print("-" * 40)
                 print("="*80)
-                return {"patterns": []}
+                return {"recommendations": []}
             
             if not self.llm:
-                return {"patterns": []}
+                return {"recommendations": []}
             response = self.llm.generate_insights(prompt, raw_data, dry_run)
-            return self._parse_json_response(response)
+            result = self._parse_json_response(response)
+            # Convert recommendations to patterns format for compatibility
+            if "recommendations" in result:
+                patterns = []
+                for rec in result["recommendations"]:
+                    patterns.append({
+                        "type": "temporal_recommendation",
+                        "description": rec.get("issue", ""),
+                        "action": rec.get("action", ""),
+                        "owner": rec.get("owner", ""),
+                        "timeline": rec.get("timeline", ""),
+                        "success_metric": rec.get("success_metric", ""),
+                        "evidence": rec.get("evidence", ""),
+                        "priority": rec.get("priority", "medium"),
+                        "effort": rec.get("effort", "medium"),
+                        "confidence": 0.8,
+                        "impact": rec.get("priority", "medium")
+                    })
+                return {"patterns": patterns}
+            return result
         except Exception as e:
             logger.warning(f"Temporal pattern analysis failed: {e}")
             return {"patterns": []}
     
     def _analyze_cross_correlations(self, raw_data: Dict, imperative_insights: Dict, dry_run: bool) -> Dict:
-        """Analyze correlations between different metrics."""
-        prompt = f"""Analyze CROSS-METRIC CORRELATIONS in this flow data:
+        """Analyze cross-metric correlations and provide actionable recommendations."""
+        prompt = f"""You are an agile coach analyzing cross-metric relationships in team flow data. Provide ACTIONABLE recommendations based on metric correlations.
+
+CURRENT SITUATION:
+{json.dumps(imperative_insights, indent=2, default=str)}
 
 MULTIPLE METRICS DATA:
 {self._format_correlation_data(raw_data)}
 
-Look for UNEXPECTED RELATIONSHIPS between metrics:
+Analyze for cross-metric patterns and provide specific actions:
 
-1. **Inverse Correlations**: When one metric improves, another degrades
+1. **Inverse Correlations**: When one metric improves but another degrades
 2. **Delayed Effects**: Changes in one metric affecting others later
 3. **Threshold Effects**: Metrics that change behavior at certain levels
-4. **Compound Patterns**: Multiple metrics changing together in unusual ways
+4. **Compound Issues**: Multiple metrics indicating systemic problems
+
+For each correlation pattern, provide:
+- **ISSUE**: What cross-metric problem affects flow?
+- **ACTION**: Specific steps to address the correlation
+- **OWNER**: Who should lead this change?
+- **TIMELINE**: When to implement and measure results
+- **SUCCESS METRIC**: How to track correlation improvements
+- **CATEGORY**: quick_wins, strategic, or foundational
 
 Examples to investigate:
 - WIP increases but cycle time stays flat (capacity constraint?)
-- Throughput stable but quality metrics declining (technical debt?)
-- Bottlenecks shifting between stages (process optimization effects?)
+- Throughput stable but quality declining (technical debt?)
+- Bottlenecks shifting between stages (process changes?)
 
-Only report correlations with clear evidence. Format as JSON:
+Format as JSON:
 {{
-  "patterns": [
+  "recommendations": [
     {{
-      "type": "cross_correlation",
-      "description": "Relationship between metrics X and Y",
+      "issue": "Cross-metric correlation affecting flow",
+      "action": "Concrete steps to address metric relationships",
+      "owner": "Role responsible for implementation",
+      "timeline": "Implementation and measurement timeframe",
+      "success_metric": "How to measure correlation improvements",
       "evidence": "Specific data showing this correlation",
-      "confidence": 0.6,
-      "impact": "high",
-      "hypothesis": "Possible explanation for this relationship"
+      "priority": "high|medium|low",
+      "effort": "low|medium|high",
+      "category": "quick_wins|strategic|foundational"
     }}
   ]
 }}"""
@@ -286,38 +362,79 @@ Only report correlations with clear evidence. Format as JSON:
                 print(prompt)
                 print("-" * 40)
                 print("="*80)
-                return {"patterns": []}
+                return {"recommendations": []}
             
             if not self.llm:
-                return {"patterns": []}
+                return {"recommendations": []}
             response = self.llm.generate_insights(prompt, raw_data, dry_run)
-            return self._parse_json_response(response)
+            result = self._parse_json_response(response)
+            # Convert recommendations to patterns format for compatibility
+            if "recommendations" in result:
+                patterns = []
+                for rec in result["recommendations"]:
+                    patterns.append({
+                        "type": "correlation_recommendation",
+                        "description": rec.get("issue", ""),
+                        "action": rec.get("action", ""),
+                        "owner": rec.get("owner", ""),
+                        "timeline": rec.get("timeline", ""),
+                        "success_metric": rec.get("success_metric", ""),
+                        "evidence": rec.get("evidence", ""),
+                        "priority": rec.get("priority", "medium"),
+                        "effort": rec.get("effort", "medium"),
+                        "category": rec.get("category", "strategic"),
+                        "confidence": 0.7,
+                        "impact": rec.get("priority", "medium")
+                    })
+                return {"patterns": patterns}
+            return result
         except Exception as e:
             logger.warning(f"Cross-correlation analysis failed: {e}")
             return {"patterns": []}
     
     def _build_basic_pattern_prompt(self, raw_data: Dict, imperative_insights: Dict) -> str:
-        """Build a single comprehensive pattern detection prompt."""
-        return f"""You are an expert agile coach analyzing team flow metrics. 
+        """Build actionable recommendations prompt for basic analysis."""
+        return f"""You are an experienced agile coach analyzing team flow metrics. Provide ACTIONABLE recommendations based on the data.
 
-CURRENT ANALYSIS (from imperative rules):
+CURRENT SITUATION:
 {json.dumps(imperative_insights, indent=2, default=str)}
 
-RAW DATA:
+RAW METRICS DATA:
 {self._format_raw_data_summary(raw_data)}
 
-Your task: Identify SUBTLE PATTERNS that the rule-based analysis might have missed.
+For each issue you identify, provide:
 
-Look for:
-1. Unusual correlations between metrics
-2. Temporal patterns (weekly/monthly cycles)
-3. Early warning indicators
-4. Hidden constraints or bottlenecks
-5. Quality-related flow impacts
+1. **ISSUE**: What specific problem do you see?
+2. **ACTION**: What exact steps should the team take?
+3. **OWNER**: Who should be responsible (role/person)?
+4. **TIMELINE**: How long to implement and see results?
+5. **SUCCESS METRIC**: How will they measure improvement?
+6. **CATEGORY**: quick_wins, strategic, or foundational
 
-Only report patterns you can clearly evidence from the data. Include confidence scores.
+Focus on the most impactful improvements the team can make. Prioritize actions that:
+- Address flow bottlenecks and constraints
+- Improve predictability and cycle time
+- Reduce WIP and age of work
+- Enhance throughput consistency
 
-Format your response as structured insights with evidence."""
+CRITICAL: Only recommend actions you can justify with specific data evidence.
+
+Format as JSON:
+{{
+  "recommendations": [
+    {{
+      "issue": "Brief description of the problem",
+      "action": "Specific step-by-step action to take",
+      "owner": "Role or person responsible",
+      "timeline": "Implementation time + expected results timeframe",
+      "success_metric": "How to measure success",
+      "evidence": "Specific data points supporting this recommendation",
+      "priority": "high|medium|low",
+      "effort": "low|medium|high",
+      "category": "quick_wins|strategic|foundational"
+    }}
+  ]
+}}"""
     
     def _format_time_series_data(self, raw_data: Dict) -> str:
         """Format time-series data for AI analysis."""
