@@ -1,4 +1,5 @@
 import logging
+from typing import Optional
 
 import dateutil.parser
 import matplotlib.pyplot as plt
@@ -32,7 +33,7 @@ class DefectsCalculator(Calculator):
       `defects_by_environment_chart_title`.
     """
 
-    def run(self):
+    def run(self) -> Optional[pd.DataFrame]:
 
         query = self.settings["defects_query"]
 

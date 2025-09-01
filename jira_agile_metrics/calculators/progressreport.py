@@ -14,6 +14,7 @@ import numpy as np
 import pandas as pd
 import scipy.stats
 import statsmodels.formula.api as sm
+from typing import Any, Dict, Optional
 
 from ..calculator import Calculator
 from ..utils import get_current_date, get_current_time, set_chart_style, to_days_since_epoch
@@ -34,7 +35,7 @@ jinja_env = jinja2.Environment(
 class ProgressReportCalculator(Calculator):
     """Output a progress report based on Monte Carlo forecast to completion"""
 
-    def run(self, now=None, trials=1000):
+    def run(self, now=None, trials=1000) -> Optional[Dict[str, Any]]:
 
         if self.settings["progress_report"] is None:
             return

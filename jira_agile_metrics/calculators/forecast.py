@@ -1,5 +1,6 @@
 import datetime
 import logging
+from typing import Any, Dict, Optional
 
 import matplotlib.pyplot as plt
 import matplotlib.transforms
@@ -16,7 +17,7 @@ logger = logging.getLogger(__name__)
 class BurnupForecastCalculator(Calculator):
     """Draw a burn-up chart with a forecast run to completion"""
 
-    def run(self):
+    def run(self) -> Optional[pd.DataFrame]:
         burnup_data = self.get_result(BurnupCalculator)
         cycle_data = self.get_result(CycleTimeCalculator)
 
@@ -271,7 +272,7 @@ class BurnupForecastCalculator(Calculator):
         # Place legend underneath graph
         box = ax.get_position()
         handles, labels = ax.get_legend_handles_labels()
-        ax.set_position([box.x0, box.y0 + box.height * 0.1, box.width, box.height * 0.9])
+        ax.set_position((box.x0, box.y0 + box.height * 0.1, box.width, box.height * 0.9))
 
         ax.legend(
             handles[:2],
@@ -307,7 +308,7 @@ def throughput_sampler(throughput_data, start_value, target):
     draw samples from `throughput_data`"""
     sample_buffer_size = int(2 * (target - start_value) / throughput_data["count"].mean())
 
-    sample_buffer = dict(idx=0, buffer=None)
+    sample_buffer : Dict[str,Any] = dict(idx=0, buffer=None)
 
     def get_throughput_sample():
         if sample_buffer["buffer"] is None or sample_buffer["idx"] >= len(sample_buffer["buffer"].index):

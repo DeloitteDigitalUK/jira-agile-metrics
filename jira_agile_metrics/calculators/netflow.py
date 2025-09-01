@@ -1,6 +1,8 @@
 import logging
+from typing import Optional
 
 import matplotlib.pyplot as plt
+import pandas as pd
 
 from ..calculator import Calculator
 from ..utils import set_chart_style
@@ -12,7 +14,7 @@ logger = logging.getLogger(__name__)
 class NetFlowChartCalculator(Calculator):
     """Draw a net flow chart"""
 
-    def run(self):
+    def run(self) -> Optional[pd.DataFrame]:
         cfd_data = self.get_result(CFDCalculator)
         cycle_names = [s["name"] for s in self.settings["cycle"]]
 

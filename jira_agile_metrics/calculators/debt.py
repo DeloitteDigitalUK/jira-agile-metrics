@@ -1,4 +1,5 @@
 import logging
+from typing import Optional
 
 import dateutil.parser
 import matplotlib.pyplot as plt
@@ -24,7 +25,7 @@ class DebtCalculator(Calculator):
     `debt_age_chart_title`, grouping by item age.
     """
 
-    def run(self, now=None):
+    def run(self, now=None) -> Optional[pd.DataFrame]:
 
         query = self.settings["debt_query"]
 

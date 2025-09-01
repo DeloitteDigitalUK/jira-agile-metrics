@@ -1,4 +1,5 @@
 import logging
+from typing import Optional
 
 import dateutil
 import pandas as pd
@@ -19,7 +20,7 @@ class WasteCalculator(Calculator):
     `waste_chart_window` months (if given).
     """
 
-    def run(self):
+    def run(self) -> Optional[pd.DataFrame]:
 
         query = self.settings["waste_query"]
         if not query:
@@ -59,7 +60,8 @@ class WasteCalculator(Calculator):
                 last_status = status_changes[-1].from_string
 
             if last_status is not None and last_status.lower() in cycle_lookup:
-                last_status = cycle_lookup.get(last_status.lower())["name"]
+                cycle_step = cycle_lookup.get(last_status.lower())
+                last_status = cycle_step["name"] if cycle_step else None
             else:
                 logger.warning(
                     "Issue %s transitioned from unknown JIRA status %s",

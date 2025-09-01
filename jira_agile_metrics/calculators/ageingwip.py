@@ -1,4 +1,5 @@
 import logging
+from typing import Optional
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -15,7 +16,7 @@ logger = logging.getLogger(__name__)
 class AgeingWIPChartCalculator(Calculator):
     """Draw an ageing WIP chart"""
 
-    def run(self, today=None):
+    def run(self, today=None) -> Optional[pd.DataFrame]:
 
         # short circuit relatively expensive calculation if it won't be used
         if not self.settings["ageing_wip_chart"]:

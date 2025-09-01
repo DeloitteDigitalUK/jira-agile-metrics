@@ -1,4 +1,5 @@
 import logging
+from typing import Optional
 
 import matplotlib.pyplot as plt
 import pandas as pd
@@ -13,7 +14,7 @@ logger = logging.getLogger(__name__)
 class BurnupCalculator(Calculator):
     """Draw a simple burn-up chart."""
 
-    def run(self):
+    def run(self) -> Optional[pd.DataFrame]:
         cfd_data = self.get_result(CFDCalculator)
 
         backlog_column = self.settings["backlog_column"]
@@ -69,7 +70,7 @@ class BurnupCalculator(Calculator):
         # Place legend underneath graph
         box = ax.get_position()
         handles, labels = ax.get_legend_handles_labels()
-        ax.set_position([box.x0, box.y0 + box.height * 0.1, box.width, box.height * 0.9])
+        ax.set_position((box.x0, box.y0 + box.height * 0.1, box.width, box.height * 0.9))
 
         ax.legend(
             handles[:2],

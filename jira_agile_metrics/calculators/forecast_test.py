@@ -62,6 +62,7 @@ def test_columns(query_manager, settings, results):
     calculator = BurnupForecastCalculator(query_manager, settings, results)
 
     data = calculator.run()
+    assert data is not None  # Configured with burnup_forecast_chart
     assert list(data.columns) == [
         "Trial 0",
         "Trial 1",
@@ -80,6 +81,7 @@ def test_calculate_forecast(query_manager, settings, results):
     calculator = BurnupForecastCalculator(query_manager, settings, results)
 
     data = calculator.run()
+    assert data is not None  # Configured with burnup_forecast_chart
 
     # because of the random nature of this,
     # we don't know exactly how many records
@@ -129,6 +131,7 @@ def test_calculate_forecast_settings(query_manager, settings, results):
     calculator = BurnupForecastCalculator(query_manager, settings, results)
 
     data = calculator.run()
+    assert data is not None  # Configured with burnup_forecast_chart
 
     # because of the random nature of this, we don't
     # know exactly how many records
